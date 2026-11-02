@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f6feb">
+<title>ToolR 藍牙記錄器</title>
+  <script type="module" crossorigin src="./assets/index-yGvyoiZQ.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-sY_cVdxB.css">
+</head>
+<body>
+<header>
+  <h1>ToolR 藍牙記錄器</h1>
+  <span id="connChip" class="conn" data-state="off">未連線</span>
+</header>
+
+<main>
+  <section class="card">
+    <p id="noBle" class="notice" hidden>這個瀏覽器不支援 Web Bluetooth。Android 請用 Chrome，iPhone 請用 Bluefy，電腦請用 Chrome 或 Edge。仍可用「示範模式」試用。</p>
+    <div class="row">
+      <button id="btnConnect" type="button" class="primary">連接模組</button>
+      <button id="btnDemo" type="button">示範模式</button>
+      <button id="btnDisconnect" type="button" hidden>中斷連線</button>
+      <button id="btnDrop" type="button" hidden>模擬藍牙斷線</button>
+    </div>
+    <p id="devInfo" class="muted"></p>
+    <p id="devHealth" class="health"></p>
+    <p id="wakeState" class="wake" data-state="off">螢幕常亮：未啟用（連線後啟用）</p>
+  </section>
+
+  <section class="card">
+    <div class="rechead">
+      <span id="recState" class="recstate" data-rec="0">—</span>
+      <span id="recTime" class="rectime"></span>
+    </div>
+    <div class="row big">
+      <button id="btnStart" type="button" class="primary" disabled>開始錄製</button>
+      <button id="btnMark" type="button" disabled>標記</button>
+      <button id="btnStop" type="button" class="danger" disabled>停止</button>
+    </div>
+    <dl class="stats">
+      <div><dt>匯流排</dt><dd id="vFps">—</dd></div>
+      <div><dt>手機已收到</dt><dd id="vRx">—</dd></div>
+      <div><dt>藍牙速率</dt><dd id="vRate">—</dd></div>
+      <div><dt>模組緩衝</dt><dd id="vBuf">—</dd></div>
+      <div><dt>漏收列數</dt><dd id="vDrop">—</dd></div>
+      <div><dt>標記</dt><dd id="vMarks">—</dd></div>
+      <div class="wide"><dt>CAN 錯誤</dt><dd id="vCan">—</dd></div>
+      <div class="wide"><dt>藍牙連線</dt><dd id="vLink">—</dd></div>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>錄製</h2>
+    <p id="recsEmpty" class="muted">還沒有錄製。</p>
+    <ul id="recs" class="files"></ul>
+  </section>
+
+  <details class="card">
+    <summary>設定</summary>
+    <label>伺服器網址<input id="setUrl" type="url" placeholder="https://example.com/api/toolr/upload" autocomplete="off"></label>
+    <label>Token<input id="setToken" type="password" autocomplete="off"></label>
+    <label class="check"><input id="setAuto" type="checkbox"> 自動上傳（錄製中每 2 分鐘分段上傳，錄完補上最後一段；伺服器轉成 CSV）</label>
+    <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
+    <div class="row">
+      <label class="grow">模擬模式 frame/s（0 = 關閉，不接車測藍牙用）<input id="setSim" type="number" min="0" max="5000" step="1" value="0"></label>
+      <button id="btnSim" type="button">套用</button>
+    </div>
+  </details>
+
+  <details class="card">
+    <summary>紀錄</summary>
+    <ul id="log" class="log"></ul>
+  </details>
+</main>
+
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
