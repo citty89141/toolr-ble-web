@@ -4,76 +4,102 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1f6feb">
-<title>ToolR 藍牙記錄器</title>
-  <script type="module" crossorigin src="./assets/index-yGvyoiZQ.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-sY_cVdxB.css">
+<title>ToolR 工具</title>
+<style>
+:root {
+  --bg: #f4f6f8; --panel: #ffffff; --text: #1b1f24; --muted: #5f6b77; --line: #d8dee4;
+  --accent: #1f6feb; --warn: #9a6700; --chip: #eef1f4; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1117; --panel: #161b22; --text: #e6edf3; --muted: #8d96a0; --line: #30363d;
+    --accent: #2f81f7; --warn: #d29922; --chip: #21262d; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1117; --panel: #161b22; --text: #e6edf3; --muted: #8d96a0; --line: #30363d;
+  --accent: #2f81f7; --warn: #d29922; --chip: #21262d; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "Segoe UI", "Microsoft JhengHei", "PingFang TC", sans-serif;
+}
+header {
+  padding: 14px 16px; padding-top: max(14px, env(safe-area-inset-top));
+  background: var(--panel); border-bottom: 1px solid var(--line);
+}
+h1 { margin: 0; font-size: 18px; }
+header p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+main { max-width: 720px; margin: 0 auto; padding: 12px 16px 48px; display: grid; gap: 12px; }
+.tool {
+  display: block; padding: 14px; border: 1px solid var(--line); border-radius: 10px;
+  background: var(--panel); color: inherit; text-decoration: none;
+}
+.tool:hover, .tool:focus-visible { border-color: var(--accent); }
+.tool h2 { margin: 0; font-size: 16px; color: var(--accent); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.tool h2 .ver { font-size: 12px; font-weight: 400; color: var(--muted); }
+.tool p { margin: 6px 0 0; font-size: 14px; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.tag { font-size: 12px; padding: 1px 8px; border-radius: 999px; background: var(--chip); color: var(--muted); }
+.tag.warn { color: var(--warn); }
+.notice { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--chip); color: var(--warn); font-size: 13px; }
+footer { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+footer ul { margin: 4px 0 0; padding-left: 18px; }
+</style>
 </head>
 <body>
 <header>
-  <h1>ToolR 藍牙記錄器</h1>
-  <span id="connChip" class="conn" data-state="off">未連線</span>
+  <h1>ToolR 工具</h1>
+  <p>ToolB 模組錄製、控制器參數與燒錄、記錄分析</p>
 </header>
-
 <main>
-  <section class="card">
-    <p id="noBle" class="notice" hidden>這個瀏覽器不支援 Web Bluetooth。Android 請用 Chrome，iPhone 請用 Bluefy，電腦請用 Chrome 或 Edge。仍可用「示範模式」試用。</p>
-    <div class="row">
-      <button id="btnConnect" type="button" class="primary">連接模組</button>
-      <button id="btnDemo" type="button">示範模式</button>
-      <button id="btnDisconnect" type="button" hidden>中斷連線</button>
-      <button id="btnDrop" type="button" hidden>模擬藍牙斷線</button>
-    </div>
-    <p id="devInfo" class="muted"></p>
-    <p id="devHealth" class="health"></p>
-    <p id="wakeState" class="wake" data-state="off">螢幕常亮：未啟用（連線後啟用）</p>
-  </section>
+  <p id="noBle" class="notice" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。Android 請用 Chrome，iPhone 請用 Bluefy，電腦請用 Chrome 或 Edge。分析頁不需要藍牙。</p>
 
-  <section class="card">
-    <div class="rechead">
-      <span id="recState" class="recstate" data-rec="0">—</span>
-      <span id="recTime" class="rectime"></span>
-    </div>
-    <div class="row big">
-      <button id="btnStart" type="button" class="primary" disabled>開始錄製</button>
-      <button id="btnMark" type="button" disabled>標記</button>
-      <button id="btnStop" type="button" class="danger" disabled>停止</button>
-    </div>
-    <dl class="stats">
-      <div><dt>匯流排</dt><dd id="vFps">—</dd></div>
-      <div><dt>手機已收到</dt><dd id="vRx">—</dd></div>
-      <div><dt>藍牙速率</dt><dd id="vRate">—</dd></div>
-      <div><dt>模組緩衝</dt><dd id="vBuf">—</dd></div>
-      <div><dt>漏收列數</dt><dd id="vDrop">—</dd></div>
-      <div><dt>標記</dt><dd id="vMarks">—</dd></div>
-      <div class="wide"><dt>CAN 錯誤</dt><dd id="vCan">—</dd></div>
-      <div class="wide"><dt>藍牙連線</dt><dd id="vLink">—</dd></div>
-    </dl>
-  </section>
+  <a class="tool" href="rec/">
+    <h2>錄製 <span class="ver" data-ver="rec"></span></h2>
+    <p>連 ToolB 模組做 RAW 錄製：開始、標記、停止。錄完轉成 RAW_xxxx.CSV，按「分析」直接開分析頁。</p>
+    <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
+  </a>
 
-  <section class="card">
-    <h2>錄製</h2>
-    <p id="recsEmpty" class="muted">還沒有錄製。</p>
-    <ul id="recs" class="files"></ul>
-  </section>
+  <a class="tool" href="param/">
+    <h2>參數與燒錄 <span class="ver" data-ver="param"></span></h2>
+    <p>eBike Tool：讀寫控制器參數、匯入匯出設定、燒錄控制器韌體。可經 ToolB 藍牙（BLE-CAN），或電腦接 COM 埠。</p>
+    <div class="tags"><span class="tag">電腦</span><span class="tag">藍牙</span><span class="tag">COM 埠（只有電腦）</span><span class="tag warn">版面為電腦設計</span></div>
+  </a>
 
-  <details class="card">
-    <summary>設定</summary>
-    <label>伺服器網址<input id="setUrl" type="url" placeholder="https://example.com/api/toolr/upload" autocomplete="off"></label>
-    <label>Token<input id="setToken" type="password" autocomplete="off"></label>
-    <label class="check"><input id="setAuto" type="checkbox"> 自動上傳（錄製中每 2 分鐘分段上傳，錄完補上最後一段；伺服器轉成 CSV）</label>
-    <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
-    <div class="row">
-      <label class="grow">模擬模式 frame/s（0 = 關閉，不接車測藍牙用）<input id="setSim" type="number" min="0" max="5000" step="1" value="0"></label>
-      <button id="btnSim" type="button">套用</button>
-    </div>
-  </details>
+  <a class="tool" href="analyzer/">
+    <h2>分析 <span class="ver" data-ver="analyzer"></span></h2>
+    <p>ToolR Analyzer：開 RAW／LOG CSV 看波形、時間軸、錄製完整度。可以一次開多個檔接起來看。</p>
+    <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">不需要藍牙</span></div>
+  </a>
 
-  <details class="card">
-    <summary>紀錄</summary>
-    <ul id="log" class="log"></ul>
-  </details>
+  <a class="tool" href="ota/">
+    <h2>ToolB 韌體更新 <span class="ver" data-ver="ota"></span></h2>
+    <p>用藍牙更新 ToolB 模組本身的韌體（OTA）。更新後 5 分鐘內要再連一次讓它確認，否則模組會退回舊版。</p>
+    <div class="tags"><span class="tag">電腦</span><span class="tag">手機</span><span class="tag">藍牙</span></div>
+  </a>
+
+  <footer id="build"></footer>
 </main>
+<script>
+if (!navigator.bluetooth) document.getElementById("noBle").hidden = false;
 
-<div id="toast" class="toast" role="status" hidden></div>
+// site.json is written by web/build_site.mjs: where each tool came from
+fetch("site.json", { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((site) => {
+  if (!site) return;
+  const items = [];
+  for (const [key, t] of Object.entries(site.tools)) {
+    const ver = document.querySelector(`[data-ver="${key}"]`);
+    if (ver && t.version) ver.textContent = t.version;
+    items.push(`${t.name}：${t.repo} ${t.commit}${t.version ? `（${t.version}）` : ""}`);
+  }
+  const f = document.getElementById("build");
+  f.textContent = `建置於 ${new Date(site.built).toLocaleString()}`;
+  const ul = document.createElement("ul");
+  for (const s of items) ul.append(Object.assign(document.createElement("li"), { textContent: s }));
+  f.append(ul);
+}).catch(() => {});
+</script>
 </body>
 </html>

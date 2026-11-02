@@ -1,0 +1,1799 @@
+<!doctype html>
+<html lang="zh-Hant" data-edition="std">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ToolR Analyzer V1.14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<!-- uPlot 1.6.30 (MIT, https://github.com/leeoniya/uPlot) inlined so the analyzer works offline -->
+<style>.uplot, .uplot *, .uplot *::before, .uplot *::after {box-sizing: border-box;}.uplot {font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";line-height: 1.5;width: min-content;}.u-title {text-align: center;font-size: 18px;font-weight: bold;}.u-wrap {position: relative;user-select: none;}.u-over, .u-under {position: absolute;}.u-under {overflow: hidden;}.uplot canvas {display: block;position: relative;width: 100%;height: 100%;}.u-axis {position: absolute;}.u-legend {font-size: 14px;margin: auto;text-align: center;}.u-inline {display: block;}.u-inline * {display: inline-block;}.u-inline tr {margin-right: 16px;}.u-legend th {font-weight: 600;}.u-legend th > * {vertical-align: middle;display: inline-block;}.u-legend .u-marker {width: 1em;height: 1em;margin-right: 4px;background-clip: padding-box !important;}.u-inline.u-live th::after {content: ":";vertical-align: middle;}.u-inline:not(.u-live) .u-value {display: none;}.u-series > * {padding: 4px;}.u-series th {cursor: pointer;}.u-legend .u-off > * {opacity: 0.3;}.u-select {background: rgba(0,0,0,0.07);position: absolute;pointer-events: none;}.u-cursor-x, .u-cursor-y {position: absolute;left: 0;top: 0;pointer-events: none;will-change: transform;}.u-hz .u-cursor-x, .u-vt .u-cursor-y {height: 100%;border-right: 1px dashed #607D8B;}.u-hz .u-cursor-y, .u-vt .u-cursor-x {width: 100%;border-bottom: 1px dashed #607D8B;}.u-cursor-pt {position: absolute;top: 0;left: 0;border-radius: 50%;border: 0 solid;pointer-events: none;will-change: transform;/*this has to be !important since we set inline "background" shorthand */background-clip: padding-box !important;}.u-axis.u-off, .u-select.u-off, .u-cursor-x.u-off, .u-cursor-y.u-off, .u-cursor-pt.u-off {display: none;}</style>
+<script>/*! https://github.com/leeoniya/uPlot (v1.6.30) */
+var uPlot=function(){"use strict";const l="u-off",e="u-label",t="width",n="height",i="top",o="bottom",s="left",r="right",u="#000",a=u+"0",f="mousemove",c="mousedown",h="mouseup",d="mouseenter",p="mouseleave",m="dblclick",g="change",x="dppxchange",w="--",_="undefined"!=typeof window,b=_?document:null,v=_?window:null,k=_?navigator:null;let y,M;function S(l,e){if(null!=e){let t=l.classList;!t.contains(e)&&t.add(e)}}function E(l,e){let t=l.classList;t.contains(e)&&t.remove(e)}function T(l,e,t){l.style[e]=t+"px"}function z(l,e,t,n){let i=b.createElement(l);return null!=e&&S(i,e),null!=t&&t.insertBefore(i,n),i}function D(l,e){return z("div",l,e)}const P=new WeakMap;function A(e,t,n,i,o){let s="translate("+t+"px,"+n+"px)";s!=P.get(e)&&(e.style.transform=s,P.set(e,s),0>t||0>n||t>i||n>o?S(e,l):E(e,l))}const W=new WeakMap;function Y(l,e,t){let n=e+t;n!=W.get(l)&&(W.set(l,n),l.style.background=e,l.style.borderColor=t)}const C=new WeakMap;function F(l,e,t,n){let i=e+""+t;i!=C.get(l)&&(C.set(l,i),l.style.height=t+"px",l.style.width=e+"px",l.style.marginLeft=n?-e/2+"px":0,l.style.marginTop=n?-t/2+"px":0)}const H={passive:!0},R={...H,capture:!0};function G(l,e,t,n){e.addEventListener(l,t,n?R:H)}function I(l,e,t,n){e.removeEventListener(l,t,n?R:H)}function L(l,e,t,n){let i;t=t||0;let o=2147483647>=(n=n||e.length-1);for(;n-t>1;)i=o?t+n>>1:tl((t+n)/2),l>e[i]?t=i:n=i;return l-e[t]>e[n]-l?n:t}function O(l,e,t,n){for(let i=1==n?e:t;i>=e&&t>=i;i+=n)if(null!=l[i])return i;return-1}function N(l,e,t,n){let i=ul(l),o=ul(e);l==e&&(-1==i?(l*=t,e/=t):(l/=t,e*=t));let s=10==t?al:fl,r=1==o?il:tl,u=(1==i?tl:il)(s(el(l))),a=r(s(el(e))),f=rl(t,u),c=rl(t,a);return 10==t&&(0>u&&(f=Sl(f,-u)),0>a&&(c=Sl(c,-a))),n||2==t?(l=f*i,e=c*o):(l=Ml(l,f),e=yl(e,c)),[l,e]}function j(l,e,t,n){let i=N(l,e,t,n);return 0==l&&(i[0]=0),0==e&&(i[1]=0),i}_&&function l(){let e=devicePixelRatio;y!=e&&(y=e,M&&I(g,M,l),M=matchMedia(`(min-resolution: ${y-.001}dppx) and (max-resolution: ${y+.001}dppx)`),G(g,M,l),v.dispatchEvent(new CustomEvent(x)))}();const U=.1,B={mode:3,pad:U},V={pad:0,soft:null,mode:0},J={min:V,max:V};function q(l,e,t,n){return Fl(t)?X(l,e,t):(V.pad=t,V.soft=n?0:null,V.mode=n?3:0,X(l,e,J))}function K(l,e){return null==l?e:l}function X(l,e,t){let n=t.min,i=t.max,o=K(n.pad,0),s=K(i.pad,0),r=K(n.hard,-hl),u=K(i.hard,hl),a=K(n.soft,hl),f=K(i.soft,-hl),c=K(n.mode,0),h=K(i.mode,0),d=e-l,p=al(d),m=sl(el(l),el(e)),g=al(m),x=el(g-p);(1e-9>d||x>10)&&(d=0,0!=l&&0!=e||(d=1e-9,2==c&&a!=hl&&(o=0),2==h&&f!=-hl&&(s=0)));let w=d||m||1e3,_=al(w),b=rl(10,tl(_)),v=Sl(Ml(l-w*(0==d?0==l?.1:1:o),b/10),9),k=a>l||1!=c&&(3!=c||v>a)&&(2!=c||a>v)?hl:a,y=sl(r,k>v&&l>=k?k:ol(k,v)),M=Sl(yl(e+w*(0==d?0==e?.1:1:s),b/10),9),S=e>f||1!=h&&(3!=h||f>M)&&(2!=h||M>f)?-hl:f,E=ol(u,M>S&&S>=e?S:sl(S,M));return y==E&&0==y&&(E=100),[y,E]}const Z=new Intl.NumberFormat(_?k.language:"en-US"),$=l=>Z.format(l),Q=Math,ll=Q.PI,el=Q.abs,tl=Q.floor,nl=Q.round,il=Q.ceil,ol=Q.min,sl=Q.max,rl=Q.pow,ul=Q.sign,al=Q.log10,fl=Q.log2,cl=(l,e=1)=>Q.asinh(l/e),hl=1/0;function dl(l){return 1+(0|al((l^l>>31)-(l>>31)))}function pl(l,e,t){return ol(sl(l,e),t)}function ml(l){return"function"==typeof l?l:()=>l}const gl=l=>l,xl=(l,e)=>e,wl=()=>null,_l=()=>!0,bl=(l,e)=>l==e,vl=l=>Sl(l,14);function kl(l,e){return vl(Sl(vl(l/e))*e)}function yl(l,e){return vl(il(vl(l/e))*e)}function Ml(l,e){return vl(tl(vl(l/e))*e)}function Sl(l,e=0){if(Yl(l))return l;let t=10**e;return nl(l*t*(1+Number.EPSILON))/t}const El=new Map;function Tl(l){return((""+l).split(".")[1]||"").length}function zl(l,e,t,n){let i=[],o=n.map(Tl);for(let s=e;t>s;s++){let e=el(s),t=Sl(rl(l,s),e);for(let l=0;n.length>l;l++){let r=n[l]*t,u=(0>r||0>s?e:0)+(o[l]>s?o[l]:0),a=Sl(r,u);i.push(a),El.set(a,u)}}return i}const Dl={},Pl=[],Al=[null,null],Wl=Array.isArray,Yl=Number.isInteger;function Cl(l){return"string"==typeof l}function Fl(l){let e=!1;if(null!=l){let t=l.constructor;e=null==t||t==Object}return e}function Hl(l){return null!=l&&"object"==typeof l}const Rl=Object.getPrototypeOf(Uint8Array);function Gl(l,e=Fl){let t;if(Wl(l)){let n=l.find((l=>null!=l));if(Wl(n)||e(n)){t=Array(l.length);for(let n=0;l.length>n;n++)t[n]=Gl(l[n],e)}else t=l.slice()}else if(l instanceof Rl)t=l.slice();else if(e(l)){t={};for(let n in l)t[n]=Gl(l[n],e)}else t=l;return t}function Il(l){let e=arguments;for(let t=1;e.length>t;t++){let n=e[t];for(let e in n)Fl(l[e])?Il(l[e],Gl(n[e])):l[e]=Gl(n[e])}return l}function Ll(l,e,t){for(let n,i=0,o=-1;e.length>i;i++){let s=e[i];if(s>o){for(n=s-1;n>=0&&null==l[n];)l[n--]=null;for(n=s+1;t>n&&null==l[n];)l[o=n++]=null}}}const Ol="undefined"==typeof queueMicrotask?l=>Promise.resolve().then(l):queueMicrotask,Nl=["January","February","March","April","May","June","July","August","September","October","November","December"],jl=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];function Ul(l){return l.slice(0,3)}const Bl=jl.map(Ul),Vl=Nl.map(Ul),Jl={MMMM:Nl,MMM:Vl,WWWW:jl,WWW:Bl};function ql(l){return(10>l?"0":"")+l}const Kl={YYYY:l=>l.getFullYear(),YY:l=>(l.getFullYear()+"").slice(2),MMMM:(l,e)=>e.MMMM[l.getMonth()],MMM:(l,e)=>e.MMM[l.getMonth()],MM:l=>ql(l.getMonth()+1),M:l=>l.getMonth()+1,DD:l=>ql(l.getDate()),D:l=>l.getDate(),WWWW:(l,e)=>e.WWWW[l.getDay()],WWW:(l,e)=>e.WWW[l.getDay()],HH:l=>ql(l.getHours()),H:l=>l.getHours(),h:l=>{let e=l.getHours();return 0==e?12:e>12?e-12:e},AA:l=>12>l.getHours()?"AM":"PM",aa:l=>12>l.getHours()?"am":"pm",a:l=>12>l.getHours()?"a":"p",mm:l=>ql(l.getMinutes()),m:l=>l.getMinutes(),ss:l=>ql(l.getSeconds()),s:l=>l.getSeconds(),fff:l=>function(l){return(10>l?"00":100>l?"0":"")+l}(l.getMilliseconds())};function Xl(l,e){e=e||Jl;let t,n=[],i=/\{([a-z]+)\}|[^{]+/gi;for(;t=i.exec(l);)n.push("{"==t[0][0]?Kl[t[1]]:t[0]);return l=>{let t="";for(let i=0;n.length>i;i++)t+="string"==typeof n[i]?n[i]:n[i](l,e);return t}}const Zl=(new Intl.DateTimeFormat).resolvedOptions().timeZone,$l=l=>l%1==0,Ql=[1,2,2.5,5],le=zl(10,-16,0,Ql),ee=zl(10,0,16,Ql),te=ee.filter($l),ne=le.concat(ee),ie="{YYYY}",oe="\n"+ie,se="{M}/{D}",re="\n"+se,ue=re+"/{YY}",ae="{aa}",fe="{h}:{mm}"+ae,ce="\n"+fe,he=":{ss}",de=null;function pe(l){let e=1e3*l,t=60*e,n=60*t,i=24*n,o=30*i,s=365*i;return[(1==l?zl(10,0,3,Ql).filter($l):zl(10,-3,0,Ql)).concat([e,5*e,10*e,15*e,30*e,t,5*t,10*t,15*t,30*t,n,2*n,3*n,4*n,6*n,8*n,12*n,i,2*i,3*i,4*i,5*i,6*i,7*i,8*i,9*i,10*i,15*i,o,2*o,3*o,4*o,6*o,s,2*s,5*s,10*s,25*s,50*s,100*s]),[[s,ie,de,de,de,de,de,de,1],[28*i,"{MMM}",oe,de,de,de,de,de,1],[i,se,oe,de,de,de,de,de,1],[n,"{h}"+ae,ue,de,re,de,de,de,1],[t,fe,ue,de,re,de,de,de,1],[e,he,ue+" "+fe,de,re+" "+fe,de,ce,de,1],[l,he+".{fff}",ue+" "+fe,de,re+" "+fe,de,ce,de,1]],function(e){return(r,u,a,f,c,h)=>{let d=[],p=c>=s,m=c>=o&&s>c,g=e(a),x=Sl(g*l,3),w=ye(g.getFullYear(),p?0:g.getMonth(),m||p?1:g.getDate()),_=Sl(w*l,3);if(m||p){let t=m?c/o:0,n=p?c/s:0,i=x==_?x:Sl(ye(w.getFullYear()+n,w.getMonth()+t,1)*l,3),r=new Date(nl(i/l)),u=r.getFullYear(),a=r.getMonth();for(let o=0;f>=i;o++){let s=ye(u+n*o,a+t*o,1),r=s-e(Sl(s*l,3));i=Sl((+s+r)*l,3),i>f||d.push(i)}}else{let o=i>c?c:i,s=_+(tl(a)-tl(x))+yl(x-_,o);d.push(s);let p=e(s),m=p.getHours()+p.getMinutes()/t+p.getSeconds()/n,g=c/n,w=h/r.axes[u]._space;for(;s=Sl(s+c,1==l?0:3),f>=s;)if(g>1){let l=tl(Sl(m+g,6))%24,t=e(s).getHours()-l;t>1&&(t=-1),s-=t*n,m=(m+g)%24,.7>Sl((s-d[d.length-1])/c,3)*w||d.push(s)}else d.push(s)}return d}}]}const[me,ge,xe]=pe(1),[we,_e,be]=pe(.001);function ve(l,e){return l.map((l=>l.map(((t,n)=>0==n||8==n||null==t?t:e(1==n||0==l[8]?t:l[1]+t)))))}function ke(l,e){return(t,n,i,o,s)=>{let r,u,a,f,c,h,d=e.find((l=>s>=l[0]))||e[e.length-1];return n.map((e=>{let t=l(e),n=t.getFullYear(),i=t.getMonth(),o=t.getDate(),s=t.getHours(),p=t.getMinutes(),m=t.getSeconds(),g=n!=r&&d[2]||i!=u&&d[3]||o!=a&&d[4]||s!=f&&d[5]||p!=c&&d[6]||m!=h&&d[7]||d[1];return r=n,u=i,a=o,f=s,c=p,h=m,g(t)}))}}function ye(l,e,t){return new Date(l,e,t)}function Me(l,e){return e(l)}function Se(l,e){return(t,n,i,o)=>null==o?w:e(l(n))}zl(2,-53,53,[1]);const Ee={show:!0,live:!0,isolate:!1,mount:()=>{},markers:{show:!0,width:2,stroke:function(l,e){let t=l.series[e];return t.width?t.stroke(l,e):t.points.width?t.points.stroke(l,e):null},fill:function(l,e){return l.series[e].fill(l,e)},dash:"solid"},idx:null,idxs:null,values:[]},Te=[0,0];function ze(l,e,t,n=!0){return l=>{0==l.button&&(!n||l.target==e)&&t(l)}}function De(l,e,t,n=!0){return l=>{(!n||l.target==e)&&t(l)}}const Pe={show:!0,x:!0,y:!0,lock:!1,move:function(l,e,t){return Te[0]=e,Te[1]=t,Te},points:{show:function(l,e){let i=l.cursor.points,o=D(),s=i.size(l,e);T(o,t,s),T(o,n,s);let r=s/-2;T(o,"marginLeft",r),T(o,"marginTop",r);let u=i.width(l,e,s);return u&&T(o,"borderWidth",u),o},size:function(l,e){return l.series[e].points.size},width:0,stroke:function(l,e){let t=l.series[e].points;return t._stroke||t._fill},fill:function(l,e){let t=l.series[e].points;return t._fill||t._stroke}},bind:{mousedown:ze,mouseup:ze,click:ze,dblclick:ze,mousemove:De,mouseleave:De,mouseenter:De},drag:{setScale:!0,x:!0,y:!1,dist:0,uni:null,click:(l,e)=>{e.stopPropagation(),e.stopImmediatePropagation()},_x:!1,_y:!1},focus:{dist:(l,e,t,n,i)=>n-i,prox:-1,bias:0},hover:{skip:[void 0],prox:null,bias:0},left:-10,top:-10,idx:null,dataIdx:null,idxs:null,event:null},Ae={show:!0,stroke:"rgba(0,0,0,0.07)",width:2},We=Il({},Ae,{filter:xl}),Ye=Il({},We,{size:10}),Ce=Il({},Ae,{show:!1}),Fe='12px system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"',He="bold "+Fe,Re={show:!0,scale:"x",stroke:u,space:50,gap:5,size:50,labelGap:0,labelSize:30,labelFont:He,side:2,grid:We,ticks:Ye,border:Ce,font:Fe,lineGap:1.5,rotate:0},Ge={show:!0,scale:"x",auto:!1,sorted:1,min:hl,max:-hl,idxs:[]};function Ie(l,e){return e.map((l=>null==l?"":$(l)))}function Le(l,e,t,n,i,o,s){let r=[],u=El.get(i)||0;for(let l=t=s?t:Sl(yl(t,i),u);n>=l;l=Sl(l+i,u))r.push(Object.is(l,-0)?0:l);return r}function Oe(l,e,t,n,i){const o=[],s=l.scales[l.axes[e].scale].log,r=tl((10==s?al:fl)(t));i=rl(s,r),10==s&&0>r&&(i=Sl(i,-r));let u=t;do{o.push(u),u+=i,10==s&&(u=Sl(u,El.get(i))),i*s>u||(i=u)}while(n>=u);return o}function Ne(l,e,t,n,i){let o=l.scales[l.axes[e].scale].asinh,s=n>o?Oe(l,e,sl(o,t),n,i):[o],r=0>n||t>0?[]:[0];return(-o>t?Oe(l,e,sl(o,-n),-t,i):[o]).reverse().map((l=>-l)).concat(r,s)}const je=/./,Ue=/[12357]/,Be=/[125]/,Ve=/1/,Je=(l,e,t,n)=>l.map(((l,i)=>4==e&&0==l||i%n==0&&t.test(l.toExponential()[0>l?1:0])?l:null));function qe(l,e,t){let n=l.axes[t],i=n.scale,o=l.scales[i],s=l.valToPos,r=n._space,u=s(10,i),a=s(9,i)-u<r?s(7,i)-u<r?s(5,i)-u<r?Ve:Be:Ue:je;if(a==Ve){let l=el(s(1,i)-u);if(r>l)return Je(e.slice().reverse(),o.distr,a,il(r/l)).reverse()}return Je(e,o.distr,a,1)}function Ke(l,e,t){let n=l.axes[t],i=n.scale,o=n._space,s=l.valToPos,r=el(s(1,i)-s(2,i));return o>r?Je(e.slice().reverse(),3,je,il(o/r)).reverse():e}function Xe(l,e,t,n){return null==n?w:null==e?"":$(e)}const Ze={show:!0,scale:"y",stroke:u,space:30,gap:5,size:50,labelGap:0,labelSize:30,labelFont:He,side:3,grid:We,ticks:Ye,border:Ce,font:Fe,lineGap:1.5,rotate:0},$e={scale:null,auto:!0,sorted:0,min:hl,max:-hl},Qe=(l,e,t,n,i)=>i,lt={show:!0,auto:!0,sorted:0,gaps:Qe,alpha:1,facets:[Il({},$e,{scale:"x"}),Il({},$e,{scale:"y"})]},et={scale:"y",auto:!0,sorted:0,show:!0,spanGaps:!1,gaps:Qe,alpha:1,points:{show:function(l,e){let{scale:t,idxs:n}=l.series[0],i=l._data[0],o=l.valToPos(i[n[0]],t,!0),s=l.valToPos(i[n[1]],t,!0);return el(s-o)/(l.series[e].points.space*y)>=n[1]-n[0]},filter:null},values:null,min:hl,max:-hl,idxs:[],path:null,clip:null};function tt(l,e,t){return t/10}const nt={time:!0,auto:!0,distr:1,log:10,asinh:1,min:null,max:null,dir:1,ori:0},it=Il({},nt,{time:!1,ori:1}),ot={};function st(l){let e=ot[l];return e||(e={key:l,plots:[],sub(l){e.plots.push(l)},unsub(l){e.plots=e.plots.filter((e=>e!=l))},pub(l,t,n,i,o,s,r){for(let u=0;e.plots.length>u;u++)e.plots[u]!=t&&e.plots[u].pub(l,t,n,i,o,s,r)}},null!=l&&(ot[l]=e)),e}function rt(l,e,t){const n=l.mode,i=l.series[e],o=2==n?l._data[e]:l._data,s=l.scales,r=l.bbox;let u=o[0],a=2==n?o[1]:o[e],f=2==n?s[i.facets[0].scale]:s[l.series[0].scale],c=2==n?s[i.facets[1].scale]:s[i.scale],h=r.left,d=r.top,p=r.width,m=r.height,g=l.valToPosH,x=l.valToPosV;return 0==f.ori?t(i,u,a,f,c,g,x,h,d,p,m,mt,xt,_t,vt,yt):t(i,u,a,f,c,x,g,d,h,m,p,gt,wt,bt,kt,Mt)}function ut(l,e){let t=0,n=0,i=K(l.bands,Pl);for(let l=0;i.length>l;l++){let o=i[l];o.series[0]==e?t=o.dir:o.series[1]==e&&(n|=1==o.dir?1:2)}return[t,1==n?-1:2==n?1:3==n?2:0]}function at(l,e,t,n,i){let o=l.series[e],s=l.scales[2==l.mode?o.facets[1].scale:o.scale];return-1==i?s.min:1==i?s.max:3==s.distr?1==s.dir?s.min:s.max:0}function ft(l,e,t,n,i,o){return rt(l,e,((l,e,s,r,u,a,f,c,h,d,p)=>{let m=l.pxRound;const g=0==r.ori?xt:wt;let x,w;1==r.dir*(0==r.ori?1:-1)?(x=t,w=n):(x=n,w=t);let _=m(a(e[x],r,d,c)),b=m(f(s[x],u,p,h)),v=m(a(e[w],r,d,c)),k=m(f(1==o?u.max:u.min,u,p,h)),y=new Path2D(i);return g(y,v,k),g(y,_,k),g(y,_,b),y}))}function ct(l,e,t,n,i,o){let s=null;if(l.length>0){s=new Path2D;const r=0==e?_t:bt;let u=t;for(let e=0;l.length>e;e++){let t=l[e];if(t[1]>t[0]){let l=t[0]-u;l>0&&r(s,u,n,l,n+o),u=t[1]}}let a=t+i-u,f=10;a>0&&r(s,u,n-f/2,a,n+o+f)}return s}function ht(l,e,t,n,i,o,s){let r=[],u=l.length;for(let a=1==i?t:n;a>=t&&n>=a;a+=i)if(null===e[a]){let f=a,c=a;if(1==i)for(;++a<=n&&null===e[a];)c=a;else for(;--a>=t&&null===e[a];)c=a;let h=o(l[f]),d=c==f?h:o(l[c]),p=f-i;h=s>0||0>p||p>=u?h:o(l[p]);let m=c+i;d=0>s||0>m||m>=u?d:o(l[m]),h>d||r.push([h,d])}return r}function dt(l){return 0==l?gl:1==l?nl:e=>kl(e,l)}function pt(l){let e=0==l?mt:gt,t=0==l?(l,e,t,n,i,o)=>{l.arcTo(e,t,n,i,o)}:(l,e,t,n,i,o)=>{l.arcTo(t,e,i,n,o)},n=0==l?(l,e,t,n,i)=>{l.rect(e,t,n,i)}:(l,e,t,n,i)=>{l.rect(t,e,i,n)};return(l,i,o,s,r,u=0,a=0)=>{0==u&&0==a?n(l,i,o,s,r):(u=ol(u,s/2,r/2),a=ol(a,s/2,r/2),e(l,i+u,o),t(l,i+s,o,i+s,o+r,u),t(l,i+s,o+r,i,o+r,a),t(l,i,o+r,i,o,a),t(l,i,o,i+s,o,u),l.closePath())}}const mt=(l,e,t)=>{l.moveTo(e,t)},gt=(l,e,t)=>{l.moveTo(t,e)},xt=(l,e,t)=>{l.lineTo(e,t)},wt=(l,e,t)=>{l.lineTo(t,e)},_t=pt(0),bt=pt(1),vt=(l,e,t,n,i,o)=>{l.arc(e,t,n,i,o)},kt=(l,e,t,n,i,o)=>{l.arc(t,e,n,i,o)},yt=(l,e,t,n,i,o,s)=>{l.bezierCurveTo(e,t,n,i,o,s)},Mt=(l,e,t,n,i,o,s)=>{l.bezierCurveTo(t,e,i,n,s,o)};function St(){return(l,e,t,n,i)=>rt(l,e,((e,o,s,r,u,a,f,c,h,d,p)=>{let m,g,{pxRound:x,points:w}=e;0==r.ori?(m=mt,g=vt):(m=gt,g=kt);const _=Sl(w.width*y,3);let b=(w.size-w.width)/2*y,v=Sl(2*b,3),k=new Path2D,M=new Path2D,{left:S,top:E,width:T,height:z}=l.bbox;_t(M,S-v,E-v,T+2*v,z+2*v);const D=l=>{if(null!=s[l]){let e=x(a(o[l],r,d,c)),t=x(f(s[l],u,p,h));m(k,e+b,t),g(k,e,t,b,0,2*ll)}};if(i)i.forEach(D);else for(let l=t;n>=l;l++)D(l);return{stroke:_>0?k:null,fill:k,clip:M,flags:3}}))}function Et(l){return(e,t,n,i,o,s)=>{n!=i&&(o!=n&&s!=n&&l(e,t,n),o!=i&&s!=i&&l(e,t,i),l(e,t,s))}}const Tt=Et(xt),zt=Et(wt);function Dt(l){const e=K(l?.alignGaps,0);return(l,t,n,i)=>rt(l,t,((o,s,r,u,a,f,c,h,d,p,m)=>{let g,x,w=o.pxRound,_=l=>w(f(l,u,p,h)),b=l=>w(c(l,a,m,d));0==u.ori?(g=xt,x=Tt):(g=wt,x=zt);const v=u.dir*(0==u.ori?1:-1),k={stroke:new Path2D,fill:null,clip:null,band:null,gaps:null,flags:1},y=k.stroke;let M,S,E,T=hl,z=-hl,D=_(s[1==v?n:i]),P=O(r,n,i,1*v),A=O(r,n,i,-1*v),W=_(s[P]),Y=_(s[A]),C=!1;for(let l=1==v?n:i;l>=n&&i>=l;l+=v){let e=_(s[l]),t=r[l];e==D?null!=t?(S=b(t),T==hl&&(g(y,e,S),M=S),T=ol(S,T),z=sl(S,z)):null===t&&(C=!0):(T!=hl&&(x(y,D,T,z,M,S),E=D),null!=t?(S=b(t),g(y,e,S),T=z=M=S):(T=hl,z=-hl,null===t&&(C=!0)),D=e)}T!=hl&&T!=z&&E!=D&&x(y,D,T,z,M,S);let[F,H]=ut(l,t);if(null!=o.fill||0!=F){let e=k.fill=new Path2D(y),n=b(o.fillTo(l,t,o.min,o.max,F));g(e,Y,n),g(e,W,n)}if(!o.spanGaps){let a=[];C&&a.push(...ht(s,r,n,i,v,_,e)),k.gaps=a=o.gaps(l,t,n,i,a),k.clip=ct(a,u.ori,h,d,p,m)}return 0!=H&&(k.band=2==H?[ft(l,t,n,i,y,-1),ft(l,t,n,i,y,1)]:ft(l,t,n,i,y,H)),k}))}function Pt(l,e,t,n,i,o,s=hl){if(l.length>1){let r=null;for(let u=0,a=1/0;l.length>u;u++)if(void 0!==e[u]){if(null!=r){let e=el(l[u]-l[r]);a>e&&(a=e,s=el(t(l[u],n,i,o)-t(l[r],n,i,o)))}r=u}}return s}function At(l,e,t,n,i){const o=l.length;if(2>o)return null;const s=new Path2D;if(t(s,l[0],e[0]),2==o)n(s,l[1],e[1]);else{let t=Array(o),n=Array(o-1),r=Array(o-1),u=Array(o-1);for(let t=0;o-1>t;t++)r[t]=e[t+1]-e[t],u[t]=l[t+1]-l[t],n[t]=r[t]/u[t];t[0]=n[0];for(let l=1;o-1>l;l++)0===n[l]||0===n[l-1]||n[l-1]>0!=n[l]>0?t[l]=0:(t[l]=3*(u[l-1]+u[l])/((2*u[l]+u[l-1])/n[l-1]+(u[l]+2*u[l-1])/n[l]),isFinite(t[l])||(t[l]=0));t[o-1]=n[o-2];for(let n=0;o-1>n;n++)i(s,l[n]+u[n]/3,e[n]+t[n]*u[n]/3,l[n+1]-u[n]/3,e[n+1]-t[n+1]*u[n]/3,l[n+1],e[n+1])}return s}const Wt=new Set;function Yt(){for(let l of Wt)l.syncRect(!0)}_&&(G("resize",v,Yt),G("scroll",v,Yt,!0),G(x,v,(()=>{qt.pxRatio=y})));const Ct=Dt(),Ft=St();function Ht(l,e,t,n){return(n?[l[0],l[1]].concat(l.slice(2)):[l[0]].concat(l.slice(1))).map(((l,n)=>Rt(l,n,e,t)))}function Rt(l,e,t,n){return Il({},0==e?t:n,l)}function Gt(l,e,t){return null==e?Al:[e,t]}const It=Gt;function Lt(l,e,t){return null==e?Al:q(e,t,U,!0)}function Ot(l,e,t,n){return null==e?Al:N(e,t,l.scales[n].log,!1)}const Nt=Ot;function jt(l,e,t,n){return null==e?Al:j(e,t,l.scales[n].log,!1)}const Ut=jt;function Bt(l,e,t,n,i){let o=sl(dl(l),dl(e)),s=e-l,r=L(i/n*s,t);do{let l=t[r],e=n*l/s;if(e>=i&&17>=o+(5>l?El.get(l):0))return[l,e]}while(++r<t.length);return[0,0]}function Vt(l){let e,t;return[l=l.replace(/(\d+)px/,((l,n)=>(e=nl((t=+n)*y))+"px")),e,t]}function Jt(l){l.show&&[l.font,l.labelFont].forEach((l=>{let e=Sl(l[2]*y,1);l[0]=l[0].replace(/[0-9.]+px/,e+"px"),l[1]=e}))}function qt(u,g,_){const k={mode:K(u.mode,1)},M=k.mode;function P(l,e){return((3==e.distr?al(l>0?l:e.clamp(k,l,e.min,e.max,e.key)):4==e.distr?cl(l,e.asinh):l)-e._min)/(e._max-e._min)}function W(l,e,t,n){let i=P(l,e);return n+t*(-1==e.dir?1-i:i)}function C(l,e,t,n){let i=P(l,e);return n+t*(-1==e.dir?i:1-i)}function H(l,e,t,n){return 0==e.ori?W(l,e,t,n):C(l,e,t,n)}k.valToPosH=W,k.valToPosV=C;let R=!1;k.status=0;const O=k.root=D("uplot");null!=u.id&&(O.id=u.id),S(O,u.class),u.title&&(D("u-title",O).textContent=u.title);const V=z("canvas"),J=k.ctx=V.getContext("2d"),X=D("u-wrap",O);G("click",X,(l=>{l.target===$&&(Fn!=An||Hn!=Wn)&&Bn.click(k,l)}),!0);const Z=k.under=D("u-under",X);X.appendChild(V);const $=k.over=D("u-over",X),tl=+K((u=Gl(u)).pxAlign,1),ul=dt(tl);(u.plugins||[]).forEach((l=>{l.opts&&(u=l.opts(k,u)||u)}));const fl=u.ms||.001,dl=k.series=1==M?Ht(u.series||[],Ge,et,!1):function(l,e){return l.map(((l,t)=>0==t?null:Il({},e,l)))}(u.series||[null],lt),gl=k.axes=Ht(u.axes||[],Re,Ze,!0),vl=k.scales={},Ml=k.bands=u.bands||[];Ml.forEach((l=>{l.fill=ml(l.fill||null),l.dir=K(l.dir,-1)}));const zl=2==M?dl[1].facets[0].scale:dl[0].scale,Yl={axes:function(){for(let l=0;gl.length>l;l++){let e=gl[l];if(!e.show||!e._show)continue;let t,n,u=e.side,a=u%2,f=e.stroke(k,l),c=0==u||3==u?-1:1;if(e.label){let l=nl((e._lpos+e.labelGap*c)*y);hn(e.labelFont[0],f,"center",2==u?i:o),J.save(),1==a?(t=n=0,J.translate(l,nl($e+ot/2)),J.rotate((3==u?-ll:ll)/2)):(t=nl(Je+Qe/2),n=l),J.fillText(e.label,t,n),J.restore()}let[h,d]=e._found;if(0==d)continue;let p=vl[e.scale],m=0==a?Qe:ot,g=0==a?Je:$e,x=nl(e.gap*y),w=e._splits,_=2==p.distr?w.map((l=>rn[l])):w,b=2==p.distr?rn[w[1]]-rn[w[0]]:h,v=e.ticks,M=e.border,S=v.show?nl(v.size*y):0,E=e._rotate*-ll/180,T=ul(e._pos*y),z=T+(S+x)*c;n=0==a?z:0,t=1==a?z:0,hn(e.font[0],f,1==e.align?s:2==e.align?r:E>0?s:0>E?r:0==a?"center":3==u?r:s,E||1==a?"middle":2==u?i:o);let D=e.font[1]*e.lineGap,P=w.map((l=>ul(H(l,p,m,g)))),A=e._values;for(let l=0;A.length>l;l++){let e=A[l];if(null!=e){0==a?t=P[l]:n=P[l],e=""+e;let i=-1==e.indexOf("\n")?[e]:e.split(/\n/gm);for(let l=0;i.length>l;l++){let e=i[l];E?(J.save(),J.translate(t,n+l*D),J.rotate(E),J.fillText(e,0,0),J.restore()):J.fillText(e,t,n+l*D)}}}v.show&&vn(P,v.filter(k,_,l,d,b),a,u,T,S,Sl(v.width*y,3),v.stroke(k,l),v.dash,v.cap);let W=e.grid;W.show&&vn(P,W.filter(k,_,l,d,b),a,0==a?2:1,0==a?$e:Je,0==a?ot:Qe,Sl(W.width*y,3),W.stroke(k,l),W.dash,W.cap),M.show&&vn([T],[1],0==a?1:0,0==a?1:2,1==a?$e:Je,1==a?ot:Qe,Sl(M.width*y,3),M.stroke(k,l),M.dash,M.cap)}Ti("drawAxes")},series:function(){At>0&&(dl.forEach(((l,e)=>{if(e>0&&l.show&&(mn(e,!1),mn(e,!0),null==l._paths)){sn!=l.alpha&&(J.globalAlpha=sn=l.alpha);let t=2==M?[0,g[e][0].length-1]:function(l){let e=pl(Yt-1,0,At-1),t=pl(qt+1,0,At-1);for(;null==l[e]&&e>0;)e--;for(;null==l[t]&&At-1>t;)t++;return[e,t]}(g[e]);l._paths=l.paths(k,e,t[0],t[1]),1!=sn&&(J.globalAlpha=sn=1)}})),dl.forEach(((l,e)=>{if(e>0&&l.show){sn!=l.alpha&&(J.globalAlpha=sn=l.alpha),null!=l._paths&&gn(e,!1);{let t=null!=l._paths?l._paths.gaps:null,n=l.points.show(k,e,Yt,qt,t),i=l.points.filter(k,e,n,t);(n||i)&&(l.points._paths=l.points.paths(k,e,Yt,qt,i),gn(e,!0))}1!=sn&&(J.globalAlpha=sn=1),Ti("drawSeries",e)}})))}},Rl=(u.drawOrder||["axes","series"]).map((l=>Yl[l]));function Ll(l){let e=vl[l];if(null==e){let t=(u.scales||Dl)[l]||Dl;if(null!=t.from)Ll(t.from),vl[l]=Il({},vl[t.from],t,{key:l});else{e=vl[l]=Il({},l==zl?nt:it,t),e.key=l;let n=e.time,i=e.range,o=Wl(i);if((l!=zl||2==M&&!n)&&(!o||null!=i[0]&&null!=i[1]||(i={min:null==i[0]?B:{mode:1,hard:i[0],soft:i[0]},max:null==i[1]?B:{mode:1,hard:i[1],soft:i[1]}},o=!1),!o&&Fl(i))){let l=i;i=(e,t,n)=>null==t?Al:q(t,n,l)}e.range=ml(i||(n?It:l==zl?3==e.distr?Nt:4==e.distr?Ut:Gt:3==e.distr?Ot:4==e.distr?jt:Lt)),e.auto=ml(!o&&e.auto),e.clamp=ml(e.clamp||tt),e._min=e._max=null}}}Ll("x"),Ll("y"),1==M&&dl.forEach((l=>{Ll(l.scale)})),gl.forEach((l=>{Ll(l.scale)}));for(let l in u.scales)Ll(l);const Nl=vl[zl],jl=Nl.distr;let Ul,Bl;0==Nl.ori?(S(O,"u-hz"),Ul=W,Bl=C):(S(O,"u-vt"),Ul=C,Bl=W);const Vl={};for(let l in vl){let e=vl[l];null==e.min&&null==e.max||(Vl[l]={min:e.min,max:e.max},e.min=e.max=null)}const Jl=u.tzDate||(l=>new Date(nl(l/fl))),ql=u.fmtDate||Xl,Kl=1==fl?xe(Jl):be(Jl),Zl=ke(Jl,ve(1==fl?ge:_e,ql)),$l=Se(Jl,Me("{YYYY}-{MM}-{DD} {h}:{mm}{aa}",ql)),Ql=[],le=k.legend=Il({},Ee,u.legend),ee=le.show,ie=le.markers;let oe,se,re;le.idxs=Ql,ie.width=ml(ie.width),ie.dash=ml(ie.dash),ie.stroke=ml(ie.stroke),ie.fill=ml(ie.fill);let ue,ae=[],fe=[],ce=!1,he={};if(le.live){const l=dl[1]?dl[1].values:null;ce=null!=l,ue=ce?l(k,1,0):{_:0};for(let l in ue)he[l]=w}if(ee)if(oe=z("table","u-legend",O),re=z("tbody",null,oe),le.mount(k,oe),ce){se=z("thead",null,oe,re);let l=z("tr",null,se);for(var de in z("th",null,l),ue)z("th",e,l).textContent=de}else S(oe,"u-inline"),le.live&&S(oe,"u-live");const pe={show:!0},ye={show:!1},Te=new Map;function ze(l,e,t,n=!0){const i=Te.get(e)||{},o=wt.bind[l](k,e,t,n);o&&(G(l,e,i[l]=o),Te.set(e,i))}function De(l,e){const t=Te.get(e)||{};for(let n in t)null!=l&&n!=l||(I(n,e,t[n]),delete t[n]);null==l&&Te.delete(e)}let Ae=0,We=0,Ye=0,Ce=0,Fe=0,He=0,je=Fe,Ue=He,Be=Ye,Ve=Ce,Je=0,$e=0,Qe=0,ot=0;k.bbox={};let rt=!1,ut=!1,ft=!1,ct=!1,ht=!1,pt=!1;function mt(l,e,t){(t||l!=k.width||e!=k.height)&&gt(l,e),Mn(!1),ft=!0,ut=!0,On()}function gt(l,e){k.width=Ae=Ye=l,k.height=We=Ce=e,Fe=He=0,function(){let l=!1,e=!1,t=!1,n=!1;gl.forEach((i=>{if(i.show&&i._show){let{side:o,_size:s}=i,r=s+(null!=i.label?i.labelSize:0);r>0&&(o%2?(Ye-=r,3==o?(Fe+=r,n=!0):t=!0):(Ce-=r,0==o?(He+=r,l=!0):e=!0))}})),Tt[0]=l,Tt[1]=t,Tt[2]=e,Tt[3]=n,Ye-=Pt[1]+Pt[3],Fe+=Pt[3],Ce-=Pt[2]+Pt[0],He+=Pt[0]}(),function(){let l=Fe+Ye,e=He+Ce,t=Fe,n=He;function i(i,o){switch(i){case 1:return l+=o,l-o;case 2:return e+=o,e-o;case 3:return t-=o,t+o;case 0:return n-=o,n+o}}gl.forEach((l=>{if(l.show&&l._show){let e=l.side;l._pos=i(e,l._size),null!=l.label&&(l._lpos=i(e,l.labelSize))}}))}();let t=k.bbox;Je=t.left=kl(Fe*y,.5),$e=t.top=kl(He*y,.5),Qe=t.width=kl(Ye*y,.5),ot=t.height=kl(Ce*y,.5)}const xt=3;k.setSize=function({width:l,height:e}){mt(l,e)};const wt=k.cursor=Il({},Pe,{drag:{y:2==M}},u.cursor);if(null==wt.dataIdx){let l=wt.hover,e=l.skip=new Set(l.skip??[]);e.add(void 0);let t=l.prox=ml(l.prox),n=l.bias??=0;wt.dataIdx=(l,i,o,s)=>{if(0==i)return o;let r=o,u=t(l,i,o,s)??hl,a=u>=0&&hl>u,f=0==Nl.ori?Ye:Ce,c=wt.left,h=g[0],d=g[i];if(e.has(d[o])){r=null;let l,t=null,i=null;if(0==n||-1==n)for(l=o;null==t&&l-- >0;)e.has(d[l])||(t=l);if(0==n||1==n)for(l=o;null==i&&l++<d.length;)e.has(d[l])||(i=l);if(null!=t||null!=i)if(a){let l=c-(null==t?-1/0:Ul(h[t],Nl,f,0)),e=(null==i?1/0:Ul(h[i],Nl,f,0))-c;l>e?e>u||(r=i):l>u||(r=t)}else r=null==i?t:null==t||o-t>i-o?i:t}else a&&el(c-Ul(h[o],Nl,f,0))>u&&(r=null);return r}}const _t=l=>{wt.event=l};wt.idxs=Ql,wt._lock=!1;let bt=wt.points;bt.show=ml(bt.show),bt.size=ml(bt.size),bt.stroke=ml(bt.stroke),bt.width=ml(bt.width),bt.fill=ml(bt.fill);const vt=k.focus=Il({},u.focus||{alpha:.3},wt.focus),kt=vt.prox>=0;let yt=[null],Mt=[null],St=[null];function Et(t,n){if(1==M||n>0){let l=1==M&&vl[t.scale].time,e=t.value;t.value=l?Cl(e)?Se(Jl,Me(e,ql)):e||$l:e||Xe,t.label=t.label||(l?"Time":"Value")}if(n>0){t.width=null==t.width?1:t.width,t.paths=t.paths||Ct||wl,t.fillTo=ml(t.fillTo||at),t.pxAlign=+K(t.pxAlign,tl),t.pxRound=dt(t.pxAlign),t.stroke=ml(t.stroke||null),t.fill=ml(t.fill||null),t._stroke=t._fill=t._paths=t._focus=null;let l=function(l){return Sl(1*(3+2*(l||1)),3)}(sl(1,t.width)),e=t.points=Il({},{size:l,width:sl(1,.2*l),stroke:t.stroke,space:2*l,paths:Ft,_stroke:null,_fill:null},t.points);e.show=ml(e.show),e.filter=ml(e.filter),e.fill=ml(e.fill),e.stroke=ml(e.stroke),e.paths=ml(e.paths),e.pxAlign=t.pxAlign}if(ee){let i=function(t,n){if(0==n&&(ce||!le.live||2==M))return Al;let i=[],o=z("tr","u-series",re,re.childNodes[n]);S(o,t.class),t.show||S(o,l);let s=z("th",null,o);if(ie.show){let l=D("u-marker",s);if(n>0){let e=ie.width(k,n);e&&(l.style.border=e+"px "+ie.dash(k,n)+" "+ie.stroke(k,n)),l.style.background=ie.fill(k,n)}}let r=D(e,s);for(var u in r.textContent=t.label,n>0&&(ie.show||(r.style.color=t.width>0?ie.stroke(k,n):ie.fill(k,n)),ze("click",s,(l=>{if(wt._lock)return;_t(l);let e=dl.indexOf(t);if((l.ctrlKey||l.metaKey)!=le.isolate){let l=dl.some(((l,t)=>t>0&&t!=e&&l.show));dl.forEach(((t,n)=>{n>0&&$n(n,l?n==e?pe:ye:pe,!0,Di.setSeries)}))}else $n(e,{show:!t.show},!0,Di.setSeries)}),!1),kt&&ze(d,s,(l=>{wt._lock||(_t(l),$n(dl.indexOf(t),ti,!0,Di.setSeries))}),!1)),ue){let l=z("td","u-value",o);l.textContent="--",i.push(l)}return[o,i]}(t,n);ae.splice(n,0,i[0]),fe.splice(n,0,i[1]),le.values.push(null)}if(wt.show){Ql.splice(n,0,null);let l=function(l,e){if(e>0){let t=wt.points.show(k,e);if(t)return S(t,"u-cursor-pt"),S(t,l.class),A(t,-10,-10,Ye,Ce),$.insertBefore(t,yt[e]),t}}(t,n);null!=l&&(yt.splice(n,0,l),Mt.splice(n,0,0),St.splice(n,0,0))}Ti("addSeries",n)}k.addSeries=function(l,e){e=null==e?dl.length:e,l=1==M?Rt(l,e,Ge,et):Rt(l,e,null,lt),dl.splice(e,0,l),Et(dl[e],e)},k.delSeries=function(l){if(dl.splice(l,1),ee){le.values.splice(l,1),fe.splice(l,1);let e=ae.splice(l,1)[0];De(null,e.firstChild),e.remove()}wt.show&&(Ql.splice(l,1),yt.length>1&&(yt.splice(l,1)[0].remove(),Mt.splice(l,1),St.splice(l,1))),Ti("delSeries",l)};const Tt=[!1,!1,!1,!1];function zt(l,e,t){let[n,i,o,s]=t,r=e%2,u=0;return 0==r&&(s||i)&&(u=0==e&&!n||2==e&&!o?nl(Re.size/3):0),1==r&&(n||o)&&(u=1==e&&!i||3==e&&!s?nl(Ze.size/2):0),u}const Dt=k.padding=(u.padding||[zt,zt,zt,zt]).map((l=>ml(K(l,zt)))),Pt=k._padding=Dt.map(((l,e)=>l(k,e,Tt,0)));let At,Yt=null,qt=null;const Kt=1==M?dl[0].idxs:null;let Xt,Zt,$t,Qt,ln,en,tn,nn,on,sn,rn=null,un=!1;function an(l,e){if(k.data=k._data=g=null==l?[]:l,2==M){At=0;for(let l=1;dl.length>l;l++)At+=g[l][0].length}else{0==g.length&&(k.data=k._data=g=[[]]),rn=g[0],At=rn.length;let l=g;if(2==jl){l=g.slice();let e=l[0]=Array(At);for(let l=0;At>l;l++)e[l]=l}k._data=g=l}if(Mn(!0),Ti("setData"),2==jl&&(ft=!0),!1!==e){let l=Nl;l.auto(k,un)?fn():Zn(zl,l.min,l.max),ct=ct||wt.left>=0,pt=!0,On()}}function fn(){let l,e;un=!0,1==M&&(At>0?(Yt=Kt[0]=0,qt=Kt[1]=At-1,l=g[0][Yt],e=g[0][qt],2==jl?(l=Yt,e=qt):l==e&&(3==jl?[l,e]=N(l,l,Nl.log,!1):4==jl?[l,e]=j(l,l,Nl.log,!1):Nl.time?e=l+nl(86400/fl):[l,e]=q(l,e,U,!0))):(Yt=Kt[0]=l=null,qt=Kt[1]=e=null)),Zn(zl,l,e)}function cn(l,e,t,n,i,o){l??=a,t??=Pl,n??="butt",i??=a,o??="round",l!=Xt&&(J.strokeStyle=Xt=l),i!=Zt&&(J.fillStyle=Zt=i),e!=$t&&(J.lineWidth=$t=e),o!=ln&&(J.lineJoin=ln=o),n!=en&&(J.lineCap=en=n),t!=Qt&&J.setLineDash(Qt=t)}function hn(l,e,t,n){e!=Zt&&(J.fillStyle=Zt=e),l!=tn&&(J.font=tn=l),t!=nn&&(J.textAlign=nn=t),n!=on&&(J.textBaseline=on=n)}function dn(l,e,t,n,i=0){if(n.length>0&&l.auto(k,un)&&(null==e||null==e.min)){let e=K(Yt,0),o=K(qt,n.length-1),s=null==t.min?3==l.distr?function(l,e,t){let n=hl,i=-hl;for(let o=e;t>=o;o++){let e=l[o];null!=e&&e>0&&(n>e&&(n=e),e>i&&(i=e))}return[n,i]}(n,e,o):function(l,e,t,n){let i=hl,o=-hl;if(1==n)i=l[e],o=l[t];else if(-1==n)i=l[t],o=l[e];else for(let n=e;t>=n;n++){let e=l[n];null!=e&&(i>e&&(i=e),e>o&&(o=e))}return[i,o]}(n,e,o,i):[t.min,t.max];l.min=ol(l.min,t.min=s[0]),l.max=sl(l.max,t.max=s[1])}}k.setData=an;const pn={min:null,max:null};function mn(l,e){let t=e?dl[l].points:dl[l];t._stroke=t.stroke(k,l),t._fill=t.fill(k,l)}function gn(l,e){let t=e?dl[l].points:dl[l],{stroke:n,fill:i,clip:o,flags:s,_stroke:r=t._stroke,_fill:u=t._fill,_width:a=t.width}=t._paths;a=Sl(a*y,3);let f=null,c=a%2/2;e&&null==u&&(u=a>0?"#fff":r);let h=1==t.pxAlign&&c>0;if(h&&J.translate(c,c),!e){let l=Je-a/2,e=$e-a/2,t=Qe+a,n=ot+a;f=new Path2D,f.rect(l,e,t,n)}e?wn(r,a,t.dash,t.cap,u,n,i,s,o):function(l,e,t,n,i,o,s,r,u,a,f){let c=!1;0!=u&&Ml.forEach(((h,d)=>{if(h.series[0]==l){let l,p=dl[h.series[1]],m=g[h.series[1]],x=(p._paths||Dl).band;Wl(x)&&(x=1==h.dir?x[0]:x[1]);let w=null;p.show&&x&&function(l,e,t){for(e=K(e,0),t=K(t,l.length-1);t>=e;){if(null!=l[e])return!0;e++}return!1}(m,Yt,qt)?(w=h.fill(k,d)||o,l=p._paths.clip):x=null,wn(e,t,n,i,w,s,r,u,a,f,l,x),c=!0}})),c||wn(e,t,n,i,o,s,r,u,a,f)}(l,r,a,t.dash,t.cap,u,n,i,s,f,o),h&&J.translate(-c,-c)}const xn=3;function wn(l,e,t,n,i,o,s,r,u,a,f,c){cn(l,e,t,n,i),(u||a||c)&&(J.save(),u&&J.clip(u),a&&J.clip(a)),c?(r&xn)==xn?(J.clip(c),f&&J.clip(f),bn(i,s),_n(l,o,e)):2&r?(bn(i,s),J.clip(c),_n(l,o,e)):1&r&&(J.save(),J.clip(c),f&&J.clip(f),bn(i,s),J.restore(),_n(l,o,e)):(bn(i,s),_n(l,o,e)),(u||a||c)&&J.restore()}function _n(l,e,t){t>0&&(e instanceof Map?e.forEach(((l,e)=>{J.strokeStyle=Xt=e,J.stroke(l)})):null!=e&&l&&J.stroke(e))}function bn(l,e){e instanceof Map?e.forEach(((l,e)=>{J.fillStyle=Zt=e,J.fill(l)})):null!=e&&l&&J.fill(e)}function vn(l,e,t,n,i,o,s,r,u,a){let f=s%2/2;1==tl&&J.translate(f,f),cn(r,s,u,a,r),J.beginPath();let c,h,d,p,m=i+(0==n||3==n?-o:o);0==t?(h=i,p=m):(c=i,d=m);for(let n=0;l.length>n;n++)null!=e[n]&&(0==t?c=d=l[n]:h=p=l[n],J.moveTo(c,h),J.lineTo(d,p));J.stroke(),1==tl&&J.translate(-f,-f)}function kn(l){let e=!0;return gl.forEach(((t,n)=>{if(!t.show)return;let i=vl[t.scale];if(null==i.min)return void(t._show&&(e=!1,t._show=!1,Mn(!1)));t._show||(e=!1,t._show=!0,Mn(!1));let o=t.side,s=o%2,{min:r,max:u}=i,[a,f]=function(l,e,t,n){let i,o=gl[l];if(n>0){let s=o._space=o.space(k,l,e,t,n);i=Bt(e,t,o._incrs=o.incrs(k,l,e,t,n,s),n,s)}else i=[0,0];return o._found=i}(n,r,u,0==s?Ye:Ce);if(0==f)return;let c=t._splits=t.splits(k,n,r,u,a,f,2==i.distr),h=2==i.distr?c.map((l=>rn[l])):c,d=2==i.distr?rn[c[1]]-rn[c[0]]:a,p=t._values=t.values(k,t.filter(k,h,n,f,d),n,f,d);t._rotate=2==o?t.rotate(k,p,n,f):0;let m=t._size;t._size=il(t.size(k,p,n,l)),null!=m&&t._size!=m&&(e=!1)})),e}function yn(l){let e=!0;return Dt.forEach(((t,n)=>{let i=t(k,n,Tt,l);i!=Pt[n]&&(e=!1),Pt[n]=i})),e}function Mn(l){dl.forEach(((e,t)=>{t>0&&(e._paths=null,l&&(1==M?(e.min=null,e.max=null):e.facets.forEach((l=>{l.min=null,l.max=null}))))}))}let Sn,En,Tn,zn,Dn,Pn,An,Wn,Yn,Cn,Fn,Hn,Rn=!1,Gn=!1,In=[];function Ln(){Gn=!1;for(let l=0;In.length>l;l++)Ti(...In[l]);In.length=0}function On(){Rn||(Ol(Nn),Rn=!0)}function Nn(){if(rt&&(function(){for(let l in vl){let e=vl[l];null==Vl[l]&&(null==e.min||null!=Vl[zl]&&e.auto(k,un))&&(Vl[l]=pn)}for(let l in vl){let e=vl[l];null==Vl[l]&&null!=e.from&&null!=Vl[e.from]&&(Vl[l]=pn)}null!=Vl[zl]&&Mn(!0);let l={};for(let e in Vl){let t=Vl[e];if(null!=t){let n=l[e]=Gl(vl[e],Hl);if(null!=t.min)Il(n,t);else if(e!=zl||2==M)if(0==At&&null==n.from){let l=n.range(k,null,null,e);n.min=l[0],n.max=l[1]}else n.min=hl,n.max=-hl}}if(At>0){dl.forEach(((e,t)=>{if(1==M){let n=e.scale,i=Vl[n];if(null==i)return;let o=l[n];if(0==t){let l=o.range(k,o.min,o.max,n);o.min=l[0],o.max=l[1],Yt=L(o.min,g[0]),qt=L(o.max,g[0]),qt-Yt>1&&(o.min>g[0][Yt]&&Yt++,g[0][qt]>o.max&&qt--),e.min=rn[Yt],e.max=rn[qt]}else e.show&&e.auto&&dn(o,i,e,g[t],e.sorted);e.idxs[0]=Yt,e.idxs[1]=qt}else if(t>0&&e.show&&e.auto){let[n,i]=e.facets,o=n.scale,s=i.scale,[r,u]=g[t],a=l[o],f=l[s];null!=a&&dn(a,Vl[o],n,r,n.sorted),null!=f&&dn(f,Vl[s],i,u,i.sorted),e.min=i.min,e.max=i.max}}));for(let e in l){let t=l[e],n=Vl[e];if(null==t.from&&(null==n||null==n.min)){let l=t.range(k,t.min==hl?null:t.min,t.max==-hl?null:t.max,e);t.min=l[0],t.max=l[1]}}}for(let e in l){let t=l[e];if(null!=t.from){let n=l[t.from];if(null==n.min)t.min=t.max=null;else{let l=t.range(k,n.min,n.max,e);t.min=l[0],t.max=l[1]}}}let e={},t=!1;for(let n in l){let i=l[n],o=vl[n];if(o.min!=i.min||o.max!=i.max){o.min=i.min,o.max=i.max;let l=o.distr;o._min=3==l?al(o.min):4==l?cl(o.min,o.asinh):o.min,o._max=3==l?al(o.max):4==l?cl(o.max,o.asinh):o.max,e[n]=t=!0}}if(t){dl.forEach(((l,t)=>{2==M?t>0&&e.y&&(l._paths=null):e[l.scale]&&(l._paths=null)}));for(let l in e)ft=!0,Ti("setScale",l);wt.show&&wt.left>=0&&(ct=pt=!0)}for(let l in Vl)Vl[l]=null}(),rt=!1),ft&&(function(){let l=!1,e=0;for(;!l;){e++;let t=kn(e),n=yn(e);l=e==xt||t&&n,l||(gt(k.width,k.height),ut=!0)}}(),ft=!1),ut){if(T(Z,s,Fe),T(Z,i,He),T(Z,t,Ye),T(Z,n,Ce),T($,s,Fe),T($,i,He),T($,t,Ye),T($,n,Ce),T(X,t,Ae),T(X,n,We),V.width=nl(Ae*y),V.height=nl(We*y),gl.forEach((({_el:e,_show:t,_size:n,_pos:i,side:o})=>{if(null!=e)if(t){let t=o%2==1;T(e,t?"left":"top",i-(3===o||0===o?n:0)),T(e,t?"width":"height",n),T(e,t?"top":"left",t?He:Fe),T(e,t?"height":"width",t?Ce:Ye),E(e,l)}else S(e,l)})),Xt=Zt=$t=ln=en=tn=nn=on=Qt=null,sn=1,hi(!0),Fe!=je||He!=Ue||Ye!=Be||Ce!=Ve){Mn(!1);let l=Ye/Be,e=Ce/Ve;if(wt.show&&!ct&&wt.left>=0){wt.left*=l,wt.top*=e,Tn&&A(Tn,nl(wt.left),0,Ye,Ce),zn&&A(zn,0,nl(wt.top),Ye,Ce);for(let t=1;yt.length>t;t++)Mt[t]*=l,St[t]*=e,A(yt[t],yl(Mt[t],1),yl(St[t],1),Ye,Ce)}if(qn.show&&!ht&&qn.left>=0&&qn.width>0){qn.left*=l,qn.width*=l,qn.top*=e,qn.height*=e;for(let l in mi)T(Kn,l,qn[l])}je=Fe,Ue=He,Be=Ye,Ve=Ce}Ti("setSize"),ut=!1}Ae>0&&We>0&&(J.clearRect(0,0,V.width,V.height),Ti("drawClear"),Rl.forEach((l=>l())),Ti("draw")),qn.show&&ht&&(Xn(qn),ht=!1),wt.show&&ct&&(fi(null,!0,!1),ct=!1),le.show&&le.live&&pt&&(ui(),pt=!1),R||(R=!0,k.status=1,Ti("ready")),un=!1,Rn=!1}function jn(l,e){let t=vl[l];if(null==t.from){if(0==At){let n=t.range(k,e.min,e.max,l);e.min=n[0],e.max=n[1]}if(e.min>e.max){let l=e.min;e.min=e.max,e.max=l}if(At>1&&null!=e.min&&null!=e.max&&1e-16>e.max-e.min)return;l==zl&&2==t.distr&&At>0&&(e.min=L(e.min,g[0]),e.max=L(e.max,g[0]),e.min==e.max&&e.max++),Vl[l]=e,rt=!0,On()}}k.batch=function(l,e=!1){Rn=!0,Gn=e,l(k),Nn(),e&&In.length>0&&queueMicrotask(Ln)},k.redraw=(l,e)=>{ft=e||!1,!1!==l?Zn(zl,Nl.min,Nl.max):On()},k.setScale=jn;let Un=!1;const Bn=wt.drag;let Vn=Bn.x,Jn=Bn.y;wt.show&&(wt.x&&(Sn=D("u-cursor-x",$)),wt.y&&(En=D("u-cursor-y",$)),0==Nl.ori?(Tn=Sn,zn=En):(Tn=En,zn=Sn),Fn=wt.left,Hn=wt.top);const qn=k.select=Il({show:!0,over:!0,left:0,width:0,top:0,height:0},u.select),Kn=qn.show?D("u-select",qn.over?$:Z):null;function Xn(l,e){if(qn.show){for(let e in l)qn[e]=l[e],e in mi&&T(Kn,e,l[e]);!1!==e&&Ti("setSelect")}}function Zn(l,e,t){jn(l,{min:e,max:t})}function $n(e,t,n,i){null!=t.focus&&function(l){if(l!=ei){let e=null==l,t=1!=vt.alpha;dl.forEach(((n,i)=>{if(1==M||i>0){let o=e||0==i||i==l;n._focus=e?null:o,t&&function(l,e){dl[l].alpha=e,wt.show&&yt[l]&&(yt[l].style.opacity=e),ee&&ae[l]&&(ae[l].style.opacity=e)}(i,o?1:vt.alpha)}})),ei=l,t&&On()}}(e),null!=t.show&&dl.forEach(((n,i)=>{0>=i||e!=i&&null!=e||(n.show=t.show,function(e){let t=ee?ae[e]:null;dl[e].show?t&&E(t,l):(t&&S(t,l),yt.length>1&&A(yt[e],-10,-10,Ye,Ce))}(i),2==M?(Zn(n.facets[0].scale,null,null),Zn(n.facets[1].scale,null,null)):Zn(n.scale,null,null),On())})),!1!==n&&Ti("setSeries",e,t),i&&Wi("setSeries",k,e,t)}let Qn,li,ei;k.setSelect=Xn,k.setSeries=$n,k.addBand=function(l,e){l.fill=ml(l.fill||null),l.dir=K(l.dir,-1),Ml.splice(e=null==e?Ml.length:e,0,l)},k.setBand=function(l,e){Il(Ml[l],e)},k.delBand=function(l){null==l?Ml.length=0:Ml.splice(l,1)};const ti={focus:!0};function ni(l,e,t){let n=vl[e];t&&(l=l/y-(1==n.ori?He:Fe));let i=Ye;1==n.ori&&(i=Ce,l=i-l),-1==n.dir&&(l=i-l);let o=n._min,s=o+l/i*(n._max-o),r=n.distr;return 3==r?rl(10,s):4==r?((l,e=1)=>Q.sinh(l)*e)(s,n.asinh):s}function ii(l,e){T(Kn,s,qn.left=l),T(Kn,t,qn.width=e)}function oi(l,e){T(Kn,i,qn.top=l),T(Kn,n,qn.height=e)}ee&&kt&&ze(p,oe,(l=>{wt._lock||(_t(l),null!=ei&&$n(null,ti,!0,Di.setSeries))})),k.valToIdx=l=>L(l,g[0]),k.posToIdx=function(l,e){return L(ni(l,zl,e),g[0],Yt,qt)},k.posToVal=ni,k.valToPos=(l,e,t)=>0==vl[e].ori?W(l,vl[e],t?Qe:Ye,t?Je:0):C(l,vl[e],t?ot:Ce,t?$e:0),k.setCursor=(l,e,t)=>{Fn=l.left,Hn=l.top,fi(null,e,t)};let si=0==Nl.ori?ii:oi,ri=1==Nl.ori?ii:oi;function ui(l,e){null!=l&&(l.idxs?l.idxs.forEach(((l,e)=>{Ql[e]=l})):(l=>void 0===l)(l.idx)||Ql.fill(l.idx),le.idx=Ql[0]);for(let l=0;dl.length>l;l++)(l>0||1==M&&!ce)&&ai(l,Ql[l]);ee&&le.live&&function(){if(ee&&le.live)for(let l=2==M?1:0;dl.length>l;l++){if(0==l&&ce)continue;let e=le.values[l],t=0;for(let n in e)fe[l][t++].firstChild.nodeValue=e[n]}}(),pt=!1,!1!==e&&Ti("setLegend")}function ai(l,e){let t,n=dl[l],i=0==l&&2==jl?rn:g[l];ce?t=n.values(k,l,e)??he:(t=n.value(k,null==e?null:i[e],l,e),t=null==t?he:{_:t}),le.values[l]=t}function fi(l,e,t){let n;Yn=Fn,Cn=Hn,[Fn,Hn]=wt.move(k,Fn,Hn),wt.left=Fn,wt.top=Hn,wt.show&&(Tn&&A(Tn,nl(Fn),0,Ye,Ce),zn&&A(zn,0,nl(Hn),Ye,Ce)),Qn=hl;let i=0==Nl.ori?Ye:Ce,o=1==Nl.ori?Ye:Ce;if(0>Fn||0==At||Yt>qt){n=wt.idx=null;for(let l=0;dl.length>l;l++)l>0&&yt.length>1&&A(yt[l],-10,-10,Ye,Ce);kt&&$n(null,ti,!0,null==l&&Di.setSeries),le.live&&(Ql.fill(n),pt=!0)}else{let l,e,t;1==M&&(l=0==Nl.ori?Fn:Hn,e=ni(l,zl),n=wt.idx=L(e,g[0],Yt,qt),t=Ul(g[0][n],Nl,i,0));for(let l=2==M?1:0;dl.length>l;l++){let s=dl[l],r=Ql[l],u=null==r?null:1==M?g[l][r]:g[l][1][r],a=wt.dataIdx(k,l,n,e),f=null==a?null:1==M?g[l][a]:g[l][1][a];pt=pt||f!=u||a!=r,Ql[l]=a;let c=a==n?t:Ul(1==M?g[0][a]:g[l][0][a],Nl,i,0);if(l>0&&s.show){let e,t,n=null==f?-10:Bl(f,1==M?vl[s.scale]:vl[s.facets[1].scale],o,0);if(kt&&null!=f){let e=1==Nl.ori?Fn:Hn,t=el(vt.dist(k,l,a,n,e));if(Qn>t){let n=vt.bias;if(0!=n){let i=ni(e,s.scale),o=0>i?-1:1;o!=(0>f?-1:1)||(1==o?1==n?i>f:f>i:1==n?f>i:i>f)||(Qn=t,li=l)}else Qn=t,li=l}}if(0==Nl.ori?(e=c,t=n):(e=n,t=c),pt&&yt.length>1){Y(yt[l],wt.points.fill(k,l),wt.points.stroke(k,l));let n,i,o,s,r=!0,u=wt.points.bbox;if(null!=u){r=!1;let e=u(k,l);o=e.left,s=e.top,n=e.width,i=e.height}else o=e,s=t,n=i=wt.points.size(k,l);F(yt[l],n,i,r),Mt[l]=o,St[l]=s,A(yt[l],yl(o,1),yl(s,1),Ye,Ce)}}}}if(qn.show&&Un)if(null!=l){let[e,t]=Di.scales,[n,s]=Di.match,[r,u]=l.cursor.sync.scales,a=l.cursor.drag;if(Vn=a._x,Jn=a._y,Vn||Jn){let a,f,c,h,d,{left:p,top:m,width:g,height:x}=l.select,w=l.scales[e].ori,_=l.posToVal,b=null!=e&&n(e,r),v=null!=t&&s(t,u);b&&Vn?(0==w?(a=p,f=g):(a=m,f=x),c=vl[e],h=Ul(_(a,r),c,i,0),d=Ul(_(a+f,r),c,i,0),si(ol(h,d),el(d-h))):si(0,i),v&&Jn?(1==w?(a=p,f=g):(a=m,f=x),c=vl[t],h=Bl(_(a,u),c,o,0),d=Bl(_(a+f,u),c,o,0),ri(ol(h,d),el(d-h))):ri(0,o)}else gi()}else{let l=el(Yn-Dn),e=el(Cn-Pn);if(1==Nl.ori){let t=l;l=e,e=t}Vn=Bn.x&&l>=Bn.dist,Jn=Bn.y&&e>=Bn.dist;let t,n,s=Bn.uni;null!=s?Vn&&Jn&&(Vn=l>=s,Jn=e>=s,Vn||Jn||(e>l?Jn=!0:Vn=!0)):Bn.x&&Bn.y&&(Vn||Jn)&&(Vn=Jn=!0),Vn&&(0==Nl.ori?(t=An,n=Fn):(t=Wn,n=Hn),si(ol(t,n),el(n-t)),Jn||ri(0,o)),Jn&&(1==Nl.ori?(t=An,n=Fn):(t=Wn,n=Hn),ri(ol(t,n),el(n-t)),Vn||si(0,i)),Vn||Jn||(si(0,0),ri(0,0))}if(Bn._x=Vn,Bn._y=Jn,null==l){if(t){if(null!=Pi){let[l,e]=Di.scales;Di.values[0]=null!=l?ni(0==Nl.ori?Fn:Hn,l):null,Di.values[1]=null!=e?ni(1==Nl.ori?Fn:Hn,e):null}Wi(f,k,Fn,Hn,Ye,Ce,n)}if(kt){let l=t&&Di.setSeries,e=vt.prox;null==ei?Qn>e||$n(li,ti,!0,l):Qn>e?$n(null,ti,!0,l):li!=ei&&$n(li,ti,!0,l)}}pt&&(le.idx=n,ui()),!1!==e&&Ti("setCursor")}k.setLegend=ui;let ci=null;function hi(l=!1){l?ci=null:(ci=$.getBoundingClientRect(),Ti("syncRect",ci))}function di(l,e,t,n,i,o){wt._lock||Un&&null!=l&&0==l.movementX&&0==l.movementY||(pi(l,e,t,n,i,o,0,!1,null!=l),null!=l?fi(null,!0,!0):fi(e,!0,!1))}function pi(l,e,t,n,i,o,s,r,u){if(null==ci&&hi(!1),_t(l),null!=l)t=l.clientX-ci.left,n=l.clientY-ci.top;else{if(0>t||0>n)return Fn=-10,void(Hn=-10);let[l,s]=Di.scales,r=e.cursor.sync,[u,a]=r.values,[f,c]=r.scales,[h,d]=Di.match,p=e.axes[0].side%2==1,m=0==Nl.ori?Ye:Ce,g=1==Nl.ori?Ye:Ce,x=p?o:i,w=p?i:o,_=p?n:t,b=p?t:n;if(t=null!=f?h(l,f)?H(u,vl[l],m,0):-10:m*(_/x),n=null!=c?d(s,c)?H(a,vl[s],g,0):-10:g*(b/w),1==Nl.ori){let l=t;t=n,n=l}}u&&(t>1&&Ye-1>t||(t=kl(t,Ye)),n>1&&Ce-1>n||(n=kl(n,Ce))),r?(Dn=t,Pn=n,[An,Wn]=wt.move(k,t,n)):(Fn=t,Hn=n)}Object.defineProperty(k,"rect",{get:()=>(null==ci&&hi(!1),ci)});const mi={width:0,height:0,left:0,top:0};function gi(){Xn(mi,!1)}let xi,wi,_i,bi;function vi(l,e,t,n,i,o){Un=!0,Vn=Jn=Bn._x=Bn._y=!1,pi(l,e,t,n,i,o,0,!0,!1),null!=l&&(ze(h,b,ki,!1),Wi(c,k,An,Wn,Ye,Ce,null));let{left:s,top:r,width:u,height:a}=qn;xi=s,wi=r,_i=u,bi=a,gi()}function ki(l,e,t,n,i,o){Un=Bn._x=Bn._y=!1,pi(l,e,t,n,i,o,0,!1,!0);let{left:s,top:r,width:u,height:a}=qn,f=u>0||a>0,c=xi!=s||wi!=r||_i!=u||bi!=a;if(f&&c&&Xn(qn),Bn.setScale&&f&&c){let l=s,e=u,t=r,n=a;if(1==Nl.ori&&(l=r,e=a,t=s,n=u),Vn&&Zn(zl,ni(l,zl),ni(l+e,zl)),Jn)for(let l in vl){let e=vl[l];l!=zl&&null==e.from&&e.min!=hl&&Zn(l,ni(t+n,l),ni(t,l))}gi()}else wt.lock&&(wt._lock=!wt._lock,wt._lock||fi(null,!0,!1));null!=l&&(De(h,b),Wi(h,k,Fn,Hn,Ye,Ce,null))}function yi(l){wt._lock||(_t(l),fn(),gi(),null!=l&&Wi(m,k,Fn,Hn,Ye,Ce,null))}function Mi(){gl.forEach(Jt),mt(k.width,k.height,!0)}G(x,v,Mi);const Si={};Si.mousedown=vi,Si.mousemove=di,Si.mouseup=ki,Si.dblclick=yi,Si.setSeries=(l,e,t,n)=>{-1!=(t=(0,Di.match[2])(k,e,t))&&$n(t,n,!0,!1)},wt.show&&(ze(c,$,vi),ze(f,$,di),ze(d,$,(l=>{_t(l),hi(!1)})),ze(p,$,(function(l){if(wt._lock)return;_t(l);let e=Un;if(Un){let l,e,t=!0,n=!0,i=10;0==Nl.ori?(l=Vn,e=Jn):(l=Jn,e=Vn),l&&e&&(t=i>=Fn||Fn>=Ye-i,n=i>=Hn||Hn>=Ce-i),l&&t&&(Fn=An>Fn?0:Ye),e&&n&&(Hn=Wn>Hn?0:Ce),fi(null,!0,!0),Un=!1}Fn=-10,Hn=-10,fi(null,!0,!0),e&&(Un=e)})),ze(m,$,yi),Wt.add(k),k.syncRect=hi);const Ei=k.hooks=u.hooks||{};function Ti(l,e,t){Gn?In.push([l,e,t]):l in Ei&&Ei[l].forEach((l=>{l.call(null,k,e,t)}))}(u.plugins||[]).forEach((l=>{for(let e in l.hooks)Ei[e]=(Ei[e]||[]).concat(l.hooks[e])}));const zi=(l,e,t)=>t,Di=Il({key:null,setSeries:!1,filters:{pub:_l,sub:_l},scales:[zl,dl[1]?dl[1].scale:null],match:[bl,bl,zi],values:[null,null]},wt.sync);2==Di.match.length&&Di.match.push(zi),wt.sync=Di;const Pi=Di.key,Ai=st(Pi);function Wi(l,e,t,n,i,o,s){Di.filters.pub(l,e,t,n,i,o,s)&&Ai.pub(l,e,t,n,i,o,s)}function Yi(){Ti("init",u,g),an(g||u.data,!1),Vl[zl]?jn(zl,Vl[zl]):fn(),ht=qn.show&&(qn.width>0||qn.height>0),ct=pt=!0,mt(u.width,u.height)}return Ai.sub(k),k.pub=function(l,e,t,n,i,o,s){Di.filters.sub(l,e,t,n,i,o,s)&&Si[l](null,e,t,n,i,o,s)},k.destroy=function(){Ai.unsub(k),Wt.delete(k),Te.clear(),I(x,v,Mi),O.remove(),oe?.remove(),Ti("destroy")},dl.forEach(Et),gl.forEach((function(l,e){if(l._show=l.show,l.show){let t=vl[l.scale];null==t&&(l.scale=l.side%2?dl[1].scale:zl,t=vl[l.scale]);let n=t.time;l.size=ml(l.size),l.space=ml(l.space),l.rotate=ml(l.rotate),Wl(l.incrs)&&l.incrs.forEach((l=>{!El.has(l)&&El.set(l,Tl(l))})),l.incrs=ml(l.incrs||(2==t.distr?te:n?1==fl?me:we:ne)),l.splits=ml(l.splits||(n&&1==t.distr?Kl:3==t.distr?Oe:4==t.distr?Ne:Le)),l.stroke=ml(l.stroke),l.grid.stroke=ml(l.grid.stroke),l.ticks.stroke=ml(l.ticks.stroke),l.border.stroke=ml(l.border.stroke);let i=l.values;l.values=Wl(i)&&!Wl(i[0])?ml(i):n?Wl(i)?ke(Jl,ve(i,ql)):Cl(i)?function(l,e){let t=Xl(e);return(e,n)=>n.map((e=>t(l(e))))}(Jl,i):i||Zl:i||Ie,l.filter=ml(l.filter||(3>t.distr||10!=t.log?3==t.distr&&2==t.log?Ke:xl:qe)),l.font=Vt(l.font),l.labelFont=Vt(l.labelFont),l._size=l.size(k,null,e,0),l._space=l._rotate=l._incrs=l._found=l._splits=l._values=null,l._size>0&&(Tt[e]=!0,l._el=D("u-axis",X))}})),_?_ instanceof HTMLElement?(_.appendChild(O),Yi()):_(k,Yi):Yi(),k}qt.assign=Il,qt.fmtNum=$,qt.rangeNum=q,qt.rangeLog=N,qt.rangeAsinh=j,qt.orient=rt,qt.pxRatio=y,qt.join=function(l,e){if(function(l){let e=l[0][0],t=e.length;for(let n=1;l.length>n;n++){let i=l[n][0];if(i.length!=t)return!1;if(i!=e)for(let l=0;t>l;l++)if(i[l]!=e[l])return!1}return!0}(l)){let e=l[0].slice();for(let t=1;l.length>t;t++)e.push(...l[t].slice(1));return function(l,e=100){const t=l.length;if(1>=t)return!0;let n=0,i=t-1;for(;i>=n&&null==l[n];)n++;for(;i>=n&&null==l[i];)i--;if(n>=i)return!0;const o=sl(1,tl((i-n+1)/e));for(let e=l[n],t=n+o;i>=t;t+=o){const n=l[t];if(null!=n){if(e>=n)return!1;e=n}}return!0}(e[0])||(e=function(l){let e=l[0],t=e.length,n=Array(t);for(let l=0;n.length>l;l++)n[l]=l;n.sort(((l,t)=>e[l]-e[t]));let i=[];for(let e=0;l.length>e;e++){let o=l[e],s=Array(t);for(let l=0;t>l;l++)s[l]=o[n[l]];i.push(s)}return i}(e)),e}let t=new Set;for(let e=0;l.length>e;e++){let n=l[e][0],i=n.length;for(let l=0;i>l;l++)t.add(n[l])}let n=[Array.from(t).sort(((l,e)=>l-e))],i=n[0].length,o=new Map;for(let l=0;i>l;l++)o.set(n[0][l],l);for(let t=0;l.length>t;t++){let s=l[t],r=s[0];for(let l=1;s.length>l;l++){let u=s[l],a=Array(i).fill(void 0),f=e?e[t][l]:1,c=[];for(let l=0;u.length>l;l++){let e=u[l],t=o.get(r[l]);null===e?0!=f&&(a[t]=e,2==f&&c.push(t)):a[t]=e}Ll(a,c,i),n.push(a)}}return n},qt.fmtDate=Xl,qt.tzDate=function(l,e){let t;return"UTC"==e||"Etc/UTC"==e?t=new Date(+l+6e4*l.getTimezoneOffset()):e==Zl?t=l:(t=new Date(l.toLocaleString("en-US",{timeZone:e})),t.setMilliseconds(l.getMilliseconds())),t},qt.sync=st;{qt.addGap=function(l,e,t){let n=l[l.length-1];n&&n[0]==e?n[1]=t:l.push([e,t])},qt.clipGaps=ct;let l=qt.paths={points:St};l.linear=Dt,l.stepped=function(l){const e=K(l.align,1),t=K(l.ascDesc,!1),n=K(l.alignGaps,0),i=K(l.extend,!1);return(l,o,s,r)=>rt(l,o,((u,a,f,c,h,d,p,m,g,x,w)=>{let _=u.pxRound,{left:b,width:v}=l.bbox,k=l=>_(d(l,c,x,m)),M=l=>_(p(l,h,w,g)),S=0==c.ori?xt:wt;const E={stroke:new Path2D,fill:null,clip:null,band:null,gaps:null,flags:1},T=E.stroke,z=c.dir*(0==c.ori?1:-1);s=O(f,s,r,1),r=O(f,s,r,-1);let D=M(f[1==z?s:r]),P=k(a[1==z?s:r]),A=P,W=P;i&&-1==e&&(W=b,S(T,W,D)),S(T,P,D);for(let l=1==z?s:r;l>=s&&r>=l;l+=z){let t=f[l];if(null==t)continue;let n=k(a[l]),i=M(t);1==e?S(T,n,D):S(T,A,i),S(T,n,i),D=i,A=n}let Y=A;i&&1==e&&(Y=b+v,S(T,Y,D));let[C,F]=ut(l,o);if(null!=u.fill||0!=C){let e=E.fill=new Path2D(T),t=M(u.fillTo(l,o,u.min,u.max,C));S(e,Y,t),S(e,W,t)}if(!u.spanGaps){let i=[];i.push(...ht(a,f,s,r,z,k,n));let h=u.width*y/2,d=t||1==e?h:-h,p=t||-1==e?-h:h;i.forEach((l=>{l[0]+=d,l[1]+=p})),E.gaps=i=u.gaps(l,o,s,r,i),E.clip=ct(i,c.ori,m,g,x,w)}return 0!=F&&(E.band=2==F?[ft(l,o,s,r,T,-1),ft(l,o,s,r,T,1)]:ft(l,o,s,r,T,F)),E}))},l.bars=function(l){const e=K((l=l||Dl).size,[.6,hl,1]),t=l.align||0,n=l.gap||0;let i=l.radius;i=null==i?[0,0]:"number"==typeof i?[i,0]:i;const o=ml(i),s=1-e[0],r=K(e[1],hl),u=K(e[2],1),a=K(l.disp,Dl),f=K(l.each,(()=>{})),{fill:c,stroke:h}=a;return(l,e,i,d)=>rt(l,e,((p,m,g,x,w,_,b,v,k,M,S)=>{let E,T,z=p.pxRound,D=t,P=n*y,A=r*y,W=u*y;0==x.ori?[E,T]=o(l,e):[T,E]=o(l,e);const Y=x.dir*(0==x.ori?1:-1);let C,F,H,R=0==x.ori?_t:bt,G=0==x.ori?f:(l,e,t,n,i,o,s)=>{f(l,e,t,i,n,s,o)},I=K(l.bands,Pl).find((l=>l.series[0]==e)),L=p.fillTo(l,e,p.min,p.max,null!=I?I.dir:0),O=z(b(L,w,S,k)),N=M,j=z(p.width*y),U=!1,B=null,V=null,J=null,q=null;null==c||0!=j&&null==h||(U=!0,B=c.values(l,e,i,d),V=new Map,new Set(B).forEach((l=>{null!=l&&V.set(l,new Path2D)})),j>0&&(J=h.values(l,e,i,d),q=new Map,new Set(J).forEach((l=>{null!=l&&q.set(l,new Path2D)}))));let{x0:X,size:Z}=a;if(null!=X&&null!=Z){D=1,m=X.values(l,e,i,d),2==X.unit&&(m=m.map((e=>l.posToVal(v+e*M,x.key,!0))));let t=Z.values(l,e,i,d);F=2==Z.unit?t[0]*M:_(t[0],x,M,v)-_(0,x,M,v),N=Pt(m,g,_,x,M,v,N),H=N-F+P}else N=Pt(m,g,_,x,M,v,N),H=N*s+P,F=N-H;1>H&&(H=0),F/2>j||(j=0),5>H&&(z=gl);let $=H>0;F=z(pl(N-H-($?j:0),W,A)),C=(0==D?F/2:D==Y?0:F)-D*Y*((0==D?P/2:0)+($?j/2:0));const Q={stroke:null,fill:null,clip:null,band:null,gaps:null,flags:0},ll=U?null:new Path2D;let el=null;if(null!=I)el=l.data[I.series[1]];else{let{y0:t,y1:n}=a;null!=t&&null!=n&&(g=n.values(l,e,i,d),el=t.values(l,e,i,d))}let nl=E*F,il=T*F;for(let t=1==Y?i:d;t>=i&&d>=t;t+=Y){let n=g[t];if(null==n)continue;if(null!=el){let l=el[t]??0;if(n-l==0)continue;O=b(l,w,S,k)}let i=_(2!=x.distr||null!=a?m[t]:t,x,M,v),o=b(K(n,L),w,S,k),s=z(i-C),r=z(sl(o,O)),u=z(ol(o,O)),f=r-u;if(null!=n){let i=0>n?il:nl,o=0>n?nl:il;U?(j>0&&null!=J[t]&&R(q.get(J[t]),s,u+tl(j/2),F,sl(0,f-j),i,o),null!=B[t]&&R(V.get(B[t]),s,u+tl(j/2),F,sl(0,f-j),i,o)):R(ll,s,u+tl(j/2),F,sl(0,f-j),i,o),G(l,e,t,s-j/2,u,F+j,f)}}return j>0?Q.stroke=U?q:ll:U||(Q._fill=0==p.width?p._fill:p._stroke??p._fill,Q.width=0),Q.fill=U?V:ll,Q}))},l.spline=function(l){return function(l,e){const t=K(e?.alignGaps,0);return(e,n,i,o)=>rt(e,n,((s,r,u,a,f,c,h,d,p,m,g)=>{let x,w,_,b=s.pxRound,v=l=>b(c(l,a,m,d)),k=l=>b(h(l,f,g,p));0==a.ori?(x=mt,_=xt,w=yt):(x=gt,_=wt,w=Mt);const y=a.dir*(0==a.ori?1:-1);i=O(u,i,o,1),o=O(u,i,o,-1);let M=v(r[1==y?i:o]),S=M,E=[],T=[];for(let l=1==y?i:o;l>=i&&o>=l;l+=y)if(null!=u[l]){let e=v(r[l]);E.push(S=e),T.push(k(u[l]))}const z={stroke:l(E,T,x,_,w,b),fill:null,clip:null,band:null,gaps:null,flags:1},D=z.stroke;let[P,A]=ut(e,n);if(null!=s.fill||0!=P){let l=z.fill=new Path2D(D),t=k(s.fillTo(e,n,s.min,s.max,P));_(l,S,t),_(l,M,t)}if(!s.spanGaps){let l=[];l.push(...ht(r,u,i,o,y,v,t)),z.gaps=l=s.gaps(e,n,i,o,l),z.clip=ct(l,a.ori,d,p,m,g)}return 0!=A&&(z.band=2==A?[ft(e,n,i,o,D,-1),ft(e,n,i,o,D,1)]:ft(e,n,i,o,D,A)),z}))}(At,l)}}return qt}();</script>
+<style>
+:root {
+  --bg: #F3F4F6; --panel: #FFFFFF; --sub: #F7F8FA; --text: #161B26; --text2: #3A4250; --muted: #5B6474; --line: #DCE0E6; --line2: #EEF0F3; --btnline: #C9CED6;
+  --accent: #1D5FD1; --accent-ink: #14449A; --accent-bg: #EAF1FD;
+  --c1: #1D5FD1; --c2: #C2570C; --c3: #177245; --c4: #7C3AED; --c5: #0E7490; --c6: #B42318; --c7: #A16207; --c8: #8A93A3;
+  --pulse: rgba(29,95,209,.10); --pair: #F7C9A8; --stale: rgba(214,69,50,.16);
+  --ok: #145C38; --okbg: #E6F4EC; --okdot: #177245; --warn: #7A4300; --warnbg: #FFF3DC; --warndot: #C2570C; --bad: #8E1B12; --badbg: #FDE7E5; --baddot: #B42318;
+  --lane-ok: #2E9E5B; --lane-gap: #D64532; --mark: #B42318; --mark2: #A16207; --mark3: #5B6474; --ride: #C026D3;
+  --m1: rgba(180,35,24,.20); --m2: rgba(161,98,7,.22); --m3: rgba(91,100,116,.26);
+  --bc: #E6EEF9; --bc-ink: #14449A; --rq: #F1E8FB; --rq-ink: #5B2A8C;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0F1218; --panel: #171B23; --sub: #1D222C; --text: #E6E9EF; --text2: #C4CAD4; --muted: #98A2B3; --line: #2A303B; --line2: #232933; --btnline: #3A4250;
+    --accent: #6EA2FF; --accent-ink: #A9C6FF; --accent-bg: #1B2A45;
+    --c1: #6EA2FF; --c2: #F59E5B; --c3: #4ADE80; --c4: #C4A2FF; --c5: #38BDF8; --c6: #F87171; --c7: #FACC15; --c8: #8A93A3;
+    --pulse: rgba(110,162,255,.14); --pair: rgba(245,158,91,.38); --stale: rgba(248,113,113,.18);
+    --ok: #86EFAC; --okbg: #12301D; --okdot: #4ADE80; --warn: #FDBA74; --warnbg: #3B2410; --warndot: #F59E5B; --bad: #FCA5A5; --badbg: #3F1515; --baddot: #F87171;
+    --lane-ok: #22A35A; --lane-gap: #F87171; --mark: #F87171; --mark2: #FACC15; --mark3: #94A3B8; --ride: #E879F9;
+    --m1: rgba(248,113,113,.25); --m2: rgba(250,204,21,.22); --m3: rgba(148,163,184,.28);
+    --bc: #1B2A45; --bc-ink: #A9C6FF; --rq: #2D1F45; --rq-ink: #D8C2FF;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0F1218; --panel: #171B23; --sub: #1D222C; --text: #E6E9EF; --text2: #C4CAD4; --muted: #98A2B3; --line: #2A303B; --line2: #232933; --btnline: #3A4250;
+  --accent: #6EA2FF; --accent-ink: #A9C6FF; --accent-bg: #1B2A45;
+  --c1: #6EA2FF; --c2: #F59E5B; --c3: #4ADE80; --c4: #C4A2FF; --c5: #38BDF8; --c6: #F87171; --c7: #FACC15; --c8: #8A93A3;
+  --pulse: rgba(110,162,255,.14); --pair: rgba(245,158,91,.38); --stale: rgba(248,113,113,.18);
+  --ok: #86EFAC; --okbg: #12301D; --okdot: #4ADE80; --warn: #FDBA74; --warnbg: #3B2410; --warndot: #F59E5B; --bad: #FCA5A5; --badbg: #3F1515; --baddot: #F87171;
+  --lane-ok: #22A35A; --lane-gap: #F87171; --mark: #F87171; --mark2: #FACC15; --mark3: #94A3B8; --ride: #E879F9;
+  --m1: rgba(248,113,113,.25); --m2: rgba(250,204,21,.22); --m3: rgba(148,163,184,.28);
+  --bc: #1B2A45; --bc-ink: #A9C6FF; --rq: #2D1F45; --rq-ink: #D8C2FF;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 "Noto Sans TC", "Microsoft JhengHei", system-ui, "Segoe UI", sans-serif; }
+.mono { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; }
+a { color: var(--accent); }
+button, .btn { font: inherit; font-size: 13px; min-height: 36px; padding: 0 14px; border: 1px solid var(--btnline); border-radius: 8px; background: var(--panel); color: var(--text); cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+button:hover, .btn:hover { border-color: var(--accent); }
+button.primary, .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.on { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-ink); }
+input[type=number], input[type=text] { font: inherit; min-height: 34px; padding: 0 8px; border: 1px solid var(--btnline); border-radius: 6px; background: var(--panel); color: var(--text); }
+.appbar { background: var(--panel); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
+.appbar-in { max-width: 1400px; margin: 0 auto; padding: 14px 24px 0; display: flex; flex-direction: column; gap: 10px; }
+.toprow { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.brand { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 700; }
+.filechip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+.filechip .name { color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; }
+.tabs button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: none; padding: 10px 16px; min-height: 44px; font-size: 14px; color: var(--muted); }
+.tabs button[aria-selected="true"] { border-bottom-color: var(--accent); color: var(--text); font-weight: 700; }
+.wrap { max-width: 1400px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.card h2 { margin: 0; font-size: 16px; }
+.card h3 { margin: 4px 0 0; font-size: 14px; }
+.cardhead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.cardhead .grow { flex: 1 1 0; }
+.help { font-size: 12px; color: var(--muted); }
+.help kbd { border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; font-size: 11px; background: var(--bg); color: var(--text); }
+#drop { border: 2px dashed var(--btnline); border-radius: 12px; padding: 56px 16px; text-align: center; color: var(--muted); background: var(--panel); }
+#drop.hover { border-color: var(--accent); color: var(--text); }
+.verdicts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.verdict { border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; min-height: 112px; overflow-wrap: anywhere; font-size: 12px; }
+.verdict .vt { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
+.verdict .vt i { width: 10px; height: 10px; border-radius: 5px; display: inline-block; }
+.verdict .vb { font-size: 22px; font-weight: 700; color: var(--text); line-height: 1.25; }
+.v-ok { background: var(--okbg); color: var(--ok); } .v-ok .vt i { background: var(--okdot); }
+.v-warn { background: var(--warnbg); color: var(--warn); } .v-warn .vt i { background: var(--warndot); }
+.v-bad { background: var(--badbg); color: var(--bad); } .v-bad .vt i { background: var(--baddot); }
+.v-na { background: var(--panel); color: var(--muted); border: 1px solid var(--line); } .v-na .vt i { background: var(--c8); }
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line2); vertical-align: middle; white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; border-bottom-color: var(--line); position: sticky; top: 0; background: var(--panel); }
+td.num, th.num { text-align: right; font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; }
+td.id { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; font-size: 12px; color: var(--text2); }
+tr.node td { font-weight: 700; background: var(--sub); }
+tr.click { cursor: pointer; } tr.click:hover td { background: var(--accent-bg); }
+.chip { display: inline-block; padding: 0 9px; border-radius: 10px; font-size: 12px; white-space: nowrap; }
+.chip.ok { background: var(--okbg); color: var(--ok); } .chip.warn { background: var(--warnbg); color: var(--warn); } .chip.bad { background: var(--badbg); color: var(--bad); } .chip.na { background: var(--sub); color: var(--muted); border: 1px solid var(--line); }
+.chips-on { background: var(--accent-bg) !important; border-color: var(--accent) !important; color: var(--accent-ink) !important; }
+.chip.bc { background: var(--bc); color: var(--bc-ink); } .chip.rq { background: var(--rq); color: var(--rq-ink); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: 20px; }
+@media (max-width: 520px) { .two { grid-template-columns: 1fr; } }
+.evlist { display: flex; flex-direction: column; gap: 6px; max-height: 360px; overflow: auto; }
+.ev { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 6px 10px; border-radius: 8px; background: var(--sub); border: 0; width: 100%; text-align: left; color: var(--text); }
+.ev .t { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; width: 64px; color: var(--text2); flex: none; }
+.ev .len { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; font-size: 12px; width: 70px; text-align: right; flex: none; }
+.ev .who { font-size: 12px; width: 130px; color: var(--muted); flex: none; }
+.tl { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
+.tl-main { flex: 999 1 640px; min-width: 0; }
+.tl-side { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+#nav { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid var(--line2); }
+#nav .sep { width: 1px; height: 24px; background: var(--line); margin: 0 4px; }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--text2); }
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+#charts .u-legend { font-size: 12px; }
+#charts .ctitle { font-size: 13px; font-weight: 700; color: var(--text2); margin: 12px 0 0 2px; }
+.params { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.params label { font-size: 12px; color: var(--text2); display: flex; flex-direction: column; gap: 4px; }
+.params .pair { display: flex; gap: 6px; } .params .pair input { width: 100%; min-width: 0; }
+.params input { width: 100%; }
+td input[type=text] { width: 100%; min-width: 80px; min-height: 30px; font-size: 12px; }
+.tag { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; color: #fff; }
+.tag.t1 { background: var(--mark); } .tag.t2 { background: var(--mark2); color: #111; } .tag.t3 { background: var(--mark3); }
+.tag[data-go] { cursor: pointer; }
+.bad { color: var(--bad); font-weight: 700; }
+.notewarn { background: var(--warnbg); color: var(--warn); padding: 6px 10px; border-radius: 8px; margin-top: 6px; font-size: 12px; }
+#marks input[type=number], #segs input[type=number] { width: 76px; min-height: 30px; font-size: 12px; padding: 0 4px; }
+select { font: inherit; font-size: 13px; min-height: 34px; padding: 0 6px; border: 1px solid var(--btnline); border-radius: 6px; background: var(--panel); color: var(--text); }
+#segs select { min-height: 30px; font-size: 12px; }
+#seglist { max-height: 30vh; overflow: auto; }
+#summary b { font-variant-numeric: tabular-nums; }
+.yes { color: var(--ok); } .no { color: var(--muted); }
+#marklist { max-height: 46vh; overflow: auto; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; }
+.srclegend { display: flex; flex-wrap: wrap; gap: 10px 20px; font-size: 12px; color: var(--text2); }
+.srclegend span { display: inline-flex; align-items: center; gap: 6px; }
+.bats { display: grid; grid-template-columns: repeat(auto-fit, minmax(560px, 1fr)); gap: 20px; }
+@media (max-width: 640px) { .bats { grid-template-columns: 1fr; } }
+.bathead { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.bathead h2 { font-size: 18px; }
+.bathead .grow { flex: 1 1 0; }
+.batbody { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+.kpis { flex: 1 1 320px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 520px) { .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.kpi { background: var(--sub); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.kpi .kl { font-size: 12px; color: var(--text2); display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.kpi .kv { font-size: 20px; font-weight: 700; font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; overflow-wrap: anywhere; }
+.kpi .ks { font-size: 12px; color: var(--muted); }
+.recs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .recs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.rec { border: 1px solid var(--line2); border-radius: 10px; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.rec .rl { font-size: 12px; color: var(--text2); } .rec .rv { font-size: 15px; font-weight: 700; font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; overflow-wrap: anywhere; } .rec .rs { font-size: 11px; color: var(--muted); }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+[hidden] { display: none !important; }
+[data-edition="std"] .dtap { display: none !important; }   /* standard edition (make_release.py): no double-tap test tools */
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="appbar-in">
+    <div class="toprow">
+      <div class="brand">
+        <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="6" fill="#161B26"></rect><path d="M5 17 L9 17 L11 9 L14 20 L17 12 L19 17 L23 17" fill="none" stroke="#7FB0FF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+        ToolR Analyzer
+      </div>
+      <div class="filechip" id="fileinfo">RAW / TRQ / LOG / FST 都可以</div>
+      <span style="flex:1 1 0"></span>
+      <div class="row">
+        <label class="btn">開啟檔案<input id="file" type="file" accept=".csv,.CSV" multiple hidden></label>
+        <button id="exportReport" class="primary" type="button" disabled>匯出報告</button>
+      </div>
+    </div>
+    <div class="tabs" role="tablist" aria-label="分析畫面" id="tabs" hidden>
+      <button type="button" role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">總覽</button>
+      <button type="button" role="tab" id="tab-timeline" aria-controls="panel-timeline" aria-selected="false">時間軸與雙踏</button>
+      <button type="button" role="tab" id="tab-battery" aria-controls="panel-battery" aria-selected="false">電池健康</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="drop">把 ToolR 的檔案拖到這裡，或按右上「開啟檔案」<br><b>RAW_xxxx</b>（按一下，全部 CAN 封包）· <b>FST_xxxx</b>（按兩下，FOC 除錯）· 舊版 <b>LOG_ / TRQ_</b> 也能開<br>同一趟的多個檔案可以一起選 / 一起拖進來，會接成一條時間軸</div>
+
+  <div id="report" hidden>
+    <!-- ================= 總覽 ================= -->
+    <section id="panel-overview" role="tabpanel" aria-labelledby="tab-overview" style="display:flex;flex-direction:column;gap:20px">
+      <div class="verdicts" id="verdicts" aria-label="總覽判讀"></div>
+
+      <section class="card" id="sumCard" aria-labelledby="sumh">
+        <div class="cardhead">
+          <h2 id="sumh">控制器紀錄摘要</h2>
+          <span class="help" id="sumMeta"></span>
+          <span class="grow"></span>
+          <button id="copySum" type="button">複製摘要</button>
+        </div>
+        <div class="kpis" id="tiles" style="grid-template-columns: repeat(auto-fit, minmax(170px, 1fr))"></div>
+        <h3>初步判讀</h3>
+        <ul id="notes" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px"></ul>
+      </section>
+
+      <section class="card" id="nodeCard" aria-labelledby="nodeh">
+        <div class="cardhead">
+          <h2 id="nodeh">CAN 節點健康</h2>
+          <span class="help" id="nodeHelp"></span>
+          <span class="grow"></span>
+          <label class="help" style="display:flex;align-items:center;gap:6px">斷訊倍數 <input id="pGap" type="number" value="2.5" step="0.5" min="1.5" style="width:70px"></label>
+          <button id="exportNodes" type="button">匯出節點報告 CSV</button>
+        </div>
+        <div class="tablewrap"><table id="nodes" style="min-width:980px"></table></div>
+      </section>
+
+      <div class="two">
+        <section class="card" aria-labelledby="gaph">
+          <h2 id="gaph">斷訊事件</h2>
+          <span class="help">點一下跳到時間軸上的那個時間</span>
+          <div class="evlist" id="eventTable"></div>
+        </section>
+        <section class="card" id="faultCard" aria-labelledby="fh">
+          <h2 id="fh">故障與狀態事件</h2>
+          <span class="help">依 ENDEX CAN 協定 v2.11 解碼 · 點一下跳到時間軸</span>
+          <div class="evlist" id="faultTable"></div>
+        </section>
+      </div>
+
+      <details class="card" id="bitCard">
+        <summary style="cursor:pointer;font-weight:700;font-size:16px;min-height:28px">位元定義（ENDEX CAN 協定 v2.11 + 控制器韌體）</summary>
+        <div class="tablewrap" id="bitdefs"></div>
+      </details>
+
+      <section class="card" id="busCard" aria-labelledby="bush">
+        <div class="cardhead"><h2 id="bush">匯流排品質</h2><span class="help">每秒一筆 STAT：REC / TEC 錯誤計數、每秒封包數</span></div>
+        <div id="busChart"></div>
+      </section>
+    </section>
+
+    <!-- ================= 時間軸 ================= -->
+    <section id="panel-timeline" role="tabpanel" aria-labelledby="tab-timeline" hidden>
+      <div class="tl">
+        <div class="tl-main card" style="gap:6px">
+          <div id="nav" role="toolbar" aria-label="時間範圍">
+            <button type="button" data-win="5">5 s</button><button type="button" data-win="10">10 s</button><button type="button" data-win="30">30 s</button><button type="button" data-win="120">2 min</button><button type="button" data-win="0">全部</button>
+            <span class="sep"></span>
+            <button type="button" id="prev">◀ 上一段</button><button type="button" id="next">下一段 ▶</button>
+            <span class="sep"></span>
+            <button type="button" id="prevPair" class="dtap">◀ 上一個候選</button><button type="button" id="nextPair" class="dtap">下一個候選 ▶</button>
+            <button type="button" id="nextOpen" class="dtap" title="跳到下一個還沒被任何標記蓋到的候選">下一個未檢查 ▶</button>
+            <button type="button" id="nextGap">下一個斷訊 ▶</button>
+            <span id="rideNav" hidden><button type="button" id="prevRide">◀ S2</button><button type="button" id="nextRide">S2 ▶</button></span>
+            <span style="flex:1 1 0"></span>
+            <div class="legend"><span class="dtap"><i style="background:var(--pair)"></i>候選雙踏</span><span><i style="background:var(--stale)"></i>資料來源斷訊</span><span class="dtap"><i style="background:var(--mark)"></i>故意雙踏</span><span class="dtap"><i style="background:var(--mark3)"></i>誤判</span><span class="dtap"><i style="background:var(--mark2)"></i>不確定</span><span id="rideLegend" hidden><i style="background:var(--ride);width:3px"></i>S2 事件標記</span></div>
+          </div>
+          <div class="row" style="align-items:center;padding:8px 0 0">
+            <span class="help">顯示欄位</span>
+            <button id="chDef" type="button">預設欄位</button>
+            <button id="chAll" type="button">全部欄位</button>
+            <button id="exportCsv" type="button">匯出換算後 CSV</button>
+          </div>
+          <div id="chips" class="row" style="gap:6px"></div>
+          <div id="charts"></div>
+          <div id="overview" style="margin-top:6px"></div>
+        </div>
+        <aside class="tl-side">
+          <section class="card" id="rideCard" aria-labelledby="rideh" hidden>
+            <h2 id="rideh">S2 事件標記 <span id="ridecount" class="help"></span></h2>
+            <span class="help">騎士錄製中按 S2 留下的時間點（V1.14 起的 RAW 檔），唯讀。點時間跳到標記前 8 s 到後 3 s</span>
+            <div class="tablewrap">
+              <table><thead><tr><th>#</th><th>時間 s</th><th>檔案</th></tr></thead><tbody id="rideMarks"></tbody></table>
+            </div>
+          </section>
+          <section class="card dtap" aria-labelledby="sumtaph">
+            <h2 id="sumtaph">雙踏判斷結果</h2>
+            <div id="summary" class="help">這個檔沒有扭力資料，不能做雙踏標記。</div>
+          </section>
+          <section class="card dtap" aria-labelledby="markh">
+            <h2 id="markh">雙踏標記 <span id="markcount" class="help"></span></h2>
+            <div class="row">
+              <button id="exportMarks" class="primary" type="button">匯出標記 CSV</button>
+              <label class="btn">匯入<input id="importMarks" type="file" accept=".csv,.CSV" hidden></label>
+              <button id="clearMarks" type="button">全部清除</button>
+            </div>
+            <div id="marklist" class="tablewrap">
+              <table><thead><tr><th>類型</th><th>開始 s</th><th>結束 s</th><th>候選</th><th>備註</th><th><span class="sr">刪除</span></th></tr></thead><tbody id="marks"></tbody></table>
+            </div>
+          </section>
+          <section class="card dtap" aria-labelledby="segh">
+            <h2 id="segh">情境區段 <span id="segcount" class="help"></span></h2>
+            <div class="row">
+              <select id="segScene" aria-label="情境"></select>
+              <button id="segAdd" type="button" title="把目前畫面的時間範圍標成這個情境">目前畫面設為此情境</button>
+            </div>
+            <span class="help">標「這段是正常騎乘 / 起步 / 上坡…」。非雙踏情境裡的候選一律算誤判；雙踏情境裡沒被標到的候選會提醒你檢查。</span>
+            <div id="seglist" class="tablewrap">
+              <table><thead><tr><th>情境</th><th>開始 s</th><th>結束 s</th><th><span class="sr">刪除</span></th></tr></thead><tbody id="segs"></tbody></table>
+            </div>
+          </section>
+          <section class="card dtap" aria-labelledby="paramh">
+            <h2 id="paramh">偵測參數</h2>
+            <div class="params">
+              <label>扭力零點 AD<input id="pOff" type="number" value="145"></label>
+              <label>N / count<input id="pK" type="number" value="0.3" step="0.05"></label>
+              <label>脈衝 ON / OFF N<span class="pair"><input id="pOn" type="number" value="6" aria-label="脈衝 ON N"><input id="pOffN" type="number" value="3" aria-label="脈衝 OFF N"></span></label>
+              <label>兩下間隔 ms<span class="pair"><input id="pGapMin" type="number" value="120" step="10" aria-label="最短間隔"><input id="pGapMax" type="number" value="700" step="10" aria-label="最長間隔"></span></label>
+              <label>前後靜默 ms<input id="pQuiet" type="number" value="600" step="50"></label>
+            </div>
+          </section>
+          <section class="card help" aria-labelledby="helph" style="gap:6px">
+            <h2 id="helph" style="color:var(--text)">操作</h2>
+            <span>拖曳 = 放大 · 滾輪 = 縮放 · <kbd>←</kbd><kbd>→</kbd> 平移 · <kbd>Esc</kbd> 看全部</span>
+            <span class="dtap"><kbd>Shift</kbd>+拖曳 = 標一段「故意雙踏」· <kbd>Ctrl</kbd>+拖曳 = 標「誤判」（確認不是故意的）· <kbd>Alt</kbd>+拖曳 = 標「不確定」（分析時排除）</span>
+            <span class="dtap">只點擊（不拖曳）= 套用最近候選的範圍；附近沒候選就取 0.8 秒內的脈衝，再沒有就取前後 0.5 秒</span>
+            <span class="dtap">游標停在圖上按 <kbd>M</kbd> 故意 / <kbd>X</kbd> 誤判 / <kbd>N</kbd> 不確定 / <kbd>D</kbd> 刪掉游標下的標記</span>
+            <span class="dtap">標記存在瀏覽器裡（每個檔各自一份）；匯出的 <span class="mono">_marks.csv</span> 跟檔案一起拖進來會自動匯入</span>
+            <span>淡紅底 = 該圖資料來源當時斷訊，數值不可信</span>
+          </section>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ================= 電池健康 ================= -->
+    <section id="panel-battery" role="tabpanel" aria-labelledby="tab-battery" hidden style="flex-direction:column;gap:20px">
+      <div class="srclegend">
+        <span><span class="chip bc">廣播</span>電池自己每 100 / 500 ms 送，RAW 模式一定錄得到</span>
+        <span><span class="chip rq">詢問</span>要有人發讀取請求才會出現（ToolR V1.12 RAW 模式開始時以儀表 0x30 身分讀一次）</span>
+      </div>
+      <div class="bats" id="bats"></div>
+      <section class="card" id="balCard" aria-labelledby="balh">
+        <div class="cardhead"><h2 id="balh">多電池平衡</h2><span class="help" id="balInfo"></span></div>
+        <div id="balChart"></div>
+      </section>
+    </section>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const STD = document.documentElement.dataset.edition === "std";   // standard edition: double-tap marking / scenes / candidates off
+if (STD) $("tab-timeline").textContent = "時間軸";
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const hx = (v, w) => v.toString(16).toUpperCase().padStart(w, "0");
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmtS = (t) => (t == null || !isFinite(t) ? "-" : t.toFixed(2));
+const fx = (x, d = 1) => (x == null || !isFinite(x) ? "—" : x.toFixed(d));
+function fmtDur(s) {
+  if (!isFinite(s)) return "—";
+  if (s < 60) return s.toFixed(1) + " 秒";
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), r = Math.round(s % 60);
+  return h ? `${h} 時 ${m} 分 ${r} 秒` : `${m} 分 ${r} 秒`;
+}
+
+// ================= CAN knowledge base: ENDEX_CAN_protocol_v2.11 + controller firmware =================
+// ENDEX 29-bit ID: priority(2) | command(3) | index(8) | source(8) | destination(8)
+const NODE_NAMES = { 0x10: "電池（未配號）", 0x11: "電池 1", 0x12: "電池 2", 0x13: "電池 3", 0x14: "電池 4", 0x20: "S-Tool", 0x30: "儀表", 0x31: "IOT",
+  0x35: "ESA 雷達", 0x50: "驅動器", 0x60: "扭力感測（ENDEX）", 0xA0: "輪鎖", 0xA5: "電池鎖", 0xAE: "E-Gear 變速", 0xF0: "F-Tool", 0xFF: "廣播" };
+const INDEX_NAMES = { 0x00: "參數通道", 0x01: "輪鎖回應", 0x10: "HMI_INFO", 0x11: "比例設定", 0x12: "手把/MOS 指令", 0x16: "IOT 控制", 0x17: "儀表設定",
+  0x18: "里程", 0x19: "Trip", 0x1E: "HMI 韌體版本", 0x1F: "HMI 序號", 0x20: "DRIVE_INFO_0", 0x21: "DRIVE_INFO_1", 0x22: "DRIVE_INFO_2",
+  0x23: "DRIVE_INFO_3 (EMCY)", 0x24: "故障歷史", 0x25: "DRIVE_SIG", 0x30: "限速/輪周", 0x35: "Product ID", 0x36: "韌體版本", 0x3A: "序號 1",
+  0x3B: "序號 2", 0x3E: "車架號", 0x60: "BMS_INFO_0", 0x61: "BMS_INFO_1", 0x62: "BMS 電流上限", 0x63: "BMS RTC", 0x64: "BMS Product ID",
+  0x65: "BMS 電芯/循環", 0x66: "BMS 充電間隔", 0x69: "BMS 韌體版本", 0x6A: "BMS 序號 1", 0x6B: "BMS 序號 2", 0x6F: "BMS ID 切換/休眠",
+  0xAD: "變速檔位", 0xBE: "心跳" };
+const CMD_NAMES = ["讀回應", "寫回應", "讀請求", "寫請求", "廣播"];
+// broadcast periods (ms): driver = controller firmware (endex_can_info_register), others = spec v2.11
+const PERIODS = { 0x50: { 0x20: 100, 0x21: 249, 0x22: 599, 0x23: 203 }, 0x30: { 0x10: 100, 0x11: 100, 0x12: 100 }, 0x31: { 0x11: 100 }, 0x35: { 0x30: 100 } };
+const BMS_PERIOD = { 0x60: 500, 0x61: 100 };
+// gaps longer than this have a functional effect (spec v2.11)
+const LIMITS = { "141030FF": [500, "超過 500 ms 沒收到儀表 HMI info，控制器會停止馬達輸出"] };
+const nodeName = (n) => NODE_NAMES[n] || "節點 0x" + hx(n, 2);
+
+function idInfo(key) {
+  const ext = key.length > 3;
+  const id = parseInt(key, 16);
+  if (!ext) return { key, node: "STD", nodeName: "標準 ID 裝置", name: "0x" + key, periodic: true };
+  if (id === 0x18F50133) return { key, node: "TORG8B", nodeName: "塔基扭力 TORG8B", name: "扭力/踏頻", period: 10, periodic: true };
+  if (id === 0x04FF3400) return { key, node: "LDS", nodeName: "塔基扭力 LDS", name: "扭力/踏頻", periodic: true };
+  if (id === 0x04FF3401) return { key, node: "LDS", nodeName: "塔基扭力 LDS", name: "輪速/圈數", periodic: true };
+  const cmd = (id >>> 24) & 7, idx = (id >>> 16) & 0xFF, src = (id >>> 8) & 0xFF, dst = id & 0xFF;
+  if (cmd > 4) return { key, node: "OTHER", nodeName: "其他（非 ENDEX 格式）", name: "0x" + key, periodic: true };
+  const name = (INDEX_NAMES[idx] || "index 0x" + hx(idx, 2)) + " " + CMD_NAMES[cmd] + (dst === 0xFF ? "" : " → " + nodeName(dst));
+  let period;
+  if (cmd === 4) {
+    if (idx === 0xBE) period = 10000;
+    else if (src >= 0x10 && src <= 0x19) period = BMS_PERIOD[idx];
+    else if (PERIODS[src]) period = PERIODS[src][idx];
+  }
+  return { key, node: "N" + hx(src, 2), nodeName: nodeName(src), name, period, periodic: cmd === 4, endex: { cmd, idx, src, dst }, limit: LIMITS[key] };
+}
+// frames every bike with this controller firmware should have; HMI ones only when an HMI is on the bus
+const EXPECTED = ["142050FF", "142150FF", "142250FF", "142350FF", "14BE50FF"];
+const EXPECTED_HMI = ["141030FF", "14BE30FF"];
+// bit names: spec v2.11, extended with the controller firmware (mc_parameter.h mc_fetal_err_t / mc_normal_err_t)
+const BITS = {
+  fault: ["OCP 過電流", "OVP 過電壓", "UVP 欠電壓", "OPE 運放錯誤", "HCE 霍爾連線錯誤", "PLE 相線錯誤", "ELE 電子鎖錯誤", "CSE 踏頻感測器錯誤",
+          "TSE 扭力感測器錯誤", "THE 油門錯誤", "HTE 霍爾轉換錯誤", "CME 通訊錯誤", "啟動運轉錯誤（韌體）"],
+  warn: ["DOT 驅動器過溫", "MOT 馬達過溫", "MSE 馬達卡住", "HLE 輪鎖錯誤", "WSE 輪速感測器錯誤", "輪速與馬達不符（韌體）", "Flash 讀取錯誤（韌體）"],
+  drvStat: ["驅動器就緒", "馬達運轉", "E-Lock 上鎖", "推行助力", "車鎖", "電池鎖", "Boost", "降功率"],
+  drvPep: ["頭燈", "尾燈", "日行燈", "煞車燈", "", "煞車", "", "側柱"],
+  batF: ["放電 FET 錯誤", "充電 FET 錯誤", "放電溫度警告", "放電溫度錯誤", "充電溫度錯誤", "電芯過壓", "電芯欠壓", "充電過流",
+         "放電過流 1 段", "放電過流 2 段", "短路", "完全放電", "接近放完"],
+  batSt: ["初始化完成", "Active", "放電 MOS 開", "偵測到充電器", "充電中", "", "", "即將關機"],
+};
+const BIT_TABLES = [["驅動器 Fault（DRIVE_INFO_3 byte 0-1）", "fault"], ["驅動器 Warning（DRIVE_INFO_3 byte 2-3）", "warn"], ["驅動器狀態（DRIVE_INFO_0 byte 0）", "drvStat"],
+  ["周邊狀態（DRIVE_INFO_0 byte 1）", "drvPep"], ["電池 Fault（BMS_INFO_1 byte 4-5）", "batF"], ["電池狀態（BMS_INFO_1 byte 6）", "batSt"]];
+const HMI_SWITCH = { 0x00: "閒置", 0x5A: "開機", 0xA5: "關機" };
+const HMI_BCAST = { 0: "停止驅動器廣播", 1: "啟用廣播", 2: "靜音（驅動器全部停止傳送）" };
+
+// ================= signals =================
+// key -> { label, unit, t:[], v:[], src } ; src = ID key (RAW) or column name the value comes from
+const SIG_DEFS = {
+  trqAD: ["扭力 AD", ""], trqN: ["扭力", "N"], cadCum: ["踏頻計數（累計）", "cnt"],
+  spd: ["車速", "km/h"], cur: ["驅動電流", "A"], volt: ["驅動器電壓", "V"], drvStat: ["驅動器狀態", "bit"], drvPep: ["周邊狀態", "bit"],
+  ass: ["段位", ""], pedTorq: ["控制器 PedTorq", "Nm"], pedCade: ["踏頻", "rpm"], pedPow: ["驅動功率", "W"], mpc: ["相電流", "A"],
+  trip: ["單趟里程", "km"], info2b: ["INFO_2 byte2-3（剩餘里程；Schaca = 感測器 checksum 錯×10）", ""], rpm: ["馬達 rpm", "rpm"], simRsoc: ["模擬 RSOC", "%"],
+  fault: ["驅動器 Fault", "bit"], warn: ["驅動器 Warning", "bit"], drvTemp: ["驅動器溫度", "°C"], motTemp: ["馬達溫度", "°C"],
+  hmiAss: ["儀表段位", ""], hmiBcast: ["儀表廣播指令", ""], hmiSwitch: ["儀表開關指令", ""], hmiMode: ["儀表模式", ""],
+  rec: ["REC 接收錯誤計數", ""], tec: ["TEC 傳送錯誤計數", ""], fps: ["每秒封包數", "fps"],
+};
+const STEP_KEYS = /^(drvStat|drvPep|fault|warn|ass|hmi.*|bat..(f|st)|rec|tec)$/;
+const BIT_KEYS = /^(drvStat|drvPep|fault|warn|bat..(f|st))$/;
+function sig(k, label, unit) {
+  if (!S.sig[k]) { const d = SIG_DEFS[k] || [label || k, unit || ""]; S.sig[k] = { key: k, label: d[0], unit: d[1], t: [], v: [], src: null }; }
+  return S.sig[k];
+}
+function put(k, src, t, v, label, unit) { const s = sig(k, label, unit); s.src = src; s.t.push(t); s.v.push(v); }
+
+const u16 = (b, i) => b[i] | (b[i + 1] << 8);
+const s16 = (b, i) => { const v = u16(b, i); return v & 0x8000 ? v - 0x10000 : v; };
+const u32 = (b, i) => (b[i] | (b[i + 1] << 8) | (b[i + 2] << 16)) + b[i + 3] * 16777216;
+function batRec(src) { return (S.bat[src] = S.bat[src] || { src, info: {} }); }
+function decodeFrame(key, info, t, b) {
+  const L = b.length;
+  if (key === "18F50133") {
+    const sum = (b[0] + b[1] + b[2] + b[3] + b[4] + b[5] + b[6]) & 0xFF;
+    if (L < 8 || b[0] !== 0xFF || sum !== b[7]) { S.chkErr[key] = (S.chkErr[key] || 0) + 1; return; }
+    put("trqAD", key, t, (((b[4] >> 6) & 3) << 8) | b[2]);
+    S.cadRaw.push([t, b[3] & 0x7F]);
+    return;
+  }
+  if (key === "04FF3400" && L >= 7) {   // LDS: fault, origin mV, torque mV, cadence count
+    put("trqAD", key, t, Math.max(0, u16(b, 4) - u16(b, 2)));
+    S.cadRaw.push([t, b[6]]);
+    S.lds = true;
+    return;
+  }
+  const e = info.endex; if (!e) return;
+  // battery read responses (to the HMI 0x30 or the driver 0x50): INDEX 62..6A, spec v2.11
+  if (e.cmd === 0 && e.src >= 0x10 && e.src <= 0x19) {
+    const r = batRec(e.src).info;
+    if (e.idx === 0x62 && L >= 6) { r.limits = { cont: s16(b, 0) / 100, peak: s16(b, 2) / 100, chg: s16(b, 4) / 100, t }; }
+    else if (e.idx === 0x63 && L >= 7) { r.rtc = { s: b[0], m: b[1], h: b[2], d: b[3], mo: b[4], y: u16(b, 5), t }; }
+    else if (e.idx === 0x64 && L >= 8) { const txt = b.every((x) => x === 0 || (x >= 32 && x < 127)) && b[0] >= 32; r.pid = txt ? String.fromCharCode(...b.filter((x) => x)) : b.map((x) => hx(x, 2)).join(""); }   // Triton pack: "ENDEX"
+    else if (e.idx === 0x65 && L >= 6) { r.cells = { s: b[0], p: b[1] }; r.cycles = u32(b, 2); }
+    else if (e.idx === 0x66 && L >= 4) { r.chg = { longest: u16(b, 0), last: u16(b, 2) }; }
+    else if (e.idx === 0x69 && L >= 4) { const asc = b.slice(0, 4).every((x) => x >= 0x30 && x <= 0x39); r.fw = asc ? String.fromCharCode(b[0], b[1]) + "." + String.fromCharCode(b[2], b[3]) : u16(b, 0) + "." + hx(u16(b, 2), 2); }   // Triton pack: ASCII "0104" = 01.04
+    else if (e.idx === 0x6A && L >= 7) { const ch = (x) => (x >= 32 && x < 127 ? String.fromCharCode(x) : "?"); r.sn = `${ch(b[0])}${ch(b[1])} ${hx(b[2], 2)}-${hx(b[3], 2)} v${b[4]} #${u16(b, 5)}`; }
+    return;
+  }
+  if (e.cmd !== 4) return;
+  if (e.src === 0x50) {
+    if (e.idx === 0x20 && L >= 8) { put("drvStat", key, t, b[0]); put("drvPep", key, t, b[1]); put("spd", key, t, u16(b, 2) / 10); put("cur", key, t, s16(b, 4) / 10); put("volt", key, t, u16(b, 6) / 10); }
+    else if (e.idx === 0x21 && L >= 8) { put("ass", key, t, b[1]); put("pedTorq", key, t, u16(b, 2) / 10); put("pedCade", key, t, b[4]); put("pedPow", key, t, u16(b, 5)); put("mpc", key, t, b[7]); }
+    else if (e.idx === 0x22 && L >= 8) { put("trip", key, t, u16(b, 0) / 10); put("info2b", key, t, u16(b, 2)); put("rpm", key, t, u16(b, 4)); put("simRsoc", key, t, u16(b, 6)); }
+    else if (e.idx === 0x23 && L >= 6) { put("fault", key, t, u16(b, 0)); put("warn", key, t, u16(b, 2)); put("drvTemp", key, t, b[4] - 40); put("motTemp", key, t, b[5] - 40); }   // controller sends 6 bytes
+  } else if (e.src >= 0x10 && e.src <= 0x19) {
+    const n = "bat" + hx(e.src, 2), lab = nodeName(e.src);
+    batRec(e.src);
+    if (e.idx === 0x60 && L >= 7) {   // 7 bytes
+      put(n + "rsoc", key, t, b[4], lab + " RSOC", "%");
+      if (u16(b, 0) !== 0xFFFF) put(n + "full", key, t, u16(b, 0) / 100, lab + " 滿充容量", "Ah");
+      if (u16(b, 2) !== 0xFFFF) put(n + "rem", key, t, u16(b, 2) / 100, lab + " 剩餘容量", "Ah");
+      if (b[5] !== 0xFF) put(n + "asoc", key, t, b[5], lab + " ASOC", "%");
+      if (b[6] !== 0xFF) put(n + "soh", key, t, b[6], lab + " SOH", "%");
+    } else if (e.idx === 0x61 && L >= 8) {
+      put(n + "v", key, t, u16(b, 0) / 100, lab + " 電壓", "V"); put(n + "i", key, t, s16(b, 2) / 100, lab + " 電流", "A");
+      put(n + "f", key, t, u16(b, 4), lab + " Fault", "bit"); put(n + "st", key, t, b[6], lab + " 狀態", "bit"); put(n + "tp", key, t, b[7] - 40, lab + " 溫度", "°C");
+    }
+  }
+  if (e.idx === 0x10 && L >= 6) {
+    if (e.src === 0x30) { put("hmiAss", key, t, b[0]); put("hmiSwitch", key, t, b[3]); put("hmiMode", key, t, b[4]); put("hmiBcast", key, t, b[5]); }
+    else {   // controller firmware also takes HMI info from a battery / IOT / tool when the console is silent (Schaca: Triton battery)
+      const n = "hmi" + hx(e.src, 2), lab = nodeName(e.src);
+      put(n + "Ass", key, t, b[0], lab + " 送的段位（HMI info）", ""); put(n + "Switch", key, t, b[3], lab + " 開關指令（HMI info）", "");
+    }
+  }
+}
+
+// ================= state =================
+let S = null;
+function newState(name) {
+  return { name, kind: "", ver: "", end: "", endKV: {}, rows: 0, t0: 0, t1: 0, dt: 0, ids: {}, sig: {}, cadRaw: [], chkErr: {}, stat: [], tx: [], bat: {},
+    recGaps: [], restarts: [], extraHeaders: 0, pulses: [], pairs: [], marks: [], segs: [], rideMarks: [], charts: [], ov: null, bus: null, bal: null,
+    syncing: false, cursorChart: null, health: null, faults: [], lds: false, lanes: null };
+}
+
+// ================= parsing =================
+function parseFile(text, name) { parseFiles([{ text, name }]); }
+
+// Several files of one ride open as one timeline (same kind only), sorted by name.
+// RAW: a file whose time continues past the previous one (the logger rotated to a new file
+// past ~11 MB) is used as is; a file that starts again from 0 (another key press) is put
+// 1 s after the previous one and that break is not counted as a node gap.
+// LOG/FST/TRQ: needs the same header; the rows are appended and the existing time-restart
+// handling places them.
+function parseFiles(list) {
+  list = list.slice().sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+  S = newState(list.length > 1 ? joinedName(list) : list[0].name);
+  S.files = []; S.breaks = []; S.fileRows = [];
+  let head0 = null, tableBody = [];
+  for (const f of list) {
+    const text = f.text.replace(/\u0000/g, "");          // V1.06 and older LOG rows are NUL padded to 512 B
+    const lines = text.split(/\r?\n/);
+    const hi = lines.findIndex((l) => /^\s*(Time|t_ms)\s*,/i.test(l));
+    if (hi < 0) throw new Error(`${f.name}：找不到 Time 開頭的標題列，不像 ToolR 的檔案`);
+    const head = lines[hi].split(",").map((x) => x.trim());
+    let ver = "";
+    head.forEach((h) => { const m = /^Ver\s*([\d.]+)/i.exec(h); if (m) ver = "Ver " + m[1]; });
+    const kind = head[1] === "ID" && head[2] === "DLC" ? "RAW" : head.includes("TrqAD") ? "TRQ" : /^FST/i.test(f.name) ? "FST" : "LOG";
+    if (S.files.length && kind !== S.kind) throw new Error(`不同種類的檔案不能合併：${S.files[0].name} 是 ${S.kind}，${f.name} 是 ${kind}`);
+    if (!S.ver) S.ver = ver;
+    else if (ver && ver !== S.ver && !S.ver.includes(ver)) S.ver += " / " + ver;
+    const body = lines.slice(hi + 1);
+    const end = body.find((l) => l[0] === "#") || "";
+    const rec = { name: f.name, kind, ver, end, t0: 0, t1: 0, join: "" };
+    if (kind === "RAW") {
+      const first = body.find((l) => l && l[0] !== "#");
+      const ft = first ? +first.split(",")[0] : 0;
+      let off = 0;
+      if (S.files.length && isFinite(ft) && ft < S.t1) { off = S.t1 + 1 - ft; rec.join = "restart"; S.breaks.push({ a: S.t1, b: S.t1 + 1, name: f.name }); }
+      else if (S.files.length) rec.join = "continue";
+      rec.t0 = (isFinite(ft) ? ft : 0) + off;
+      const nMark = S.rideMarks.length;
+      parseRaw(body, off);
+      for (let k = nMark; k < S.rideMarks.length; k++) S.rideMarks[k].file = f.name;
+      rec.t1 = S.t1;
+    } else {
+      if (head0 && head.join(",").replace(/,Ver[^,]*/i, "") !== head0.join(",").replace(/,Ver[^,]*/i, ""))
+        throw new Error(`${f.name} 的欄位和 ${S.files[0].name} 不同，不能合併`);
+      head0 = head0 || head;
+      S.kind = kind;
+      if (S.files.length) tableBody.push("#FILE," + f.name);
+      for (const l of body) tableBody.push(l);
+    }
+    S.files.push(rec);
+  }
+  if (S.kind !== "RAW") {
+    parseTable(tableBody, head0, S.kind);
+    S.fileRows.forEach((j, k) => { const r = S.files[k + 1]; r.t0 = j.t; r.join = j.restart ? "restart" : "continue"; if (j.restart) S.breaks.push({ a: j.t, b: j.t, name: r.name }); });
+    S.files.forEach((r, k) => (r.t1 = k + 1 < S.files.length ? S.files[k + 1].t0 : S.t1));
+  }
+  // #END: the counters run from the key press, through file rotation (a "continue" file), so a
+  // chain of rotated files is described by its last #END; separate recordings are summed (max_* = largest)
+  S.endKV = {};
+  const last = S.files.filter((r, k) => k + 1 === S.files.length || S.files[k + 1].join === "restart");
+  S.missingEnd = last.filter((r) => !r.end).map((r) => r.name);
+  for (const r of last) (r.end || "").replace(/^#END,?/, "").split(",").forEach((x) => {
+    const [k, v] = x.split("="); if (!k) return;
+    S.endKV[k] = /^max/.test(k) ? Math.max(S.endKV[k] || 0, +v) : (S.endKV[k] || 0) + +v;
+  });
+  S.end = S.missingEnd.length ? "" : last.length === 1 ? last[0].end : "#END," + Object.entries(S.endKV).map(([k, v]) => k + "=" + v).join(",");
+  buildCadence();
+}
+function joinedName(list) {
+  const a = list[0].name.replace(/\.csv$/i, ""), b = list[list.length - 1].name.replace(/\.csv$/i, "");
+  const m = /^(.*?)(\d+)$/.exec(b), pre = m && a.startsWith(m[1]) ? m[2] : b;
+  return `${a}-${pre}（${list.length} 檔）`;
+}
+
+function parseRaw(lines, off = 0) {
+  S.kind = "RAW";
+  let tmax = S.t1;
+  for (const L of lines) {
+    if (!L) continue;
+    if (L[0] === "#") continue;   // #END, read by parseFiles
+    const c = L.split(",");
+    const t = +c[0] + off;
+    if (!isFinite(t)) continue;
+    if (t > tmax) tmax = t;
+    if (c[1] === "STAT") {
+      const kv = {}; (c[3] || "").split(";").forEach((x) => { const [k, v] = x.split("="); if (k) kv[k] = +v; });
+      S.stat.push({ t, ...kv });
+      put("rec", "STAT", t, kv.rec); put("tec", "STAT", t, kv.tec); put("fps", "STAT", t, kv.fps);
+      continue;
+    }
+    if (c[1] === "MARK") {   // V1.14: rider pressed S2 (Time,MARK,0,n=N; N counts per recording)
+      const kv = {}; (c[3] || "").split(";").forEach((x) => { const [k, v] = x.split("="); if (k) kv[k] = +v; });
+      S.rideMarks.push({ t, n: kv.n, file: "" });
+      continue;
+    }
+    if (c[1] === "TX") {   // V1.12: request ToolR itself sent (battery info query as HMI 0x30)
+      const [id, d] = (c[3] || "").split(":");
+      const n = parseInt(id, 16);
+      S.tx.push({ t, id, idx: (n >>> 16) & 0xFF, dst: n & 0xFF, data: d });
+      continue;
+    }
+    const key = c[1];
+    let rec = S.ids[key];
+    if (!rec) rec = S.ids[key] = { info: idInfo(key), t: [], dlc: {} };
+    rec.t.push(t);
+    const hexd = c[3] || "", b = [];
+    for (let j = 0; j + 1 < hexd.length; j += 2) b.push(parseInt(hexd.substr(j, 2), 16));
+    rec.dlc[b.length] = (rec.dlc[b.length] || 0) + 1;
+    decodeFrame(key, rec.info, t, b);
+    S.rows++;
+  }
+  S.t0 = 0; S.t1 = tmax;
+}
+
+// LOG / FST / TRQ columns: [names..., key, scale, offset, zeroIsNone, label, unit]
+const COLS = [
+  [["Speed"], "spd", 0.1], [["Cur", "DrvCurrent"], "cur", 0.1], [["volt", "DrvVoltage"], "volt", 0.1],
+  [["DrvStatus"], "drvStat", 1], [["DrvPep"], "drvPep", 1], [["DrvFault"], "fault", 1], [["DrvWarn"], "warn", 1],
+  [["DrvTemp", "DrvTemperature"], "drvTemp", 1, -40, true], [["MotoTemp", "MotoTemperature"], "motTemp", 1, -40, true],
+  [["AssLevel", "AssLv"], "ass", 1], [["MPCur", "Motor Phase Current"], "mpc", 1], [["PedTorq", "PedalTorq"], "pedTorq", 0.1],
+  [["PedCade", "PedalCadence"], "pedCade", 1], [["PedPower", "PedalPower"], "pedPow", 1],
+  [["RSOC1", "BatteryRSOC", "RSOC"], "bat11rsoc", 1, 0, false, "電池 1 RSOC", "%"], [["RSOC2"], "bat12rsoc", 1, 0, false, "電池 2 RSOC", "%"],
+  [["BatVolt"], "bat11v", 0.01, 0, true, "電池電壓", "V"], [["BatCur"], "bat11i", 0.01, 0, false, "電池電流", "A", true],
+  [["BatFault1", "BatteryFault", "BatFault"], "bat11f", 1, 0, false, "電池 1 Fault", "bit"], [["BatFault2"], "bat12f", 1, 0, false, "電池 2 Fault", "bit"],
+  [["BatStatus", "BateryStatus"], "bat11st", 1, 0, false, "電池狀態", "bit"], [["BatTemp", "BatteryTemperature"], "bat11tp", 1, -40, true, "電池溫度", "°C"],
+  [["SimualRSOC"], "simRsoc", 1], [["TrqAD"], "trqAD", 1],
+];
+function parseTable(lines, head, kind) {
+  S.kind = kind;
+  const idx = {}; head.forEach((h, i) => { if (!(h in idx)) idx[h] = i; });
+  const tI = idx.Time != null ? idx.Time : idx.t_ms;
+  const rows = [];
+  for (const L0 of lines) {
+    const L = L0.trim();
+    if (!L) continue;
+    if (L.startsWith("#FILE,")) { S.fileRows.push({ name: L.slice(6), i: rows.length }); continue; }   // next merged file
+    if (L[0] === "#") continue;   // #END, read by parseFiles
+    if (/^(Time|t_ms)\s*,/i.test(L)) { S.extraHeaders++; continue; }
+    rows.push(L.split(","));
+  }
+  let n = rows.length;
+  if (!n) return;
+  // time: V1.05+ / TRQ = sec.ms; t_ms = V1.06 TRQ; V1.04 and older = sec.row-in-second; oldest = Hr:Min:Sec:mS
+  const tStr = rows.map((r) => (r[tI] || "").trim());
+  const verNum = parseFloat((S.ver || "").replace(/[^0-9.]/g, "")) || 0;
+  let t;
+  if (idx.t_ms != null && idx.Time == null) t = tStr.map((x) => +x / 1000);
+  else if (tStr.some((x) => x.includes(":"))) t = tStr.map((x) => { const p = x.split(":").map(Number); return p[0] * 3600 + p[1] * 60 + p[2] + (p[3] || 0) / 1000; });
+  else if (kind === "TRQ" || verNum >= 1.05) t = tStr.map(Number);
+  else t = secIndexTime(tStr);
+  // drop rows whose time cannot be read (a truncated last row): a NaN time range hangs the chart library
+  for (let i = n - 1; i >= 0; i--) if (!isFinite(t[i])) { rows.splice(i, 1); t.splice(i, 1); S.badTime = (S.badTime || 0) + 1; S.fileRows.forEach((j) => { if (j.i > i) j.i--; }); }
+  n = rows.length;
+  if (!n) return;
+  // keep time increasing when the logger restarted inside one file
+  const diffs = []; for (let i = 1; i < n; i++) { const d = t[i] - t[i - 1]; if (d > 0 && isFinite(d)) diffs.push(d); }
+  diffs.sort((a, b) => a - b);
+  const dt = diffs.length ? diffs[diffs.length >> 1] : 0.1;
+  const tt = new Array(n); let off = 0;
+  for (let i = 0; i < n; i++) {
+    const x = isFinite(t[i]) ? t[i] : (i ? t[i - 1] : 0);
+    if (i && x + off < tt[i - 1]) { off = tt[i - 1] + dt - x; S.restarts.push(i); }
+    tt[i] = x + off;
+  }
+  const joinAt = new Set(S.fileRows.map((j) => j.i)), restartAt = new Set(S.restarts);
+  S.fileRows.forEach((j) => { j.t = tt[Math.min(j.i, n - 1)]; j.restart = restartAt.has(j.i); });
+  S.restarts = S.restarts.filter((i) => !joinAt.has(i)).map((i) => tt[i]);   // a merged file starting at 0 is not a restart
+  const gapMin = Math.max(1, dt * 5);
+  for (let i = 1; i < n; i++) { const d = tt[i] - tt[i - 1]; if (d > gapMin) S.recGaps.push({ a: tt[i - 1], b: tt[i] }); }
+  S.dt = dt;
+  // channels
+  const used = new Set([tI]);
+  for (const [names, k, scale, offs, zeroNone, label, unit, signed] of COLS) {
+    const nm = names.find((x) => x in idx);
+    if (nm === undefined) continue;
+    const j = idx[nm]; used.add(j);
+    for (let i = 0; i < n; i++) {
+      const raw = rows[i][j]; if (raw == null || raw.trim() === "") continue;
+      let x = +raw; if (!isFinite(x)) continue;
+      if (zeroNone && x === 0) continue;   // 0 = frame timed out (canTimeoutDataClean), not a real value
+      if (signed && x > 32767) x -= 65536;
+      put(k, nm, tt[i], x * scale + (offs || 0), label, unit);
+    }
+  }
+  if (idx.Cad != null) { used.add(idx.Cad); for (let i = 0; i < n; i++) S.cadRaw.push([tt[i], +rows[i][idx.Cad]]); }
+  head.forEach((h, j) => {   // any other column: plotted as is
+    if (used.has(j) || !h || /^Ver/i.test(h)) return;
+    for (let i = 0; i < n; i++) { const x = +rows[i][j]; if (rows[i][j] !== undefined && rows[i][j] !== "" && isFinite(x)) put("col_" + h, h, tt[i], x, h, ""); }
+  });
+  S.rows = n; S.t0 = tt[0]; S.t1 = tt[n - 1];
+}
+// V1.04 and older "seconds.row-index": spread the rows of one second evenly
+function secIndexTime(tStr) {
+  const n = tStr.length, sec = tStr.map((s) => parseInt(s, 10)), out = new Array(n), groups = [];
+  for (let i = 0; i < n;) { let j = i + 1; while (j < n && sec[j] === sec[i]) j++; groups.push([i, j]); i = j; }   // j starts at i + 1: a NaN second (empty Time cell) must not stall the loop
+  const sizes = groups.map((g) => g[1] - g[0]).sort((a, b) => a - b), per = sizes[sizes.length >> 1] || 1;
+  groups.forEach(([i, j], gi) => { const size = j - i, N = Math.max(per, size), lead = gi === 0 ? N - size : 0; for (let k = i; k < j; k++) out[k] = sec[i] + (lead + k - i) / N; });
+  return out;
+}
+
+function buildCadence() {
+  if (!S.cadRaw.length) return;
+  let acc = 0, prev = S.cadRaw[0][1];
+  const s = sig("cadCum");
+  s.src = S.kind === "RAW" ? (S.lds ? "04FF3400" : "18F50133") : "Cad";
+  for (const [t, v] of S.cadRaw) { acc += ((v - prev) % 128 + 128) % 128; prev = v; s.t.push(t); s.v.push(acc); }
+}
+
+// ================= node health (RAW) =================
+// Periods when the HMI told the driver not to broadcast (spec v2.11 HMI info byte 5:
+// 0 = INDEX 20/21/22 stop, 2 = mute, driver sends nothing), plus the time before the
+// first HMI info (the driver only starts broadcasting after it). Driver silence inside
+// these periods is expected and not counted as a gap.
+function broadcastOff() {
+  const off = [], h = S.sig.hmiBcast;
+  if (!h || !h.t.length) return off;
+  off.push({ a: S.t0, b: h.t[0], mode: 0, why: "儀表 HMI info 出現前（驅動器還沒開始廣播）" });
+  let a = null, mode = 1;
+  for (let i = 0; i < h.t.length; i++) {
+    const v = h.v[i];
+    if (v !== 1 && a === null) { a = h.t[i]; mode = v; }
+    else if (v === 1 && a !== null) { off.push({ a, b: h.t[i], mode, why: "儀表要求" + (HMI_BCAST[mode] || "停止廣播") }); a = null; }
+  }
+  if (a !== null) off.push({ a, b: S.t1, mode, why: "儀表要求" + (HMI_BCAST[mode] || "停止廣播") });
+  return off;
+}
+
+function analyzeHealth() {
+  const f = Math.max(1.5, +$("pGap").value || 2.5);
+  const T0 = S.t0, T1 = S.t1;
+  const off = broadcastOff();
+  const ids = [];
+  for (const key of Object.keys(S.ids)) {
+    const r = S.ids[key], t = r.t, info = r.info, n = t.length, e = info.endex;
+    const iv = []; for (let i = 1; i < n; i++) iv.push(t[i] - t[i - 1]);
+    const sorted = iv.slice().sort((a, b) => a - b);
+    const med = sorted.length ? sorted[sorted.length >> 1] * 1000 : NaN;
+    const per = info.period || med;
+    // an ID the ENDEX format calls request/response (or a non-ENDEX device) that repeats at a steady rate is judged on its measured period
+    const steady = !info.periodic && n >= 10 && isFinite(med) && iv.filter((d) => Math.abs(d * 1000 - med) <= med * 0.25).length >= 0.8 * iv.length;
+    const judged = (info.periodic || steady) && n >= 3 && isFinite(per);
+    const thr = judged ? Math.max(f * per, per + 20) / 1000 : Infinity;
+    const all = [];
+    if (judged) {
+      for (let i = 1; i < n; i++) if (t[i] - t[i - 1] > thr) all.push({ a: t[i - 1], b: t[i], key });
+      if (T1 - t[n - 1] > thr && T1 - t[n - 1] > 1) all.push({ a: t[n - 1], b: T1, key, tail: true });
+    }
+    const isDrv = e && e.src === 0x50;
+    for (const g of all) {
+      if (S.breaks.some((x) => g.a <= x.b && g.b >= x.a)) { g.expected = true; g.brk = true; g.why = "兩次錄製之間"; continue; }
+      if (!isDrv) continue;
+      const o = off.find((x) => (x.mode === 2 || [0x20, 0x21, 0x22].includes(e.idx)) && g.a >= x.a - thr && g.b <= x.b + thr);
+      if (o) { g.expected = true; g.why = o.why; }
+    }
+    const gaps = all.filter((g) => !g.expected), exp = all.filter((g) => g.expected);
+    const segs = []; let s0 = t[0];
+    for (const g of all) { if (!g.tail) { segs.push([s0, g.a]); s0 = g.b; } }
+    const tailGap = all.length && all[all.length - 1].tail;
+    segs.push([s0, tailGap ? all[all.length - 1].a : Math.min(T1, t[n - 1] + (isFinite(per) ? per / 1000 : 0))]);
+    const maxGap = gaps.reduce((m, g) => Math.max(m, g.b - g.a), 0);
+    const late = t[0] - T0;
+    let state = "ok", note = "";
+    const addNote = (s) => (note += (note ? "；" : "") + s);
+    if (!judged) { state = "na"; note = info.periodic ? "封包太少" : "請求/回應，不判斷週期"; }
+    else {
+      if (steady) addNote(`不是 ENDEX 廣播格式，但每 ${Math.round(med)} ms 固定出現，依實測週期判斷`);
+      const tg = gaps.find((g) => g.tail);
+      if (tg) {
+        // a battery that announced "shutdown initiating" (status bit7) just before going quiet shut down normally
+        const st = e && e.src >= 0x10 && e.src <= 0x19 ? S.sig["bat" + hx(e.src, 2) + "st"] : null;
+        const shut = st && st.t.some((tt, i) => (st.v[i] & 0x80) && tt >= tg.a - 3 && tt <= tg.a + 0.5);
+        if (shut) { state = "warn"; tg.shutdown = true; addNote("電池先送出「即將關機」才消失（正常關機）"); }
+        else { state = "bad"; addNote("中途消失，沒有再出現"); }
+      } else if (gaps.length) { state = "warn"; addNote("斷訊 " + gaps.length + " 次"); }
+      if (info.limit) {
+        const over = gaps.filter((g) => (g.b - g.a) * 1000 > info.limit[0]);
+        if (over.length) { state = "bad"; addNote(over.length + " 次" + info.limit[1]); over.forEach((g) => (g.limit = true)); }
+      }
+      if (info.period && isFinite(med) && Math.abs(med - info.period) / info.period > 0.3) { if (state === "ok") state = "warn"; addNote("週期與預期不同"); }
+      if (late > Math.max(2 * thr, 2)) addNote("開始錄後 " + late.toFixed(1) + " s 才出現");
+      const nBrk = exp.filter((g) => g.brk).length;
+      if (exp.length > nBrk) addNote((exp.length - nBrk) + " 段靜默是儀表要求停止廣播（不算斷訊）");
+      if (nBrk) addNote(nBrk + " 段在兩次錄製之間（不算斷訊）");
+    }
+    if (S.chkErr[key]) { if (state === "ok") state = "warn"; addNote("checksum 錯 " + S.chkErr[key] + " 次"); }
+    const dl = Object.keys(r.dlc); if (dl.length > 1) addNote("DLC 不一致 " + dl.join("/"));
+    ids.push({ key, info, n, med, per, thr, gaps, exp, segs, maxGap, first: t[0], last: t[n - 1], state, note, judged });
+  }
+  const nodes = {};
+  for (const r of ids) (nodes[r.info.node] = nodes[r.info.node] || { node: r.info.node, name: r.info.nodeName, ids: [] }).ids.push(r);
+  const nodeEvents = [];
+  for (const nd of Object.values(nodes)) {
+    const j = nd.ids.filter((r) => r.judged && r.per <= 1000);
+    nd.state = nd.ids.some((r) => r.state === "bad") ? "bad" : nd.ids.some((r) => r.state === "warn") ? "warn" : nd.ids.every((r) => r.state === "na") ? "na" : "ok";
+    nd.n = nd.ids.reduce((a, r) => a + r.n, 0);
+    nd.silent = [];
+    if (j.length > 1) {
+      let cur = j[0].gaps.map((g) => [g.a, g.b]);
+      for (const r of j.slice(1)) {
+        const nx = [];
+        for (const [a1, b1] of cur) for (const g of r.gaps) { const a = Math.max(a1, g.a), b = Math.min(b1, g.b); if (b > a) nx.push([a, b]); }
+        cur = nx;
+      }
+      nd.silent = cur.filter(([a, b]) => b - a > 0.3);
+      for (const [a, b] of nd.silent) nodeEvents.push({ a, b, node: nd, whole: true });
+    }
+  }
+  const hasHmi = Object.values(S.ids).some((r) => r.info.endex && r.info.endex.src === 0x30);
+  const missing = [...EXPECTED, ...(hasHmi ? EXPECTED_HMI : [])].filter((k) => !S.ids[k]).map((k) => idInfo(k));
+  const events = [];
+  for (const r of ids) for (const g of r.gaps) events.push({ a: g.a, b: g.b, id: r, tail: g.tail, limit: g.limit, shutdown: g.shutdown });
+  for (const e of nodeEvents) events.push(e);
+  events.sort((x, y) => x.a - y.a || (y.whole ? 1 : 0) - (x.whole ? 1 : 0));
+  S.health = { ids, nodes: Object.values(nodes).sort((a, b) => a.node.localeCompare(b.node)), events, missing, off, thrBy: Object.fromEntries(ids.map((r) => [r.key, r])) };
+}
+
+// ================= fault / state events (all file kinds) =================
+function faultEvents() {
+  const out = [];
+  const bitsOf = (k, table, who, keep, startToo, sev) => {
+    const s = S.sig[k]; if (!s || !s.t.length) return;
+    let prev = 0;
+    const open = {};
+    for (let i = 0; i < s.t.length; i++) {
+      const v = s.v[i] | 0, ch = v ^ prev;
+      if (i === 0 && !startToo) { prev = v; continue; }
+      if (ch) for (let b = 0; b < 16; b++) {
+        if (!(ch & (1 << b)) || (keep && !keep.includes(b))) continue;
+        const name = table[b] || "bit" + b + "（未定義）";
+        const on = !!(v & (1 << b));
+        if (on) { const ev = { t: s.t[i], who, txt: (i === 0 ? "開始時已有：" : "出現：") + name, on: true, sev, bit: b, key: k }; out.push(ev); open[b] = ev; }
+        else { if (open[b]) { open[b].t1 = s.t[i]; open[b] = null; } out.push({ t: s.t[i], who, txt: "解除：" + name, on: false, sev: "na" }); }
+      }
+      prev = v;
+    }
+    for (const b in open) if (open[b]) open[b].t1 = S.t1, open[b].open = true;
+  };
+  bitsOf("fault", BITS.fault, "驅動器 Fault", null, true, "bad");
+  bitsOf("warn", BITS.warn, "驅動器 Warning", null, true, "warn");
+  bitsOf("drvStat", BITS.drvStat, "驅動器狀態", [0, 2, 4, 5, 7], false, "na");
+  for (const k of Object.keys(S.sig)) {
+    const m = k.match(/^bat(..)(f|st)$/); if (!m) continue;
+    const who = S.kind === "RAW" ? nodeName(parseInt(m[1], 16)) : S.sig[k].label.replace(/ (Fault|狀態)$/, "");
+    if (m[2] === "f") bitsOf(k, BITS.batF, who + " Fault", null, true, "bad");
+    else bitsOf(k, BITS.batSt, who + " 狀態", [0, 1, 2, 3, 4, 7], false, "na");
+  }
+  const valueChanges = (k, map, who) => {
+    const s = S.sig[k]; if (!s) return;
+    for (let i = 0; i < s.t.length; i++) if (i === 0 || s.v[i] !== s.v[i - 1]) out.push({ t: s.t[i], who, txt: map[s.v[i]] || "0x" + hx(s.v[i], 2), sev: "na" });
+  };
+  valueChanges("hmiSwitch", HMI_SWITCH, "儀表開關指令");
+  valueChanges("hmiBcast", HMI_BCAST, "儀表廣播指令");
+  for (const g of S.recGaps) out.push({ t: g.a, t1: g.b, who: "紀錄器", txt: `紀錄中斷 ${(g.b - g.a).toFixed(1)} s`, sev: "na" });
+  for (const t of S.restarts) out.push({ t, who: "紀錄器", txt: "同一檔案內時間歸零（已接續排列）", sev: "na" });
+  for (const r of S.files.slice(1)) out.push({ t: r.t0, who: "紀錄器", txt: `${r.name} 開始（${r.join === "restart" ? (S.kind === "RAW" ? "另一次錄製，接在上一檔後 1 s" : "另一次錄製，接在上一檔後面") : "接續上一檔"}）`, sev: "na" });
+  for (const m of S.rideMarks) out.push({ t: m.t, who: "騎士", txt: `S2 標記 #${m.n}`, sev: "na" });
+  for (const e of out) if (e.t1 != null && e.on) e.txt += `（${e.open ? "到結束 " : ""}${(e.t1 - e.t).toFixed(1)} s）`;
+  out.sort((a, b) => a.t - b.t);
+  S.faults = out;
+}
+
+// ================= summary tiles + notes (controller log analysis) =================
+function stats(k, pred) {
+  const s = S.sig[k]; if (!s || !s.v.length) return null;
+  let mn = Infinity, mx = -Infinity, sum = 0, c = 0, imn = -1, imx = -1, first = NaN, last = NaN;
+  for (let i = 0; i < s.v.length; i++) {
+    const x = s.v[i]; if (!isFinite(x) || (pred && !pred(x))) continue;
+    if (x < mn) { mn = x; imn = i; } if (x > mx) { mx = x; imx = i; }
+    if (!c) first = x; last = x; sum += x; c++;
+  }
+  return c ? { mn, mx, avg: sum / c, first, last, c, tmn: s.t[imn], tmx: s.t[imx] } : null;
+}
+function summarize() {
+  const tiles = [], notes = [];
+  const dur = S.t1 - S.t0;
+  tiles.push({ k: "紀錄長度", v: fmtDur(dur), s: S.kind === "RAW" ? `${S.rows.toLocaleString()} 個封包` : `${S.rows.toLocaleString()} 筆，取樣約 ${Math.round((S.dt || 0.1) * 1000)} ms` });
+  let r;
+  if ((r = stats("spd"))) { const mv = stats("spd", (x) => x > 0); tiles.push({ k: "最高車速", v: `${fx(r.mx)} km/h`, s: mv ? `行駛中平均 ${fx(mv.avg)} km/h` : "全程車速 0", t: r.tmx }); }
+  if ((r = stats("cur"))) tiles.push({ k: "最大驅動電流", v: `${fx(r.mx)} A`, s: `平均 ${fx(r.avg)} A`, t: r.tmx });
+  if ((r = stats("mpc"))) tiles.push({ k: "最大相電流", v: `${fx(r.mx, 0)} A`, s: `平均 ${fx(r.avg)} A`, t: r.tmx });
+  if ((r = stats("volt", (x) => x > 0))) tiles.push({ k: "驅動器電壓", v: `${fx(r.mn)} – ${fx(r.mx)} V`, s: `最低點 ${fmtS(r.tmn)} s`, t: r.tmn });
+  for (const [k, lb] of [["drvTemp", "驅動器"], ["motTemp", "馬達"]]) if ((r = stats(k))) tiles.push({ k: lb + "最高溫", v: `${fx(r.mx, 0)} °C`, s: `起始 ${fx(r.first, 0)} °C`, t: r.tmx, bad: r.mx > 80 });
+  for (const k of Object.keys(S.sig).filter((x) => /^bat..rsoc$/.test(x)).sort()) if ((r = stats(k, (x) => x > 0))) tiles.push({ k: S.sig[k].label, v: `${fx(r.first, 0)}% → ${fx(r.last, 0)}%`, s: `用掉 ${fx(r.first - r.last, 0)}%` });
+  const nErr = S.faults.filter((e) => e.sev === "bad" && e.on).length, nWarn = S.faults.filter((e) => e.sev === "warn" && e.on).length;
+  tiles.push({ k: "故障 / 警告事件", v: `${nErr} / ${nWarn}`, s: nErr + nWarn ? "詳見事件列表" : "沒有偵測到", bad: nErr > 0 });
+  // notes
+  const byBit = {};
+  for (const e of S.faults) if (e.on && (e.sev === "bad" || e.sev === "warn")) { const k = e.who + "|" + e.bit; (byBit[k] = byBit[k] || { e, n: 0, dur: 0 }).n++; byBit[k].dur += (e.t1 || e.t) - e.t; }
+  for (const { e, n, dur } of Object.values(byBit)) notes.push({ lvl: e.sev, text: `${e.who}：${e.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")}，發生 ${n} 次，累計 ${dur.toFixed(1)} s，第一次在 ${fmtS(e.t)} s`, t: e.t });
+  for (const [k, lb] of [["drvTemp", "驅動器溫度"], ["motTemp", "馬達溫度"]]) {
+    if (!(r = stats(k))) continue;
+    if (r.mx > 80) notes.push({ lvl: "warn", text: `${lb}最高 ${fx(r.mx, 0)} °C（超過 80 °C），注意散熱。`, t: r.tmx });
+    if (r.mn < -10) notes.push({ lvl: "warn", text: `${lb}最低 ${fx(r.mn, 0)} °C（低於 −10 °C），確認環境溫度或感測器。`, t: r.tmn });
+  }
+  const v = stats("volt");
+  if (v && v.mx <= 0) notes.push({ lvl: "warn", text: "電壓全程為 0：可能 CAN 沒接上、控制器沒開機，或沒收到控制器廣播。" });
+  if (S.kind !== "RAW" && !S.sig.spd && !S.sig.volt) notes.push({ lvl: "warn", text: "沒有控制器資料欄位。" });
+  if (S.rideMarks.length) notes.push({ lvl: "info", text: `騎士按了 ${S.rideMarks.length} 次 S2 標記，第一次在 ${fmtS(S.rideMarks[0].t)} s（標記是按下的時間，異常通常在標記前幾秒）。`, t: S.rideMarks[0].t });
+  if (S.recGaps.length) notes.push({ lvl: "info", text: `紀錄中斷 ${S.recGaps.length} 次（超過 ${Math.max(1, (S.dt || 0.1) * 5).toFixed(1)} s 沒有資料）。`, t: S.recGaps[0].a });
+  if (S.restarts.length) notes.push({ lvl: "info", text: `同一檔案內時間歸零 ${S.restarts.length} 次，已接續排列。` });
+  if (S.badTime) notes.push({ lvl: "info", text: `${S.badTime} 列的時間欄讀不出來（通常是斷電時寫到一半的最後一列），已略過。` });
+  if (S.extraHeaders) notes.push({ lvl: "info", text: `檔案中間有 ${S.extraHeaders} 個重複的標題列（多次開始錄製），已略過。` });
+  if (!notes.some((o) => o.lvl === "bad" || o.lvl === "warn")) notes.unshift({ lvl: "ok", text: "沒有偵測到故障或警告位元。" });
+  S.tiles = tiles; S.notes = notes;
+}
+function renderSummary() {
+  summarize();
+  $("sumMeta").textContent = `${S.kind} · ${S.ver || "版本未標示"} · ${Object.keys(S.sig).length} 個有資料的欄位`;
+  $("tiles").innerHTML = S.tiles.map((x, i) => `<button type="button" class="kpi" data-i="${i}" style="border:0;text-align:left;cursor:${x.t != null ? "pointer" : "default"};${x.bad ? "background:var(--badbg)" : ""}">
+    <span class="kl">${esc(x.k)}</span><span class="kv" style="font-size:18px">${esc(x.v)}</span><span class="ks">${esc(x.s)}</span></button>`).join("");
+  $("tiles").onclick = (e) => { const b = e.target.closest("[data-i]"); if (b) { const x = S.tiles[+b.dataset.i]; if (x.t != null) goTime(x.t - 5, x.t + 5); } };
+  const ic = { ok: "chip ok", bad: "chip bad", warn: "chip warn", info: "chip na" }, lb = { ok: "正常", bad: "故障", warn: "注意", info: "資訊" };
+  $("notes").innerHTML = S.notes.map((n, i) => `<li><span class="${ic[n.lvl]}">${lb[n.lvl]}</span> ${n.t != null ? `<a href="#" data-n="${i}">${esc(n.text)}</a>` : esc(n.text)}</li>`).join("");
+  $("notes").onclick = (e) => { const a = e.target.closest("a[data-n]"); if (a) { e.preventDefault(); const n = S.notes[+a.dataset.n]; goTime(n.t - 5, n.t + 5); } };
+}
+function summaryText() {
+  return [`${S.name}　${S.kind}　${S.ver || ""}`, ...S.tiles.map((x) => `${x.k}：${x.v}（${x.s}）`), "", "初步判讀：", ...S.notes.map((n) => "・" + n.text)].join("\n");
+}
+$("copySum").onclick = async () => {
+  if (!S) return;
+  try { await navigator.clipboard.writeText(summaryText()); $("copySum").textContent = "已複製"; setTimeout(() => ($("copySum").textContent = "複製摘要"), 1500); }
+  catch (e) { alert("瀏覽器不允許複製，請改用「匯出報告」"); }
+};
+
+// ================= verdicts =================
+function renderVerdicts() {
+  const V = [], kv = S.endKV, dur = S.t1 - S.t0;
+  const add = (cls, title, big, body) => V.push(`<div class="verdict v-${cls}"><div class="vt"><i></i>${title}</div><div class="vb">${big}</div><div>${body}</div></div>`);
+  const verNum = parseFloat((S.ver || "").replace(/[^0-9.]/g, "")) || 0;
+  if (!S.end && (S.kind === "LOG" || S.kind === "FST") && verNum < 1.08)
+    add("na", "錄製完整度", "無法判斷", `${S.kind} · ${S.ver || "舊版"} · ${fmtDur(dur)}<br>V1.08 以前的 LOG/FST 沒有 #END 統計`);
+  else if (!S.end) add("bad", "錄製完整度", "沒有 #END", (S.files.length > 1 ? esc(S.missingEnd.join("、")) + " " : "") + "不是按鍵停止的（斷電或拔卡），最後一小段可能遺失");
+  else {
+    const lost = (kv.ring_ovf || 0) + (kv.fifo_ovr || 0) + (kv.wr_err || 0) + (kv.chk_err || 0);
+    const rowsOk = kv.rows == null || kv.rows === S.rows || S.kind !== "RAW";
+    add(lost || !rowsOk ? "warn" : "ok", "錄製完整度", lost || !rowsOk ? "有漏收" : "完整",
+      (lost ? esc(S.end.replace(/^#END,/, "")) : "ToolR 沒有漏收、沒有寫入錯誤") + (rowsOk ? "" : `<br>列數 ${S.rows} ≠ #END ${kv.rows}`));
+  }
+  if (S.kind === "RAW") {
+    const st = S.stat, errS = st.filter((s) => s.lec >= 1 && s.lec <= 6);
+    const maxRec = Math.max(0, ...st.map((s) => s.rec || 0)), maxTec = Math.max(0, ...st.map((s) => s.tec || 0));
+    const boff = st.filter((s) => (s.flg || 0) & 4).length;
+    const lecName = ["", "stuff", "form", "ACK", "bit1", "bit0", "CRC"];
+    const byType = {}; errS.forEach((s) => (byType[lecName[s.lec]] = (byType[lecName[s.lec]] || 0) + 1));
+    add(boff || maxRec >= 96 ? "bad" : errS.length ? "warn" : "ok", "匯流排品質", errS.length || boff ? `${errS.length} 秒有錯誤` : "沒有錯誤",
+      errS.length || boff ? `${Object.entries(byType).map(([k, v]) => k + " " + v).join("、")} · REC 最高 ${maxRec} · TEC 最高 ${maxTec}${boff ? ` · bus-off ${boff} 秒` : ""}` : `REC 最高 ${maxRec} · ${st.length} 秒狀態紀錄`);
+    const H = S.health, bad = H.nodes.filter((n) => n.state === "bad"), warn = H.nodes.filter((n) => n.state === "warn");
+    const gone = H.nodes.filter((n) => n.ids.some((r) => r.gaps.some((g) => g.tail && !g.shutdown)));
+    const lim = H.nodes.filter((n) => n.ids.some((r) => r.gaps.some((g) => g.limit)));
+    const parts = [];
+    if (gone.length) parts.push("中途消失：" + gone.map((n) => esc(n.name)).join("、"));
+    if (lim.length) parts.push("斷訊超過功能時限：" + lim.map((n) => esc(n.name)).join("、"));
+    if (warn.length) parts.push("有斷訊：" + warn.map((n) => esc(n.name)).join("、"));
+    if (H.missing.length) parts.push("沒出現：" + H.missing.map((i) => esc(i.name)).join("、"));
+    add(bad.length || H.missing.length ? "bad" : warn.length ? "warn" : "ok", "CAN 節點", `${H.nodes.length} 節點 · ${H.ids.length} 種封包`, parts.join("<br>") || "所有週期性封包都準時");
+  } else {
+    add("na", "CAN 節點 / 匯流排", "需要 RAW", `${S.kind} 檔只有快照值，無法判斷節點斷訊；請用 RAW 模式錄製（V1.13 起按一下，V1.11–1.12 按四下）`);
+  }
+  const F = S.faults, fb = F.filter((x) => x.sev === "bad" && x.on), fw = F.filter((x) => x.sev === "warn" && x.on);
+  const uniq = (arr) => [...new Set(arr.map((x) => x.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")))];
+  add(fb.length ? "bad" : fw.length ? "warn" : "ok", "故障碼", fb.length || fw.length ? `${uniq(fb).length} 種故障 · ${uniq(fw).length} 種警告` : "沒有故障",
+    fb.length || fw.length ? esc([...uniq(fb), ...uniq(fw)].slice(0, 4).join(" · ")) : (S.sig.fault || Object.keys(S.sig).some((k) => /^bat..f$/.test(k)) ? "整段沒有驅動器或電池故障碼" : "這個檔沒有故障碼欄位"));
+  const B = batteryList();
+  if (B.length) {
+    const sohs = B.filter((b) => b.dup == null).map((b) => b.soh).filter((x) => x != null), issues = B.filter((b) => b.cls !== "ok");
+    add(B.some((b) => b.cls === "bad") ? "bad" : issues.length ? "warn" : "ok", "電池健康", sohs.length ? "SOH " + sohs.map((x) => x + "%").join(" / ") : `${B.length} 顆電池`,
+      issues.length ? issues.map((b) => esc(b.name + "：" + b.state)).join("<br>") : B.map((b) => esc(b.name) + (b.cycles != null ? ` 循環 ${b.cycles} 次` : "")).join(" · "));
+  }
+  if (S.rideMarks.length || kv.marks != null) {   // V1.14 S2 event marks
+    const nm = S.rideMarks.length, miss = kv.marks != null && kv.marks !== nm;
+    add(miss ? "warn" : nm ? "ok" : "na", "S2 事件標記", nm ? `${nm} 個標記` : "沒有按 S2",
+      (miss ? `#END marks=${kv.marks}，檔案裡讀到 ${nm} 個（最後一段可能沒寫進卡）<br>` : "") + (nm ? "時間軸頁右側「S2 事件標記」可跳過去" : "這次錄製騎士沒有按 S2"));
+  }
+  const tr = S.sig.trqAD;
+  if (!STD) add(tr ? "ok" : "na", "雙踏分析", tr ? `候選 ${S.pairs.length} 個` : "沒有扭力資料",
+    tr ? `扭力 ${tr.t.length.toLocaleString()} 筆 · 脈衝 ${S.pulses.length} 個 · 已標記 ${S.marks.filter((m) => m.type === 1).length} 個` + (S.pairs.some((p) => p.stale) ? ` · ${S.pairs.filter((p) => p.stale).length} 個在感測器斷訊時段` : "") : "這個檔沒有塔基扭力感測器（TORG8B / LDS）");
+  $("verdicts").innerHTML = V.join("");
+}
+
+// ================= node table + event lists =================
+function renderNodes() {
+  const card = $("nodeCard");
+  if (S.kind !== "RAW") { card.hidden = true; }
+  else {
+    card.hidden = false;
+    const H = S.health;
+    $("nodeHelp").textContent = `斷訊 = 超過「週期 × ${$("pGap").value}」沒收到 · 請求/回應類不判斷 · 儀表要求停止廣播的時段不算`;
+    const chip = (s, r) => `<span class="chip ${s}">${r && r.gaps.some((g) => g.shutdown) ? "正常關機" : r && r.gaps.some((g) => g.limit) ? "超過時限" : { ok: "正常", warn: "有斷訊", bad: "消失", na: "不判斷" }[s]}</span>`;
+    let h = `<thead><tr><th>節點 / 封包</th><th>ID</th><th class="num">封包數</th><th class="num">預期 ms</th><th class="num">實測 ms</th><th class="num">斷訊</th><th class="num">最長 s</th><th class="num">首次 s</th><th class="num">最後 s</th><th>狀態</th><th>說明</th></tr></thead><tbody>`;
+    for (const nd of H.nodes) {
+      h += `<tr class="node"><td colspan="2">${esc(nd.name)}</td><td class="num">${nd.n.toLocaleString()}</td><td></td><td></td><td class="num">${nd.silent.length ? "整個節點 " + nd.silent.length + " 次" : ""}</td><td></td><td></td><td></td><td>${chip(nd.state)}</td><td></td></tr>`;
+      for (const r of nd.ids.sort((a, b) => a.key.localeCompare(b.key))) {
+        h += `<tr class="click" data-key="${r.key}"><td style="padding-left:26px">${esc(r.info.name)}</td><td class="id">${r.key}</td><td class="num">${r.n.toLocaleString()}</td>
+          <td class="num">${r.info.period || ""}</td><td class="num">${isFinite(r.med) ? r.med.toFixed(0) : "-"}</td><td class="num">${r.gaps.length || ""}</td>
+          <td class="num">${r.maxGap ? r.maxGap.toFixed(2) : ""}</td><td class="num">${fmtS(r.first)}</td><td class="num">${fmtS(r.last)}</td><td>${chip(r.state, r)}</td><td>${esc(r.note)}</td></tr>`;
+      }
+    }
+    for (const m of H.missing) h += `<tr><td style="padding-left:26px">${esc(m.nodeName)} · ${esc(m.name)}</td><td class="id">${m.key}</td><td class="num">0</td><td class="num">${m.period || ""}</td><td></td><td></td><td></td><td></td><td></td><td><span class="chip bad">沒出現</span></td><td>整段都沒收到</td></tr>`;
+    $("nodes").innerHTML = h + "</tbody>";
+    $("nodes").onclick = (ev) => {
+      const tr = ev.target.closest("tr[data-key]"); if (!tr) return;
+      const r = H.thrBy[tr.dataset.key];
+      if (r.gaps.length) { const g = r.gaps[0]; goTime(g.a - 3, Math.min(g.b, g.a + 10) + 3); } else goTime(r.first, r.last);
+    };
+  }
+  // gap events: RAW = node silence; LOG/FST/TRQ = recording gaps
+  const ev = S.kind === "RAW" ? S.health.events.slice(0, 500) : S.recGaps.map((g) => ({ a: g.a, b: g.b, rec: true }));
+  $("eventTable").innerHTML = ev.length ? ev.map((x, i) => `<button type="button" class="ev" data-ev="${i}"><span class="t">${x.a.toFixed(2)}</span>
+      <span class="len" style="color:var(--${x.limit || x.whole || (x.tail && !x.shutdown) ? "bad" : "warn"})">${x.tail ? "到結束" : (x.b - x.a).toFixed(2) + " s"}</span>
+      <span>${x.rec ? "紀錄器沒有資料" : x.whole ? `<b>${esc(x.node.name)}</b> · 整個節點都沒送` : `${esc(x.id.info.nodeName)} · ${esc(x.id.info.name)}${x.limit ? `（${esc(x.id.info.limit[1])}）` : x.shutdown ? "（送出即將關機後離線）" : ""}`}</span></button>`).join("")
+    : `<span class="help">${S.kind === "RAW" ? "沒有斷訊" : "沒有紀錄中斷"}</span>`;
+  $("eventTable").onclick = (e) => { const b = e.target.closest("[data-ev]"); if (b) { const x = ev[+b.dataset.ev]; goTime(x.a - 3, Math.min(x.b, x.a + 10) + 3); } };
+}
+function renderFaults() {
+  const F = S.faults;
+  $("faultTable").innerHTML = F.length ? F.slice(0, 1000).map((x, i) => {
+    const cls = x.sev === "bad" && x.on ? "bad" : x.sev === "warn" && x.on ? "warn" : "na";
+    return `<button type="button" class="ev" data-f="${i}"><span class="t">${x.t.toFixed(2)}</span><span class="who">${esc(x.who)}</span><span class="chip ${cls}" style="white-space:normal">${esc(x.txt)}</span></button>`;
+  }).join("") + (F.length > 1000 ? `<span class="help">只列前 1000 筆，共 ${F.length} 筆</span>` : "") : `<span class="help">沒有故障或狀態變化事件</span>`;
+  $("faultTable").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { const x = F[+b.dataset.f]; goTime(x.t - 5, (x.t1 || x.t) + 5); } };
+}
+function renderBits() {
+  $("bitdefs").innerHTML = BIT_TABLES.map(([title, k]) => `<h3>${esc(title)}</h3><table style="margin-bottom:8px"><tbody>${BITS[k].map((n, i) => n ? `<tr><td class="num" style="width:60px">bit ${i}</td><td>${esc(n)}</td></tr>` : "").join("")}</tbody></table>`).join("");
+}
+$("exportNodes").onclick = () => {
+  const H = S.health; if (!H) return;
+  let out = "type,node,id,name,frames,expected_ms,median_ms,gaps,max_gap_s,first_s,last_s,state,note\r\n";
+  for (const r of H.ids) out += ["id", q(r.info.nodeName), r.key, q(r.info.name), r.n, r.info.period || "", isFinite(r.med) ? r.med.toFixed(1) : "", r.gaps.length, r.maxGap.toFixed(3), r.first.toFixed(3), r.last.toFixed(3), r.state, q(r.note)].join(",") + "\r\n";
+  out += "\r\ntype,start_s,end_s,length_s,node,id,name\r\n";
+  for (const e of H.events) out += ["gap", e.a.toFixed(3), e.b.toFixed(3), (e.b - e.a).toFixed(3), q(e.whole ? e.node.name : e.id.info.nodeName), e.whole ? "ALL" : e.id.key, q(e.whole ? "整個節點" : e.id.info.name)].join(",") + "\r\n";
+  download(S.name.replace(/\.csv$/i, "") + "_nodes.csv", out);
+};
+function q(s) { s = String(s); return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+function download(name, text) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["﻿" + text], { type: "text/csv" }));
+  a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// ================= batteries =================
+function lastOf(k) { const s = S.sig[k]; return s && s.v.length ? s.v[s.v.length - 1] : null; }
+function segmentsOf(k, test) {   // [[t0,t1],...] where test(value) holds (sample-and-hold)
+  const s = S.sig[k], out = []; if (!s) return out;
+  let a = null;
+  for (let i = 0; i < s.t.length; i++) { const on = test(s.v[i]); if (on && a === null) a = s.t[i]; else if (!on && a !== null) { out.push([a, s.t[i]]); a = null; } }
+  if (a !== null) out.push([a, s.t[s.t.length - 1]]);
+  return out;
+}
+function batteryList() {
+  const srcs = new Set();
+  for (const k of Object.keys(S.sig)) { const m = k.match(/^bat(..)(rsoc|v|f|st|soh)$/); if (m) srcs.add(parseInt(m[1], 16)); }
+  for (const k of Object.keys(S.bat)) srcs.add(+k);
+  const list = [...srcs].sort((a, b) => a - b).map((src) => {
+    const n = "bat" + hx(src, 2), info = (S.bat[src] || {}).info || {};
+    const name = S.kind === "RAW" ? nodeName(src) : (S.sig[n + "rsoc"] || S.sig[n + "f"] || { label: "電池" }).label.replace(/ (RSOC|Fault|狀態|溫度|電壓|電流)$/, "");
+    const vS = stats(n + "v"), iS = stats(n + "i"), tS = stats(n + "tp"), rS = stats(n + "rsoc");
+    // energy = ∫ V·I dt over BMS_INFO_1 samples (sign as the battery reports it)
+    let wh = null; const vs = S.sig[n + "v"], is = S.sig[n + "i"];
+    if (vs && is && vs.t.length === is.t.length && vs.t.length > 1) { let e = 0; for (let i = 1; i < vs.t.length; i++) e += vs.v[i] * is.v[i] * (vs.t[i] - vs.t[i - 1]); wh = e / 3600; }
+    let state = "正常", cls = "ok";
+    const fset = S.faults.filter((e) => e.sev === "bad" && e.on && e.who.startsWith(name));
+    if (fset.length) { state = "有故障：" + [...new Set(fset.map((e) => e.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")))].join("、"); cls = "bad"; }
+    if (S.health) {
+      const ids = S.health.ids.filter((r) => r.info.endex && r.info.endex.src === src && r.judged);
+      if (ids.some((r) => r.gaps.some((g) => g.tail && g.shutdown))) { state = "正常關機（先送出即將關機才離線）"; if (cls === "ok") cls = "warn"; }
+      else if (ids.some((r) => r.gaps.some((g) => g.tail))) { state = "中途離線"; cls = "bad"; }
+      else if (ids.some((r) => r.gaps.length)) { state = "有斷訊"; if (cls === "ok") cls = "warn"; }
+    }
+    // which read requests were sent and which got an answer (V1.12 RAW)
+    const asked = new Set(S.tx.filter((x) => x.dst === src).map((x) => x.idx));
+    const gotIdx = { 0x62: info.limits, 0x63: info.rtc, 0x64: info.pid, 0x65: info.cycles != null, 0x66: info.chg, 0x69: info.fw, 0x6A: info.sn };
+    const noAnswer = [...asked].filter((i) => !gotIdx[i]).map((i) => INDEX_NAMES[i] || "0x" + hx(i, 2));
+    return { src, n, name, info, soh: lastOf(n + "soh"), full: lastOf(n + "full"), rem: lastOf(n + "rem"), rsoc: rS, asoc: lastOf(n + "asoc"),
+      cycles: info.cycles, vS, iS, tS, wh, state, cls, asked: asked.size, noAnswer };
+  });
+  // 0x146010FF with only INFO_0 and the same RSOC / ASOC / SOH as an assigned battery is not a second pack: a Schaca
+  // controller with hw_para 0x02A0 bit7 BAT_CAN = 0 sends it as a simulated battery frame (endex_can_simual_bat_task,
+  // every ~492 ms) from its own battary_handle, whose capacities are the pack's values x10 (seen 2026-10-24)
+  for (const b of list) {
+    if (b.src !== 0x10 || S.sig[b.n + "v"] || !b.rsoc) continue;
+    const o = list.find((x) => x !== b && x.rsoc && x.rsoc.last === b.rsoc.last && x.soh === b.soh && x.asoc === b.asoc);
+    if (!o) continue;
+    const r = o.full ? b.full / o.full : null;
+    b.dup = o.src; b.cls = "warn";
+    b.state = `不是另一顆電池：只送 BMS_INFO_0，SOC / SOH 和${o.name}相同${r ? `、容量值是 ${+r.toFixed(2)} 倍` : ""}，應是控制器的模擬電池訊框（Schaca 0x02A0 bit7 BAT_CAN = 0；有 CAN 電池時應設 1）`;
+  }
+  return list;
+}
+function renderBatteries() {
+  const B = batteryList();
+  $("tab-battery").hidden = !B.length;
+  if (!B.length) { $("bats").innerHTML = ""; return; }
+  const kpi = (label, value, sub, src) => `<div class="kpi"><span class="kl">${label}<span class="chip ${src === "廣播" ? "bc" : "rq"}">${src}</span></span><span class="kv">${value}</span><span class="ks">${sub}</span></div>`;
+  const C = 2 * Math.PI * 60;
+  $("bats").innerHTML = B.map((b) => {
+    const I = b.info, askedTxt = S.kind !== "RAW" ? "LOG 檔沒有" : b.asked ? "沒有回應" : "沒有詢問（V1.11 以前）";
+    const soh = b.soh != null ? b.soh : null, col = soh == null ? "var(--c8)" : soh >= 80 ? "var(--okdot)" : soh >= 60 ? "var(--warndot)" : "var(--baddot)";
+    const lane = (label, segs, color, i) => `<text x="0" y="${15 + i * 24}" font-size="11" fill="currentColor">${label}</text><rect x="110" y="${4 + i * 24}" width="480" height="14" rx="2" fill="var(--line2)"></rect>` +
+      segs.map(([a, c]) => `<rect x="${(110 + (a - S.t0) / (S.t1 - S.t0 || 1) * 480).toFixed(1)}" y="${4 + i * 24}" width="${Math.max(2, (c - a) / (S.t1 - S.t0 || 1) * 480).toFixed(1)}" height="14" rx="2" fill="${color}"></rect>`).join("");
+    const st = b.n + "st", f = b.n + "f";
+    return `<section class="card" aria-label="${esc(b.name)}" style="gap:16px">
+      <div class="bathead"><h2>${esc(b.name)}</h2>${S.kind === "RAW" ? `<span class="mono help">ID 0x${hx(b.src, 2)}</span>` : ""}<span class="chip ${b.cls}">${esc(b.state)}</span><span class="grow"></span>
+        <span class="help">序號 <span class="mono" style="color:var(--text)">${esc(I.sn || "—")}</span> · 韌體 ${esc(I.fw || "—")}</span></div>
+      ${b.noAnswer.length ? `<span class="help">有詢問但電池沒回：${esc(b.noAnswer.join("、"))}</span>` : ""}
+      <div class="batbody">
+        <svg width="148" height="148" viewBox="0 0 148 148" role="img" aria-label="SOH 健康度 ${soh != null ? soh + "%" : "未知"}" style="color:var(--text)">
+          <circle cx="74" cy="74" r="60" fill="none" stroke="var(--line2)" stroke-width="14"></circle>
+          ${soh != null ? `<circle cx="74" cy="74" r="60" fill="none" stroke="${col}" stroke-width="14" stroke-linecap="round" stroke-dasharray="${(C * soh / 100).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 74 74)"></circle>` : ""}
+          <text x="74" y="76" font-size="30" font-weight="700" text-anchor="middle" fill="currentColor" font-family="IBM Plex Mono, Consolas, monospace">${soh != null ? soh + "%" : "—"}</text>
+          <text x="74" y="100" font-size="12" text-anchor="middle" fill="var(--muted)">SOH 健康度</text>
+        </svg>
+        <div class="kpis">
+          ${kpi("循環次數", b.cycles != null ? b.cycles : "—", b.cycles != null ? "次充放電" : askedTxt, "詢問")}
+          ${kpi("滿充容量", b.full != null ? fx(b.full, 2) + " Ah" : "—", b.rem != null ? "剩餘 " + fx(b.rem, 2) + " Ah" : "電池不支援", "廣播")}
+          ${kpi("電量", b.rsoc ? fx(b.rsoc.last, 0) + " %" : "—", b.asoc != null ? "ASOC " + b.asoc + " %" : "ASOC 不支援", "廣播")}
+          ${kpi("電芯組成", I.cells ? I.cells.s + "S" + I.cells.p + "P" : "—", I.cells ? I.cells.s * I.cells.p + " 顆" : askedTxt, "詢問")}
+          ${kpi("電流上限", I.limits ? fx(I.limits.cont, 0) + " / " + fx(I.limits.peak, 0) + " A" : "—", I.limits ? "持續 / 峰值 · 充電 " + fx(Math.abs(I.limits.chg), 0) + " A" : askedTxt, "詢問")}
+          ${kpi("上次充電", I.chg ? I.chg.last + " h 前" : "—", I.chg ? "最長間隔 " + I.chg.longest + " h" : askedTxt, "詢問")}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px"><h3>本次錄製</h3>
+        <div class="recs">
+          <div class="rec"><span class="rl">電壓</span><span class="rv">${b.vS ? fx(b.vS.mn, 2) + "–" + fx(b.vS.mx, 2) + " V" : "—"}</span><span class="rs">${b.vS ? "平均 " + fx(b.vS.avg, 2) + " V" : "沒有資料"}</span></div>
+          <div class="rec"><span class="rl">電流</span><span class="rv">${b.iS ? fx(b.iS.mn, 1) + " / " + fx(b.iS.mx, 1) + " A" : "—"}</span><span class="rs">${b.iS ? "最低 / 最高 · 平均 " + fx(b.iS.avg, 1) + " A" : "沒有資料"}</span></div>
+          <div class="rec"><span class="rl">溫度</span><span class="rv">${b.tS ? fx(b.tS.mn, 0) + "–" + fx(b.tS.mx, 0) + " °C" : "—"}</span><span class="rs">${b.tS ? "溫升 " + fx(b.tS.last - b.tS.first, 0) + " °C" : "沒有資料"}</span></div>
+          <div class="rec"><span class="rl">能量 ∫V·I</span><span class="rv">${b.wh != null ? fx(b.wh, 1) + " Wh" : "—"}</span><span class="rs">${b.rsoc ? "SOC " + fx(b.rsoc.last - b.rsoc.first, 0) + " %" : "正負依電池定義"}</span></div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px"><h3>狀態與故障歷程</h3>
+        <svg viewBox="0 0 600 124" width="100%" role="img" aria-label="${esc(b.name)} 狀態與故障歷程" style="color:var(--text2)">
+          ${lane("Active", segmentsOf(st, (v) => v & 2), "var(--lane-ok)", 0)}
+          ${lane("放電 MOS 開", segmentsOf(st, (v) => v & 4), "var(--lane-ok)", 1)}
+          ${lane("充電中", segmentsOf(st, (v) => v & 16), "var(--c1)", 2)}
+          ${lane("故障", segmentsOf(f, (v) => v !== 0), "var(--lane-gap)", 3)}
+          ${lane("即將關機", segmentsOf(st, (v) => v & 128), "var(--warndot)", 4)}
+        </svg>
+      </div>
+    </section>`;
+  }).join("");
+  // balance across batteries
+  const many = B.length > 1;
+  $("balCard").hidden = !many;
+  if (many) {
+    const r = B.map((b) => b.rsoc && b.rsoc.last).filter((x) => x != null), v = B.map((b) => b.vS && b.vS.avg).filter((x) => x != null), i = B.map((b) => b.iS && Math.abs(b.iS.avg)).filter((x) => x != null && x > 0);
+    $("balInfo").textContent = [r.length > 1 ? `RSOC 差 ${fx(Math.max(...r) - Math.min(...r), 0)} %` : "", v.length > 1 ? `平均電壓差 ${fx(Math.max(...v) - Math.min(...v), 2)} V` : "", i.length > 1 ? `平均電流比 ${fx(Math.max(...i) / Math.min(...i), 1)} : 1` : ""].filter(Boolean).join(" · ");
+  }
+}
+
+// ================= torque / double tap =================
+function detect() {
+  const off = +$("pOff").value, k = +$("pK").value, on = +$("pOn").value, offN = +$("pOffN").value;
+  const gmin = +$("pGapMin").value / 1000, gmax = +$("pGapMax").value / 1000, quiet = +$("pQuiet").value / 1000;
+  S.pulses = []; S.pairs = [];
+  const a = S.sig.trqAD; if (!a) { delete S.sig.trqN; return; }
+  const n = sig("trqN"); n.src = a.src; n.t = a.t; n.v = a.v.map((x) => S.lds ? x * k : Math.max(0, x - off) * k);
+  const t = n.t, N = n.v, P = [];
+  let act = false, p = null;
+  for (let i = 0; i < t.length; i++) {
+    if (!act && N[i] >= on) { act = true; p = { i0: i, t0: t[i], peak: N[i], tp: t[i] }; }
+    else if (act) { if (N[i] > p.peak) { p.peak = N[i]; p.tp = t[i]; } if (N[i] <= offN) { p.t1 = t[i]; p.i1 = i; P.push(p); act = false; } }
+  }
+  S.pulses = P;
+  const cad = S.sig.cadCum, cadAt = (tt) => { if (!cad) return 0; let lo = 0, hi = cad.t.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (cad.t[m] <= tt) lo = m; else hi = m - 1; } return cad.v[lo]; };
+  const gaps = (S.health && S.health.thrBy[a.src]) ? S.health.thrBy[a.src].gaps : [];
+  for (let j = 0; j + 1 < P.length; j++) {
+    const x = P[j], y = P[j + 1], gap = y.tp - x.tp;
+    const before = j === 0 ? Infinity : x.t0 - P[j - 1].t1, after = j + 2 < P.length ? P[j + 2].t0 - y.t1 : Infinity;
+    if (gap >= gmin && gap <= gmax && before >= quiet && after >= quiet) {
+      const stale = gaps.some((g) => g.b > x.t0 - quiet && g.a < y.t1 + quiet);
+      S.pairs.push({ t0: x.t0, t1: y.t1, gap, pk1: x.peak, pk2: y.peak, dCad: cadAt(y.t1) - cadAt(x.t0), stale });
+      j++;
+    }
+  }
+}
+// ---- range marks: { t0, t1 (s), type, note }; type numbers are part of the marks CSV ----
+const MARK_TYPES = { 1: "故意雙踏", 2: "不確定", 3: "誤判" };
+// Scene segments { t0, t1, scene }; tap:true = double taps are expected in this scene.
+const SCENES = [
+  { id: "stand_tap", label: "原地雙踏", tap: true, color: "rgba(220,38,38,.55)" },
+  { id: "stand_other", label: "原地單踏/誤觸", tap: false, color: "rgba(100,116,139,.6)" },
+  { id: "ride", label: "正常騎乘", tap: false, color: "rgba(22,163,74,.55)" },
+  { id: "start", label: "起步", tap: false, color: "rgba(8,145,178,.55)" },
+  { id: "climb", label: "上坡", tap: false, color: "rgba(147,51,234,.5)" },
+  { id: "ride_tap", label: "騎乘中雙踏", tap: true, color: "rgba(234,88,12,.6)" },
+  { id: "other", label: "其他", tap: false, color: "rgba(148,163,184,.5)" },
+];
+const sceneOf = (id) => SCENES.find((s) => s.id === id) || SCENES[SCENES.length - 1];
+$("segScene").innerHTML = SCENES.map((s) => `<option value="${s.id}">${s.label}</option>`).join("");
+const overlaps = (a0, a1, b0, b1) => a0 <= b1 && b0 <= a1;
+const midIn = (p, m) => { const c = (p.t0 + p.t1) / 2; return c >= m.t0 && c <= m.t1; };
+
+// Click / key without drag: snap to the nearest candidate pair (within 1 s), else to the
+// pulses within 0.8 s (a double tap the detector missed), else +/- 0.5 s.
+function snapRange(t) {
+  let best = null, bd = 1.0;
+  for (const p of S.pairs) { const d = t < p.t0 ? p.t0 - t : t > p.t1 ? t - p.t1 : 0; if (d <= bd) { bd = d; best = p; } }
+  if (best) return [best.t0 - 0.05, best.t1 + 0.05];
+  const near = S.pulses.filter((p) => p.t1 >= t - 0.8 && p.t0 <= t + 0.8);
+  if (near.length) return [Math.min(...near.map((p) => p.t0)) - 0.05, Math.max(...near.map((p) => p.t1)) + 0.05];
+  return [t - 0.5, t + 0.5];
+}
+function addMark(t0, t1, type) {
+  if (!S.sig.trqN || !isFinite(t0) || !isFinite(t1)) return;
+  if (t1 < t0) [t0, t1] = [t1, t0];
+  if (S.marks.some((m) => m.type === type && Math.abs(m.t0 - t0) < 0.02 && Math.abs(m.t1 - t1) < 0.02)) return;
+  S.marks.push({ t0: +t0.toFixed(3), t1: +t1.toFixed(3), type, note: "" });
+  S.marks.sort((a, b) => a.t0 - b.t0);
+  marksChanged();
+}
+// drop identical marks / segments (files exported by trq_viewer.html before its triple-mark fix)
+function dedupe() {
+  const key = (m) => `${m.type ?? m.scene}|${(+m.t0).toFixed(2)}|${(+m.t1).toFixed(2)}`;
+  const uniq = (arr) => arr.filter((m, i) => arr.findIndex((x) => key(x) === key(m)) === i);
+  S.marks = uniq(S.marks).sort((a, b) => a.t0 - b.t0);
+  S.segs = uniq(S.segs).sort((a, b) => a.t0 - b.t0);
+}
+function markAt(t) { return S.marks.findIndex((m) => t >= m.t0 && t <= m.t1); }
+
+// Status of each candidate: tp = inside a 故意雙踏 mark, unsure = inside a 不確定 mark,
+// fp = inside a 誤判 mark, open = not covered by any mark (counted as fp, worth a look).
+function classify() {
+  const res = S.pairs.map((p) => {
+    const m = S.marks.filter((x) => midIn(p, x)), seg = S.segs.find((s) => midIn(p, s));
+    const st = m.some((x) => x.type === 1) ? "tp" : m.some((x) => x.type === 2) ? "unsure" : m.some((x) => x.type === 3) ? "fp" : "open";
+    return { p, st, seg };
+  });
+  const tapMarks = S.marks.filter((m) => m.type === 1);
+  return { res, tapMarks, missed: tapMarks.filter((m) => !S.pairs.some((p) => midIn(p, m))) };
+}
+function marksChanged() { saveMarks(); renderMarks(); redraw(); }
+
+const storeKey = () => "toolrmarks2:" + S.name + ":" + S.rows;
+function saveMarks() { try { localStorage.setItem(storeKey(), JSON.stringify({ marks: S.marks, segs: S.segs })); } catch (e) {} }
+// needs S.pairs (old point marks are snapped to ranges), so call after detect()
+function loadMarks() {
+  S.marks = []; S.segs = [];
+  if (STD) return;
+  try {
+    const v = JSON.parse(localStorage.getItem(storeKey()) || localStorage.getItem("trqmarks2:" + S.name + ":" + S.rows) || "null");
+    if (v) { S.marks = v.marks || []; S.segs = v.segs || []; dedupe(); return; }
+    // previous analyzer / trq_viewer stored point marks {t (ms), type 1|2}
+    const old = JSON.parse(localStorage.getItem("toolrmarks:" + S.name + ":" + S.rows) || localStorage.getItem("trqmarks:" + S.name + ":" + S.rows) || "[]");
+    for (const m of old) { const [a, b] = snapRange(m.t / 1000); S.marks.push({ t0: +a.toFixed(3), t1: +b.toFixed(3), type: m.type === 1 ? 1 : 2, note: m.note || "" }); }
+    dedupe();
+  } catch (e) {}
+}
+
+function renderMarks() {
+  const tb = $("marks"); tb.innerHTML = "";
+  S.marks.forEach((m, i) => {
+    const ps = S.pairs.filter((p) => midIn(p, m));
+    const cand = ps.length ? `<span class="${m.type === 1 ? "yes" : "no"}">有 ${Math.round(ps[0].gap * 1000)}ms</span>` : m.type === 1 ? `<span class="bad">漏抓</span>` : `<span class="no">無</span>`;
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><span class="tag t${m.type}" data-go="${i}" title="跳過去">${MARK_TYPES[m.type]}</span></td>
+      <td><input type="number" step="0.01" data-i="${i}" data-k="t0" value="${m.t0.toFixed(2)}" aria-label="開始 s"></td>
+      <td><input type="number" step="0.01" data-i="${i}" data-k="t1" value="${m.t1.toFixed(2)}" aria-label="結束 s"></td>
+      <td>${cand}</td>
+      <td><input type="text" data-i="${i}" data-k="note" value="${esc(m.note || "")}" placeholder="備註"></td>
+      <td><button data-del="${i}" title="刪除">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  $("markcount").textContent = `(${S.marks.length})`;
+  renderSegs(); renderTapSummary();
+}
+$("marks").addEventListener("click", (e) => {
+  const g = e.target.closest("[data-go]"); if (g) { const m = S.marks[+g.dataset.go], c = (m.t0 + m.t1) / 2; zoomTo(c - 3, c + 3); }
+  const d = e.target.closest("button[data-del]"); if (d) { S.marks.splice(+d.dataset.del, 1); marksChanged(); }
+});
+$("marks").addEventListener("change", (e) => {
+  const el = e.target, i = el.dataset.i; if (i === undefined) return;
+  const m = S.marks[+i];
+  if (el.dataset.k === "note") m.note = el.value;
+  else { m[el.dataset.k] = +(+el.value).toFixed(3); if (m.t1 < m.t0) [m.t0, m.t1] = [m.t1, m.t0]; S.marks.sort((a, b) => a.t0 - b.t0); }
+  marksChanged();
+});
+
+function renderSegs() {
+  const tb = $("segs"); tb.innerHTML = "";
+  S.segs.forEach((s, i) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td><select data-s="${i}" data-k="scene" aria-label="情境">${SCENES.map((x) => `<option value="${x.id}"${x.id === s.scene ? " selected" : ""}>${x.label}</option>`).join("")}</select></td>
+      <td><input type="number" step="0.1" data-s="${i}" data-k="t0" value="${s.t0.toFixed(1)}" aria-label="開始 s"></td>
+      <td><input type="number" step="0.1" data-s="${i}" data-k="t1" value="${s.t1.toFixed(1)}" aria-label="結束 s"></td>
+      <td><button data-sdel="${i}" title="刪除">✕</button></td>`;
+    tb.appendChild(tr);
+  });
+  $("segcount").textContent = `(${S.segs.length})`;
+}
+$("segAdd").onclick = () => {
+  const c = S && S.charts[0]; if (!c || !S.sig.trqN) return;
+  S.segs.push({ t0: +c.scales.x.min.toFixed(1), t1: +c.scales.x.max.toFixed(1), scene: $("segScene").value });
+  S.segs.sort((a, b) => a.t0 - b.t0);
+  marksChanged();
+};
+$("segs").addEventListener("change", (e) => {
+  const el = e.target, i = el.dataset.s; if (i === undefined) return;
+  const s = S.segs[+i];
+  if (el.dataset.k === "scene") s.scene = el.value;
+  else { s[el.dataset.k] = +(+el.value).toFixed(1); if (s.t1 < s.t0) [s.t0, s.t1] = [s.t1, s.t0]; }
+  marksChanged();
+});
+$("segs").addEventListener("click", (e) => { const d = e.target.closest("button[data-sdel]"); if (d) { S.segs.splice(+d.dataset.sdel, 1); marksChanged(); } });
+
+function renderTapSummary() {
+  if (!S.sig.trqN) { $("summary").innerHTML = "這個檔沒有扭力資料，不能做雙踏標記。"; return; }
+  const { res, tapMarks, missed } = classify();
+  const tp = res.filter((r) => r.st === "tp").length, fpMarked = res.filter((r) => r.st === "fp").length, unsure = res.filter((r) => r.st === "unsure").length;
+  const open = res.filter((r) => r.st === "open"), openInTap = open.filter((r) => r.seg && sceneOf(r.seg.scene).tap).length;
+  const fp = fpMarked + open.length - openInTap;
+  let h = `候選 <b>${res.length}</b> 個：猜對 <b class="yes">${tp}</b>、誤判 <b class="${fp ? "bad" : ""}">${fp}</b>`
+    + `（你標「誤判」${fpMarked}、沒標到 ${open.length - openInTap}）、不確定 ${unsure}<br>`
+    + `你標的故意雙踏 <b>${tapMarks.length}</b> 個：抓到 <b class="yes">${tapMarks.length - missed.length}</b>、漏抓 <b class="${missed.length ? "bad" : ""}">${missed.length}</b>`;
+  const scenes = [...new Set(S.segs.map((s) => s.scene))];
+  if (scenes.length) h += "<br>" + scenes.map((id) => {
+    const g = res.filter((r) => r.seg && r.seg.scene === id), bad = g.filter((r) => r.st === "fp" || (r.st === "open" && !sceneOf(id).tap)).length;
+    return `${esc(sceneOf(id).label)}：候選 ${g.length}、誤判 ${bad}`;
+  }).join(" · ");
+  if (openInTap) h += `<div class="notewarn">「雙踏」情境裡有 ${openInTap} 個候選沒被標記：如果是你故意踩的，請補標「故意雙踏」，不然會被算成誤判。用「下一個未檢查」跳過去。</div>`;
+  if (missed.length) h += `<div class="notewarn">有 ${missed.length} 個故意雙踏沒被抓到（漏抓）：通常代表門檻太嚴，trq_analyze.py 會用那段波形找原因。</div>`;
+  $("summary").innerHTML = h;
+}
+
+// marks CSV: start_s,end_s,type,label,note (type 1/2/3 = mark, S = scene segment, label = scene id)
+$("exportMarks").onclick = () => {
+  if (!S) return;
+  let out = "start_s,end_s,type,label,note\r\n";
+  for (const s of S.segs) out += `${s.t0.toFixed(3)},${s.t1.toFixed(3)},S,${s.scene},${q(sceneOf(s.scene).label)}\r\n`;
+  for (const m of S.marks) out += `${m.t0.toFixed(3)},${m.t1.toFixed(3)},${m.type},${MARK_TYPES[m.type]},${q(m.note || "")}\r\n`;
+  download(S.name.replace(/\.csv$/i, "") + "_marks.csv", out);
+};
+function splitCSV(L) {
+  const out = []; let cur = "", qt = false;
+  for (let i = 0; i < L.length; i++) {
+    const ch = L[i];
+    if (qt) { if (ch === '"') { if (L[i + 1] === '"') { cur += '"'; i++; } else qt = false; } else cur += ch; }
+    else if (ch === '"') qt = true;
+    else if (ch === ",") { out.push(cur); cur = ""; }
+    else cur += ch;
+  }
+  out.push(cur);
+  return out;
+}
+// also reads the old point format t_ms,type,label,note (snapped like a click)
+function importMarks(text) {
+  const lines = text.replace(/^﻿/, "").split(/\r?\n/).filter(Boolean);
+  if (!lines.length) return;
+  const head = splitCSV(lines[0]);
+  for (const L of lines.slice(1)) {
+    const c = splitCSV(L);
+    if (head[0] === "t_ms") { const [a, b] = snapRange(+c[0] / 1000); S.marks.push({ t0: +a.toFixed(3), t1: +b.toFixed(3), type: c[1] === "1" ? 1 : 2, note: c[3] || "" }); }
+    else if (c[2] === "S") S.segs.push({ t0: +c[0], t1: +c[1], scene: c[3] });
+    else if (MARK_TYPES[c[2]]) S.marks.push({ t0: +c[0], t1: +c[1], type: +c[2], note: c[4] || "" });
+  }
+  dedupe();
+  marksChanged();
+}
+$("importMarks").onchange = async (e) => { const f = e.target.files[0]; if (f && S) importMarks(await f.text()); e.target.value = ""; };
+$("clearMarks").onclick = () => { if (S && confirm("清除這個檔案的全部標記和情境區段？")) { S.marks = []; S.segs = []; marksChanged(); } };
+
+
+// ================= charts =================
+// Merge series with different timestamps: union of times; each value is held from its
+// last sample, but becomes null while its source ID is in a gap (so lines break there).
+function buildData(keys) {
+  const sers = keys.map((k) => S.sig[k]).filter((s) => s && s.t.length);
+  if (!sers.length) return null;
+  let xs;
+  if (sers.length === 1) xs = Float64Array.from(sers[0].t);
+  else { const all = []; for (const s of sers) for (const t of s.t) all.push(t); all.sort((a, b) => a - b); xs = []; let pv = NaN; for (const t of all) if (t !== pv) { xs.push(t); pv = t; } xs = Float64Array.from(xs); }
+  const data = [xs];
+  for (const s of sers) {
+    const r = S.health && S.health.thrBy[s.src], thr = r && isFinite(r.thr) ? r.thr : Infinity;
+    if (sers.length === 1) { data.push(Float64Array.from(s.v)); continue; }
+    const out = new Array(xs.length); let j = -1;
+    for (let i = 0; i < xs.length; i++) {
+      while (j + 1 < s.t.length && s.t[j + 1] <= xs[i]) j++;
+      out[i] = j < 0 || xs[i] - s.t[j] > thr ? null : s.v[j];
+    }
+    data.push(out);
+  }
+  return { data, sers };
+}
+function staleOf(sers) {
+  if (S.kind !== "RAW") return S.recGaps.map((g) => [g.a, g.b]);
+  const out = [];
+  for (const s of sers) { const r = S.health.thrBy[s.src]; if (r) for (const g of r.gaps) out.push([g.a, g.b]); }
+  return out;
+}
+// V1.14 S2 event marks: a dashed line through the whole chart, "S2 #n" at the top when label is set
+function drawRideMarks(u, label) {
+  if (!S.rideMarks.length) return;
+  const { ctx } = u, { top, height, left, width } = u.bbox, xmin = u.scales.x.min, xmax = u.scales.x.max, dpr = devicePixelRatio;
+  ctx.save();
+  ctx.strokeStyle = ctx.fillStyle = css("--ride"); ctx.lineWidth = 2 * dpr; ctx.setLineDash([6 * dpr, 3 * dpr]);
+  ctx.font = `bold ${11 * dpr}px 'IBM Plex Mono', Consolas, monospace`; ctx.textBaseline = "top";
+  for (const m of S.rideMarks) {
+    if (m.t < xmin || m.t > xmax) continue;
+    const x = u.valToPos(m.t, "x", true);
+    ctx.beginPath(); ctx.moveTo(x, top); ctx.lineTo(x, top + height); ctx.stroke();
+    if (label) { const txt = "S2 #" + m.n, w = ctx.measureText(txt).width; ctx.fillText(txt, Math.min(x + 3 * dpr, left + width - w), top + 2 * dpr); }
+  }
+  ctx.restore();
+}
+function bandsPlugin(opt) {
+  return { hooks: { draw: (u) => {
+    const { ctx } = u, { top, height } = u.bbox, xmin = u.scales.x.min, xmax = u.scales.x.max, X = (v) => u.valToPos(v, "x", true);
+    ctx.save();
+    if (opt.stale) { ctx.fillStyle = css("--stale"); for (const [a, b] of opt.stale) if (b >= xmin && a <= xmax) ctx.fillRect(X(a), top, Math.max(2, X(b) - X(a)), height); }
+    if (opt.pulses) {
+      ctx.fillStyle = css("--pulse"); for (const p of S.pulses) if (p.t1 >= xmin && p.t0 <= xmax) ctx.fillRect(X(p.t0), top, Math.max(1, X(p.t1) - X(p.t0)), height);
+      ctx.fillStyle = css("--pair"); for (const p of S.pairs) if (p.t1 >= xmin && p.t0 <= xmax) ctx.fillRect(X(p.t0), top, Math.max(2, X(p.t1) - X(p.t0)), height);
+    }
+    const dpr = devicePixelRatio;
+    ctx.lineWidth = 1.5 * dpr;
+    for (const m of S.marks) {
+      if (!overlaps(m.t0, m.t1, xmin, xmax)) continue;
+      const a = X(m.t0), w = Math.max(2 * dpr, X(m.t1) - a);
+      ctx.fillStyle = css("--m" + m.type); ctx.fillRect(a, top, w, height);
+      ctx.strokeStyle = css(m.type === 1 ? "--mark" : m.type === 2 ? "--mark2" : "--mark3"); ctx.strokeRect(a, top, w, height);
+    }
+    // scene segments: strip along the top (labelled on the torque lane)
+    const sh = (opt.segLabels ? 14 : 5) * dpr;
+    for (const s of S.segs) {
+      if (!overlaps(s.t0, s.t1, xmin, xmax)) continue;
+      const a = Math.max(X(s.t0), u.bbox.left), b = Math.min(X(s.t1), u.bbox.left + u.bbox.width);
+      ctx.fillStyle = sceneOf(s.scene).color; ctx.fillRect(a, top, Math.max(2, b - a), sh);
+      if (opt.segLabels && b - a > 40 * dpr) {
+        ctx.fillStyle = "#fff"; ctx.font = `${11 * dpr}px 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif`; ctx.textBaseline = "middle";
+        ctx.fillText(sceneOf(s.scene).label, a + 4 * dpr, top + sh / 2);
+      }
+    }
+    ctx.restore();
+    drawRideMarks(u, !!opt.rideLabels);
+  } } };
+}
+// Plain drag zooms. With torque data, Shift / Ctrl / Alt + drag on a signal lane makes a range
+// mark (1 故意雙踏 / 3 誤判 / 2 不確定); the same modifiers with a click (no drag) snap a mark
+// to the nearest candidate.
+const modType = (e) => (e.shiftKey ? 1 : e.ctrlKey || e.metaKey ? 3 : e.altKey ? 2 : 0);
+function interactPlugin(canMark) {
+  return { hooks: { ready: (u) => {
+    u.over.addEventListener("wheel", (e) => { e.preventDefault(); const xv = u.posToVal(e.offsetX, "x"), { min, max } = u.scales.x, f = e.deltaY < 0 ? 0.75 : 1 / 0.75; zoomTo(xv - (xv - min) * f, xv + (max - xv) * f); }, { passive: false });
+    let down = null;
+    u.over.addEventListener("mousedown", (e) => { down = [e.clientX, e.clientY]; S.dragSrc = u; S.dragMod = canMark && S.sig.trqN ? modType(e) : 0; });
+    u.over.addEventListener("click", (e) => {
+      if (!canMark || !S.sig.trqN || !down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 3) return;
+      const type = modType(e); if (!type) return;
+      e.preventDefault();
+      const [a, b] = snapRange(u.posToVal(e.offsetX, "x")); addMark(a, b, type);
+    });
+    u.over.addEventListener("contextmenu", (e) => { if (e.ctrlKey) e.preventDefault(); });
+    u.over.addEventListener("dblclick", () => zoomWin(0));
+    u.over.addEventListener("mouseenter", () => { S.cursorChart = canMark ? u : null; });
+  }, setSelect: (u) => {
+    const { left, width } = u.select;
+    if (width < 3) return;
+    const a = u.posToVal(left, "x"), b = u.posToVal(left + width, "x");
+    u.setSelect({ left: 0, width: 0, top: 0, height: 0 }, false);
+    // the cursor sync mirrors the selection to the other charts: act only on the chart the
+    // drag started on (otherwise one drag makes a mark per lane)
+    if (S.dragSrc && u !== S.dragSrc) return;
+    if (S.dragMod) addMark(a, b, S.dragMod); else zoomTo(a, b);
+  } } };
+}
+const W = () => Math.max(320, $("charts").clientWidth - 4);
+const axis = (label, extra) => Object.assign({ label: label || undefined, stroke: css("--muted"), grid: { stroke: css("--line2"), width: 1 }, ticks: { stroke: css("--line") }, size: 56, font: "11px 'IBM Plex Mono', Consolas, monospace" }, extra || {});
+const spacer = (scale) => ({ scale: scale || "y", side: 1, size: 56, values: () => [], grid: { show: false }, ticks: { show: false }, stroke: "transparent" });
+// Y axis of every signal lane: the range is snapped to a 1 / 2 / 2.5 / 5 x 10^n step (integer steps for
+// status / bit / level lanes) so each lane shows 4-6 labelled ticks whatever its height and zoom
+function niceStep(min, max, intOnly) {
+  const p = 10 ** Math.floor(Math.log10((max - min) / 5)), cands = [];
+  for (const q of [p / 10, p, p * 10, p * 100]) for (const m of (intOnly ? [1, 2, 5] : [1, 2, 2.5, 5])) if (!intOnly || m * q >= 1) cands.push(m * q);
+  return cands.find((x) => Math.ceil(max / x - 1e-9) - Math.floor(min / x + 1e-9) <= 5) || cands[cands.length - 1];
+}
+function yRange(intOnly) {
+  return (u, min, max) => {
+    if (!isFinite(min) || !isFinite(max)) return [0, 1];
+    if (max - min < 1e-9) { if (intOnly) { if (min > 0) min -= 1; max += 1; } else { const d = Math.abs(min) * 0.1 || 1; min -= d; max += d; } }   // flat line; a status of 0 stays 0..1
+    const st = niceStep(min, max, intOnly);
+    return [Math.floor(min / st + 1e-9) * st, Math.ceil(max / st - 1e-9) * st];
+  };
+}
+function yTicks(intOnly) {
+  return (u, ai, min, max) => {
+    if (!isFinite(min) || !isFinite(max) || max - min < 1e-9) return [];
+    const st = niceStep(min, max, intOnly), out = [];
+    for (let v = Math.ceil(min / st - 1e-9) * st; v <= max + 1e-9 * st; v += st) out.push(+v.toFixed(9));
+    return out;
+  };
+}
+const yTickText = (u, vals) => vals.map((v) => (Math.abs(v) >= 1000 ? v.toFixed(0) : String(+v.toFixed(2))));
+const COLORS = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6", "--c7", "--c8"];
+
+// ---- channel picker (one lane per channel) ----
+const CH_ORDER = ["trqN", "spd", "cadCum", "pedCade", "cur", "mpc", "volt", "pedTorq", "pedPow", "ass", "drvTemp", "motTemp", "rpm", "trip", "simRsoc", "info2b",
+  "drvStat", "drvPep", "fault", "warn", "hmiAss", "hmiSwitch", "hmiMode", "hmiBcast", "rec", "tec", "fps"];
+function channelKeys() {
+  const rank = (k) => { const i = CH_ORDER.indexOf(k); if (i >= 0) return i; if (/^bat/.test(k)) return 100 + parseInt(k.slice(3, 5), 16); return 200; };
+  return Object.keys(S.sig).filter((k) => k !== "trqAD" && S.sig[k].t.length).sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
+}
+function defaultLanes() {
+  const want = ["trqN", "spd", "cur", "volt", "mpc", "ass", "pedTorq", "drvTemp", "motTemp", "fault", "warn"];
+  const bats = channelKeys().filter((k) => /^bat..(rsoc|f)$/.test(k));
+  return [...want, ...bats].filter((k) => S.sig[k] && S.sig[k].t.length);
+}
+const laneStore = () => "toolrlanes:" + S.kind;
+function loadLanes() {
+  try { const v = JSON.parse(localStorage.getItem(laneStore()) || "null"); if (Array.isArray(v)) { const ok = v.filter((k) => S.sig[k]); if (ok.length) return ok; } } catch (e) {}
+  return defaultLanes();
+}
+function saveLanes() { try { localStorage.setItem(laneStore(), JSON.stringify(S.lanes)); } catch (e) {} }
+function renderChips() {
+  $("chips").innerHTML = channelKeys().map((k) => {
+    const s = S.sig[k], on = S.lanes.includes(k);
+    return `<button type="button" class="${on ? "chips-on" : ""}" aria-pressed="${on}" data-k="${k}" style="min-height:32px;padding:0 10px;font-size:12px">${esc(s.label)}${s.unit && s.unit !== "bit" ? " " + esc(s.unit) : ""}</button>`;
+  }).join("");
+}
+$("chips").onclick = (e) => {
+  const b = e.target.closest("[data-k]"); if (!b) return;
+  const k = b.dataset.k, i = S.lanes.indexOf(k);
+  if (i >= 0) S.lanes.splice(i, 1); else S.lanes.push(k);
+  const rank = channelKeys(); S.lanes.sort((a, c) => rank.indexOf(a) - rank.indexOf(c));
+  saveLanes(); renderChips(); rebuildKeepView();
+};
+$("chDef").onclick = () => { if (!S) return; S.lanes = defaultLanes(); saveLanes(); renderChips(); rebuildKeepView(); };
+$("chAll").onclick = () => { if (!S) return; S.lanes = channelKeys(); saveLanes(); renderChips(); rebuildKeepView(); };
+function rebuildKeepView() { const c = S.charts[0], a = c && c.scales.x.min, b = c && c.scales.x.max; build(); if (a != null) zoomTo(a, b); }
+
+function build() {
+  for (const c of S.charts) c.destroy();
+  if (S.ov) S.ov.destroy();
+  S.charts = []; S.ov = null;
+  $("charts").innerHTML = ""; $("overview").innerHTML = "";
+  const sync = uPlot.sync("toolr");
+  const common = (h, plugins) => ({ width: W(), height: h, plugins, scales: { x: { time: false } },
+    cursor: { sync: { key: sync.key, setSeries: false }, drag: { x: true, y: false, setScale: false } },
+    hooks: { setScale: [(u, key) => { if (key === "x") syncX(u); }] }, legend: { live: true } });
+  const title = (txt) => { const d = document.createElement("div"); d.className = "ctitle"; d.textContent = txt; $("charts").appendChild(d); };
+  const drawRect = (u, a, b, y, h, color) => { const X = (v) => Math.min(u.bbox.left + u.bbox.width, Math.max(u.bbox.left, u.valToPos(v, "x", true))); u.ctx.fillStyle = color; u.ctx.fillRect(X(a), y, Math.max(1.5, X(b) - X(a)), h); };
+
+  // CAN node lanes (RAW)
+  if (S.kind === "RAW" && S.health.ids.length) {
+    const lanes = S.health.ids.filter((r) => r.judged || r.n > 3).sort((a, b) => a.info.node.localeCompare(b.info.node) || a.key.localeCompare(b.key));
+    title("CAN 節點泳道（綠 = 有收到，紅 = 斷訊，灰細條 = 儀表要求停止廣播，灰點 = 請求/回應不判斷）");
+    const n = lanes.length;
+    const u = new uPlot(Object.assign(common(Math.max(80, 22 * n + 34), [interactPlugin(false), { hooks: { draw: (uu) => {
+      const { ctx } = uu, { top, height, left } = uu.bbox, xmin = uu.scales.x.min, xmax = uu.scales.x.max, lh = height / n;
+      ctx.save();
+      lanes.forEach((r, i) => {
+        const y = top + i * lh + lh * 0.2, hh = lh * 0.6;
+        if (r.judged) { for (const [a, b] of r.segs) if (b >= xmin && a <= xmax) drawRect(uu, a, b, y, hh, css("--lane-ok")); }
+        else { for (const t of S.ids[r.key].t) if (t >= xmin && t <= xmax) drawRect(uu, t, t, y, hh, css("--c8")); }
+        for (const g of r.gaps) if (g.b >= xmin && g.a <= xmax) drawRect(uu, g.a, g.b, y, hh, css("--lane-gap"));
+        for (const g of r.exp || []) if (g.b >= xmin && g.a <= xmax) drawRect(uu, g.a, g.b, y + hh * 0.35, hh * 0.3, css("--c8"));
+      });
+      ctx.font = (11 * devicePixelRatio) + "px 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif"; ctx.textBaseline = "middle";
+      lanes.forEach((r, i) => {
+        const txt = r.info.nodeName + " · " + r.info.name, yc = top + i * lh + lh / 2, w = ctx.measureText(txt).width;
+        ctx.fillStyle = css("--panel"); ctx.globalAlpha = 0.85; ctx.fillRect(left + 2, yc - lh * 0.32, w + 8, lh * 0.64);
+        ctx.globalAlpha = 1; ctx.fillStyle = css("--text"); ctx.fillText(txt, left + 6, yc);
+      });
+      ctx.restore();
+      drawRideMarks(uu, true);
+    } } }]), {
+      series: [{ label: "t s", value: (u2, v) => v == null ? "-" : v.toFixed(3) }, { label: "", show: false }],
+      scales: { x: { time: false }, y: { range: [0, n] } }, legend: { show: false },
+      axes: [axis("t (s)"), axis("", { values: () => [], grid: { show: false }, ticks: { show: false } }), spacer()],
+    }), [[S.t0, S.t1], [null, null]], $("charts"));
+    S.charts.push(u);
+  }
+
+  // status band: green = motor running, red = any fault / warning bit, grey = idle
+  const bandKeys = ["drvStat", "fault", "warn", ...Object.keys(S.sig).filter((k) => /^bat..f$/.test(k))].filter((k) => S.sig[k]);
+  if (bandKeys.length) {
+    const ts = [...new Set(bandKeys.flatMap((k) => S.sig[k].t))].sort((a, b) => a - b);
+    const segs = []; const ptr = {}; bandKeys.forEach((k) => (ptr[k] = -1));
+    let cur = null, a0 = ts[0];
+    for (const t of ts) {
+      for (const k of bandKeys) { const s = S.sig[k]; while (ptr[k] + 1 < s.t.length && s.t[ptr[k] + 1] <= t) ptr[k]++; }
+      const val = (k) => (ptr[k] >= 0 ? S.sig[k].v[ptr[k]] : 0);
+      const st = bandKeys.some((k) => k !== "drvStat" && val(k)) ? "bad" : S.sig.drvStat && (val("drvStat") & 2) ? "run" : "idle";
+      if (st !== cur) { if (cur) segs.push([a0, t, cur]); cur = st; a0 = t; }
+    }
+    if (cur) segs.push([a0, S.t1, cur]);
+    title("狀態色帶（綠 = 馬達運轉，紅 = 有故障或警告位元，灰 = 待機）");
+    const col = { run: "--lane-ok", bad: "--lane-gap", idle: "--line" };
+    const u = new uPlot(Object.assign(common(50, [interactPlugin(false), { hooks: { draw: (uu) => {
+      const { top, height } = uu.bbox, xmin = uu.scales.x.min, xmax = uu.scales.x.max;
+      uu.ctx.save(); for (const [a, b, c] of segs) if (b >= xmin && a <= xmax) drawRect(uu, a, b, top + 2, height - 4, css(col[c])); uu.ctx.restore();
+      drawRideMarks(uu, false);
+    } } }]), {
+      series: [{ label: "t s", value: (u2, v) => v == null ? "-" : v.toFixed(3) }, { label: "", show: false }],
+      scales: { x: { time: false }, y: { range: [0, 1] } }, legend: { show: false },
+      axes: [axis("", { show: false, size: 0 }), axis("", { values: () => [], grid: { show: false }, ticks: { show: false } }), spacer()],
+    }), [[S.t0, S.t1], [null, null]], $("charts"));
+    S.charts.push(u);
+  }
+
+  // one lane per selected channel
+  S.lanes.forEach((k, li) => {
+    const built = buildData([k]); if (!built) return;
+    const s = S.sig[k], isTrq = k === "trqN";
+    title(s.label + (s.unit && s.unit !== "bit" ? "（" + s.unit + "）" : "") + (isTrq && !STD ? " · Shift / Ctrl / Alt + 拖曳或點擊 = 標記" : "") + (BIT_KEYS.test(k) ? " · 位元名稱見事件表" : ""));
+    const step = STEP_KEYS.test(k);
+    const u = new uPlot(Object.assign(common(isTrq ? 240 : 160, [bandsPlugin({ stale: staleOf(built.sers), pulses: isTrq && !STD, segLabels: isTrq && !STD, rideLabels: true }), interactPlugin(!STD)]), {
+      series: [{ label: "t s", value: (u2, v) => v == null ? "-" : v.toFixed(3) },
+        { label: s.label, stroke: css(COLORS[li % COLORS.length]), width: 1.4, spanGaps: false, fill: isTrq ? null : undefined,
+          paths: step ? uPlot.paths.stepped({ align: 1 }) : undefined,
+          value: (u2, v) => v == null ? "-" : BIT_KEYS.test(k) ? "0x" + hx(v | 0, 4) : (Math.abs(v) >= 100 ? v.toFixed(0) : +v.toFixed(2)) + (s.unit && s.unit !== "bit" ? " " + s.unit : "") }],
+      axes: [axis("", { size: 28 }), axis("", { side: 3, splits: yTicks(STEP_KEYS.test(k)), values: yTickText }), spacer("y")],
+      scales: { x: { time: false }, y: { auto: true, range: yRange(STEP_KEYS.test(k)) } },
+    }), built.data, $("charts"));
+    S.charts.push(u);
+  });
+  if (!S.charts.length) { $("charts").innerHTML = `<p class="help">請在上方選擇要顯示的欄位。</p>`; return; }
+
+  // overview strip
+  const ovKey = S.sig.trqN ? "trqN" : S.sig.spd ? "spd" : S.lanes[0];
+  const o = ovKey && buildData([ovKey]);
+  if (o) {
+    S.ov = new uPlot({ width: W(), height: 64, legend: { show: false }, cursor: { show: false, drag: { x: false, y: false } }, scales: { x: { time: false } },
+      series: [{}, { stroke: css("--c1"), width: 1 }], axes: [{ stroke: css("--muted"), grid: { show: false }, size: 22, font: "11px 'IBM Plex Mono', Consolas, monospace" }, { show: false }],
+      plugins: [bandsPlugin({ pulses: true }), { hooks: {
+        draw: (u) => { const c = S.charts[0]; if (!c) return; const { ctx } = u, { top, height } = u.bbox, a = u.valToPos(c.scales.x.min, "x", true), b = u.valToPos(c.scales.x.max, "x", true);
+          ctx.save(); ctx.strokeStyle = css("--text"); ctx.lineWidth = 1.5 * devicePixelRatio; ctx.strokeRect(a, top, Math.max(2, b - a), height); ctx.restore(); },
+        ready: (u) => u.over.addEventListener("click", (e) => { const c = S.charts[0], w = c.scales.x.max - c.scales.x.min, xv = u.posToVal(e.offsetX, "x"); zoomTo(xv - w / 2, xv + w / 2); }),
+      } }] }, o.data, $("overview"));
+  }
+  zoomTo(S.t0, S.t1);
+}
+
+// overview-tab bus chart and battery-tab balance chart (built when their tab is visible)
+function buildSide() {
+  if (S.bus) { S.bus.destroy(); S.bus = null; }
+  if (S.bal) { S.bal.destroy(); S.bal = null; }
+  $("busCard").hidden = S.kind !== "RAW" || !S.stat.length;
+  const mk = (el, keys, scales, h) => {
+    const d = buildData(keys); if (!d || !el.clientWidth) return null;
+    const used = [...new Set(d.sers.map((s) => scales[s.key] || "a"))];
+    const axes = [axis("t (s)")]; used.forEach((sc, i) => axes.push(axis("", { scale: sc, side: i ? 1 : 3, grid: { show: !i } }))); if (used.length === 1) axes.push(spacer(used[0]));
+    const sc = { x: { time: false } }; used.forEach((u) => (sc[u] = { auto: true }));
+    return new uPlot({ width: el.clientWidth - 4, height: h, scales: sc, axes, legend: { live: true },
+      series: [{ label: "t s" }, ...d.sers.map((s, i) => ({ label: s.label + (s.unit ? " " + s.unit : ""), stroke: css(COLORS[i % COLORS.length]), width: 1.5, scale: scales[s.key] || "a", paths: STEP_KEYS.test(s.key) ? uPlot.paths.stepped({ align: 1 }) : undefined }))] }, d.data, el);
+  };
+  if (!$("busCard").hidden && !$("panel-overview").hidden) { $("busChart").innerHTML = ""; S.bus = mk($("busChart"), ["rec", "tec", "fps"], { fps: "b" }, 150); }
+  if (!$("balCard").hidden && !$("panel-battery").hidden) {
+    const ks = Object.keys(S.sig).filter((k) => /^bat..(rsoc|v)$/.test(k)).sort();
+    $("balChart").innerHTML = ""; S.bal = mk($("balChart"), ks, Object.fromEntries(ks.filter((k) => k.endsWith("v")).map((k) => [k, "b"])), 180);
+  }
+}
+function syncX(src) {
+  if (S.syncing) return;
+  S.syncing = true;
+  const { min, max } = src.scales.x;
+  for (const c of S.charts) if (c !== src) c.setScale("x", { min, max });
+  if (S.ov) S.ov.redraw(false);
+  S.syncing = false;
+}
+function zoomTo(a, b) {
+  if (!S || !S.charts.length) return;
+  const T0 = S.t0, T1 = Math.max(S.t1, S.t0 + 0.1);
+  let w = b - a; if (w >= T1 - T0) { a = T0; b = T1; } else { if (a < T0) { a = T0; b = T0 + w; } if (b > T1) { b = T1; a = T1 - w; } }
+  S.charts[0].setScale("x", { min: a, max: b });
+}
+function zoomWin(sec) {
+  const c = S.charts[0]; if (!c) return;
+  if (!sec) return zoomTo(S.t0, S.t1);
+  const mid = (c.scales.x.min + c.scales.x.max) / 2; zoomTo(mid - sec / 2, mid + sec / 2);
+}
+function pan(frac) { const c = S.charts[0]; if (!c) return; const w = c.scales.x.max - c.scales.x.min; zoomTo(c.scales.x.min + w * frac, c.scales.x.max + w * frac); }
+function jumpTo(list, dir) {
+  const c = S.charts[0]; if (!c) return false;
+  const mid = (c.scales.x.min + c.scales.x.max) / 2;
+  const L = dir > 0 ? list.filter((p) => p.t0 > mid + 0.01) : list.filter((p) => p.t1 < mid - 0.01).reverse();
+  if (!L.length) return false;
+  const p = L[0], w = Math.min(10, c.scales.x.max - c.scales.x.min), m = (p.t0 + Math.min(p.t1, p.t0 + w * 0.6)) / 2; zoomTo(m - w / 2, m + w / 2);
+  return true;
+}
+function gapList() {
+  if (S.kind === "RAW") return S.health.events.map((e) => ({ t0: e.a, t1: e.b }));
+  return [...S.recGaps.map((g) => ({ t0: g.a, t1: g.b })), ...S.faults.filter((f) => f.on && f.sev !== "na").map((f) => ({ t0: f.t, t1: f.t1 || f.t }))].sort((a, b) => a.t0 - b.t0);
+}
+function redraw() { for (const c of S.charts) c.redraw(false); if (S.ov) S.ov.redraw(false); }
+// V1.14 S2 event marks (read-only, from the RAW file); the anomaly is usually a few seconds before the press
+function renderRideMarks() {
+  const R = S.rideMarks, has = R.length > 0;
+  $("rideCard").hidden = $("rideNav").hidden = $("rideLegend").hidden = !has;
+  $("ridecount").textContent = has ? `(${R.length})` : "";
+  $("rideMarks").innerHTML = R.map((m, i) => `<tr><td class="num">${m.n}</td><td><a href="#" data-r="${i}">${m.t.toFixed(3)}</a></td><td class="mono">${esc(m.file)}</td></tr>`).join("");
+}
+$("rideMarks").addEventListener("click", (e) => { const a = e.target.closest("a[data-r]"); if (a) { e.preventDefault(); const m = S.rideMarks[+a.dataset.r]; zoomTo(m.t - 8, m.t + 3); } });
+function rideJump(dir) {
+  const c = S && S.charts[0]; if (!c) return;
+  const mid = (c.scales.x.min + c.scales.x.max) / 2, w = Math.min(11, c.scales.x.max - c.scales.x.min);
+  const L = dir > 0 ? S.rideMarks.filter((m) => m.t > mid + 0.01) : S.rideMarks.filter((m) => m.t < mid - 0.01).reverse();
+  if (L.length) zoomTo(L[0].t - w / 2, L[0].t + w / 2);
+}
+$("prevRide").onclick = () => rideJump(-1); $("nextRide").onclick = () => rideJump(1);
+
+document.querySelectorAll("#nav [data-win]").forEach((b) => (b.onclick = () => zoomWin(+b.dataset.win)));
+$("prev").onclick = () => pan(-0.8); $("next").onclick = () => pan(0.8);
+$("prevPair").onclick = () => jumpTo(S.pairs, -1); $("nextPair").onclick = () => jumpTo(S.pairs, 1);
+$("nextGap").onclick = () => jumpTo(gapList(), 1);
+$("nextOpen").onclick = () => {
+  if (!S || !S.pairs.length) return;
+  const open = classify().res.filter((r) => r.st === "open").map((r) => r.p);
+  if (!jumpTo(open, 1) && !jumpTo(open, -1)) alert("所有候選都已經被標記蓋到了。");
+};
+document.addEventListener("keydown", (e) => {
+  if (!S || !S.charts.length || /INPUT|TEXTAREA|SELECT/.test(e.target.tagName) || $("panel-timeline").hidden) return;
+  if (e.key === "ArrowLeft") pan(-0.5); else if (e.key === "ArrowRight") pan(0.5); else if (e.key === "Escape" || e.key === "0") zoomWin(0);
+  else if (e.key === "+") { const c = S.charts[0]; const w = c.scales.x.max - c.scales.x.min; zoomWin(w / 2); }
+  else if (e.key === "-") { const c = S.charts[0]; const w = c.scales.x.max - c.scales.x.min; zoomWin(w * 2); }
+  else if (!STD && /^[mMxXnNdD]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+    const u = S.cursorChart; if (!u || !S.sig.trqN || u.cursor.left == null || u.cursor.left < 0) return;
+    const t = u.posToVal(u.cursor.left, "x"), k = e.key.toLowerCase();
+    if (k === "d") { const i = markAt(t); if (i >= 0) { S.marks.splice(i, 1); marksChanged(); } return; }
+    const [a, b] = snapRange(t); addMark(a, b, { m: 1, x: 3, n: 2 }[k]);
+  }
+});
+
+// ================= tabs =================
+const TABS = ["overview", "timeline", "battery"];
+function showTab(name) {
+  for (const n of TABS) { $("tab-" + n).setAttribute("aria-selected", n === name ? "true" : "false"); $("panel-" + n).hidden = n !== name; }
+  $("panel-battery").style.display = name === "battery" ? "flex" : "";
+  requestAnimationFrame(() => {
+    if (!S) return;
+    if (name === "timeline") { const c = S.charts[0], a = c && c.scales.x.min, b = c && c.scales.x.max; for (const ch of S.charts) ch.setSize({ width: W(), height: ch.height }); if (S.ov) S.ov.setSize({ width: W(), height: 64 }); if (a != null) zoomTo(a, b); }
+    else buildSide();
+  });
+}
+TABS.forEach((n) => ($("tab-" + n).onclick = () => showTab(n)));
+$("tabs").addEventListener("keydown", (e) => {
+  if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+  const vis = TABS.filter((n) => !$("tab-" + n).hidden), cur = vis.findIndex((n) => $("tab-" + n).getAttribute("aria-selected") === "true");
+  const nx = vis[(cur + (e.key === "ArrowRight" ? 1 : vis.length - 1)) % vis.length]; showTab(nx); $("tab-" + nx).focus();
+});
+function goTime(a, b) { showTab("timeline"); requestAnimationFrame(() => requestAnimationFrame(() => zoomTo(a, b))); }
+
+// ================= exports =================
+$("exportReport").onclick = () => {
+  if (!S) return;
+  const L = [];
+  L.push("ToolR Analyzer 報告," + q(S.name) + "," + S.kind + "," + q(S.ver || ""));
+  L.push("", "判讀");
+  document.querySelectorAll("#verdicts .verdict").forEach((v) => L.push(q(v.querySelector(".vt").textContent) + "," + q(v.querySelector(".vb").textContent) + "," + q(v.lastElementChild.innerText.replace(/\n/g, " / "))));
+  L.push("", "摘要"); for (const x of S.tiles) L.push(q(x.k) + "," + q(x.v) + "," + q(x.s));
+  L.push("", "初步判讀"); for (const n of S.notes) L.push(n.lvl + "," + q(n.text));
+  if (S.kind === "RAW") {
+    L.push("", "節點,ID,名稱,封包數,預期 ms,實測 ms,斷訊,最長 s,狀態,說明");
+    for (const r of S.health.ids) L.push([q(r.info.nodeName), r.key, q(r.info.name), r.n, r.info.period || "", isFinite(r.med) ? r.med.toFixed(1) : "", r.gaps.length, r.maxGap.toFixed(2), r.state, q(r.note)].join(","));
+    L.push("", "斷訊開始 s,長度 s,節點,封包");
+    for (const e of S.health.events) L.push([e.a.toFixed(2), e.tail ? "到結束" : (e.b - e.a).toFixed(2), q(e.whole ? e.node.name : e.id.info.nodeName), q(e.whole ? "整個節點" : e.id.info.name)].join(","));
+  }
+  L.push("", "事件時間 s,結束 s,來源,事件"); for (const f of S.faults) L.push([f.t.toFixed(2), f.t1 != null ? f.t1.toFixed(2) : "", q(f.who), q(f.txt)].join(","));
+  const B = batteryList();
+  if (B.length) {
+    L.push("", "電池,狀態,SOH %,循環次數,滿充 Ah,剩餘 Ah,RSOC 起→迄,電芯,韌體,序號,電壓 min-max,電流 min-max,溫度 min-max,能量 Wh");
+    for (const b of B) L.push([q(b.name), q(b.state), b.soh ?? "", b.cycles ?? "", b.full ?? "", b.rem ?? "", b.rsoc ? b.rsoc.first + "→" + b.rsoc.last : "", b.info.cells ? b.info.cells.s + "S" + b.info.cells.p + "P" : "", q(b.info.fw || ""), q(b.info.sn || ""),
+      b.vS ? fx(b.vS.mn, 2) + "-" + fx(b.vS.mx, 2) : "", b.iS ? fx(b.iS.mn, 1) + "-" + fx(b.iS.mx, 1) : "", b.tS ? fx(b.tS.mn, 0) + "-" + fx(b.tS.mx, 0) : "", b.wh != null ? fx(b.wh, 1) : ""].join(","));
+  }
+  download(S.name.replace(/\.csv$/i, "") + "_report.csv", L.join("\r\n") + "\r\n");
+};
+$("exportCsv").onclick = () => {
+  if (!S) return;
+  const keys = channelKeys(), d = buildData(keys); if (!d) return;
+  const head = ["Time s", ...d.sers.map((s) => s.label + (s.unit && s.unit !== "bit" ? " (" + s.unit + ")" : ""))];
+  const out = [head.map(q).join(",")];
+  for (let i = 0; i < d.data[0].length; i++) out.push([d.data[0][i].toFixed(3), ...d.sers.map((s, j) => { const v = d.data[j + 1][i]; return v == null ? "" : +(+v).toFixed(3); })].join(","));
+  download(S.name.replace(/\.csv$/i, "") + "_converted.csv", out.join("\r\n") + "\r\n");
+};
+
+// ================= refresh / load =================
+function refreshAll(keepView) {
+  const c = S.charts[0], a = c && c.scales.x.min, b = c && c.scales.x.max;
+  if (S.kind === "RAW") analyzeHealth();
+  faultEvents(); detect(); renderSummary(); renderVerdicts(); renderNodes(); renderFaults(); renderBatteries(); renderChips(); build(); buildSide(); renderMarks(); renderRideMarks();
+  if (keepView && a != null) zoomTo(a, b);
+}
+["pGap", "pOff", "pK", "pOn", "pOffN", "pGapMin", "pGapMax", "pQuiet"].forEach((id) => $(id).addEventListener("change", () => { if (S) refreshAll(true); }));
+let rT; window.addEventListener("resize", () => { clearTimeout(rT); rT = setTimeout(() => { if (!S) return; for (const c of S.charts) c.setSize({ width: W(), height: c.height }); if (S.ov) S.ov.setSize({ width: W(), height: 64 }); buildSide(); }, 150); });
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { if (S) refreshAll(true); });
+
+async function loadFile(f) { return loadFiles([f]); }
+async function loadFiles(fl) {
+  const mk = Array.from(fl).filter((f) => /_marks\.csv$/i.test(f.name));
+  fl = Array.from(fl).filter((f) => !/_marks\.csv$/i.test(f.name));
+  if (!fl.length) { if (S && S.sig.trqN && !STD) for (const f of mk) importMarks(await f.text()); return; }
+  try { parseFiles(await Promise.all(fl.map(async (f) => ({ text: await f.text(), name: f.name })))); } catch (e) { alert(e.message); return; }
+  if (!S.rows) { alert("檔案沒有資料列"); return; }
+  $("drop").hidden = true; $("report").hidden = false; $("tabs").hidden = false; $("exportReport").disabled = false;
+  $("fileinfo").innerHTML = `<span class="name mono" title="${esc(S.files.map((r) => r.name).join(", "))}">${esc(S.name)}</span><span>${S.kind} · ${esc(S.ver || "版本未標示")} · ${fmtDur(S.t1 - S.t0)} · ${S.rows.toLocaleString()} 列</span>`;
+  if (S.kind === "RAW") analyzeHealth();
+  detect();                 // creates trqN, so the default lanes can include it
+  loadMarks();
+  S.lanes = loadLanes();
+  showTab("overview");
+  refreshAll(false);
+  if (S.sig.trqN && !STD) for (const f of mk) importMarks(await f.text());
+}
+renderBits();
+$("file").onchange = (e) => { if (e.target.files.length) loadFiles(e.target.files); e.target.value = ""; };
+["dragenter", "dragover"].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.add("hover"); }));
+["dragleave", "drop"].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.remove("hover"); }));
+document.addEventListener("drop", (e) => { if (e.dataTransfer.files.length) loadFiles(e.dataTransfer.files); });
+</script>
+
+<script src="../_site/home-button.js"></script>
+<script src="../_site/analyzer-handoff.js"></script>
+</body>
+</html>

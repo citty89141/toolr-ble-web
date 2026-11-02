@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ENDEX BLE OTA 更新</title>
+  <style>
+    :root{
+      --bg:#eef2f1; --surface:#ffffff; --surface-2:#e3e9e7;
+      --ink:#16211f; --ink-soft:#4b5a57; --ink-faint:#7c8b87;
+      --line:rgba(22,33,31,0.14); --line-strong:rgba(22,33,31,0.28);
+      --accent:#0f7a72; --accent-strong:#0b5f59; --accent-ink:#f2fbf9;
+      --amber:#a8660a; --amber-soft:#f2e2c8;
+      --danger:#a6392f; --danger-soft:#f6dfdb;
+      --good:#2f7d4f; --good-soft:#dcefe1;
+      --log-bg:#16211f; --log-ink:#d6e2df; --log-dim:#7c8b87;
+      --shadow:0 1px 2px rgba(16,24,22,0.06), 0 8px 24px -12px rgba(16,24,22,0.18);
+    }
+    @media (prefers-color-scheme: dark){
+      :root:not([data-theme="light"]){
+        --bg:#101615; --surface:#182120; --surface-2:#1f2a29;
+        --ink:#e9f1ee; --ink-soft:#a4b6b1; --ink-faint:#748782;
+        --line:rgba(233,241,238,0.14); --line-strong:rgba(233,241,238,0.26);
+        --accent:#39c4b4; --accent-strong:#5ddac9; --accent-ink:#062521;
+        --amber:#e0a34a; --amber-soft:#3a2c14;
+        --danger:#e2837a; --danger-soft:#3a1e1b;
+        --good:#68c48c; --good-soft:#173226;
+        --log-bg:#0b100f; --log-ink:#cfdcd8; --log-dim:#6b7d78;
+        --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+      }
+    }
+    :root[data-theme="dark"]{
+      --bg:#101615; --surface:#182120; --surface-2:#1f2a29;
+      --ink:#e9f1ee; --ink-soft:#a4b6b1; --ink-faint:#748782;
+      --line:rgba(233,241,238,0.14); --line-strong:rgba(233,241,238,0.26);
+      --accent:#39c4b4; --accent-strong:#5ddac9; --accent-ink:#062521;
+      --amber:#e0a34a; --amber-soft:#3a2c14;
+      --danger:#e2837a; --danger-soft:#3a1e1b;
+      --good:#68c48c; --good-soft:#173226;
+      --log-bg:#0b100f; --log-ink:#cfdcd8; --log-dim:#6b7d78;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+    }
+
+    *{ box-sizing:border-box; margin:0; padding:0; }
+    body{
+      background:var(--bg); color:var(--ink);
+      font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Segoe UI",system-ui,sans-serif;
+      font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased;
+    }
+    .mono{ font-family:ui-monospace,"Cascadia Code","Consolas","SFMono-Regular",monospace; }
+    a{ color:var(--accent-strong); }
+    :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; border-radius:6px; }
+
+    .wrap{ max-width:640px; margin:0 auto; padding:24px 16px 64px; }
+
+    header{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:20px; }
+    header h1{ font-size:22px; font-weight:800; letter-spacing:0.01em; }
+    header .sub{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+    .manual-link{
+      flex:none; font-size:13px; font-weight:600; text-decoration:none;
+      padding:7px 12px; border-radius:999px; border:1px solid var(--line-strong); color:var(--ink-soft);
+      white-space:nowrap;
+    }
+    .manual-link:hover{ color:var(--ink); border-color:var(--accent); }
+
+    .banner{
+      border-radius:10px; padding:12px 14px; font-size:13.5px; margin-bottom:16px;
+      border-left:3px solid var(--amber); background:color-mix(in srgb, var(--amber-soft) 60%, var(--surface));
+    }
+    .banner.danger{ border-color:var(--danger); background:color-mix(in srgb, var(--danger-soft) 60%, var(--surface)); }
+    [hidden]{ display:none !important; }
+
+    .card{
+      background:var(--surface); border:1px solid var(--line); border-radius:12px;
+      padding:18px; margin-bottom:14px; box-shadow:var(--shadow);
+    }
+    .card-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+    .num{
+      width:24px; height:24px; border-radius:50%; flex:none;
+      background:var(--accent); color:var(--accent-ink);
+      display:flex; align-items:center; justify-content:center; font-size:12.5px; font-weight:700;
+    }
+    .card-title{ font-weight:700; font-size:15px; }
+    .card-hint{ font-size:12.5px; color:var(--ink-faint); margin-left:auto; }
+
+    /* drop zone */
+    .drop{
+      display:flex; align-items:center; gap:12px; cursor:pointer;
+      border:2px dashed var(--line-strong); border-radius:10px; padding:16px;
+      transition:border-color .15s, background .15s;
+    }
+    .drop:hover, .drop.drag{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, transparent); }
+    .drop.has-file{ border-style:solid; border-color:var(--accent); }
+    .drop-icon{ font-size:26px; line-height:1; flex:none; }
+    .drop-main{ font-weight:600; font-size:14px; word-break:break-all; }
+    .drop-sub{ font-size:12.5px; color:var(--ink-faint); }
+    #binFile{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
+
+    /* version compare */
+    .ver-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ver-box{ background:var(--surface-2); border-radius:10px; padding:10px 12px; min-width:0; }
+    .ver-box .lbl{ font-size:11.5px; color:var(--ink-faint); font-weight:600; letter-spacing:0.04em; }
+    .ver-box .val{ font-size:15px; font-weight:700; margin-top:2px; word-break:break-all; }
+    .ver-box .meta{ font-size:11.5px; color:var(--ink-faint); word-break:break-all; }
+    .ver-box .val.dim{ color:var(--ink-faint); font-weight:500; font-size:13.5px; }
+    .ver-verdict{ margin-top:10px; font-size:13px; padding:8px 12px; border-radius:8px; display:none; }
+    .ver-verdict.show{ display:block; }
+    .ver-verdict.newer{ background:var(--good-soft); color:var(--good); }
+    .ver-verdict.same { background:var(--surface-2); color:var(--ink-soft); }
+    .ver-verdict.older{ background:var(--amber-soft); color:var(--amber); }
+    @media (max-width:440px){ .ver-grid{ grid-template-columns:1fr; } }
+
+    /* buttons */
+    .btn{
+      display:block; width:100%; border:none; border-radius:10px; cursor:pointer;
+      font:inherit; font-size:15px; font-weight:700; padding:13px 16px; margin-top:12px;
+      background:var(--accent); color:var(--accent-ink);
+      transition:background .15s, opacity .15s;
+    }
+    .btn:hover:not(:disabled){ background:var(--accent-strong); }
+    .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+    .btn.secondary{
+      background:transparent; color:var(--ink-soft); border:1px solid var(--line-strong);
+      font-weight:600; font-size:14px; padding:10px 14px;
+    }
+    .btn.secondary:hover:not(:disabled){ background:var(--surface-2); color:var(--ink); }
+    .device-line{ font-size:12.5px; color:var(--ink-faint); margin-top:8px; text-align:center; }
+
+    /* stepper */
+    .stepper{ display:flex; gap:6px; margin-bottom:14px; }
+    .stage{
+      flex:1; text-align:center; font-size:12px; font-weight:600; color:var(--ink-faint);
+      padding-top:8px; border-top:3px solid var(--surface-2);
+    }
+    .stage.active{ color:var(--accent-strong); border-color:var(--accent); }
+    .stage.done{ color:var(--ink-soft); border-color:color-mix(in srgb, var(--accent) 45%, var(--surface-2)); }
+    .stage.fail{ color:var(--danger); border-color:var(--danger); }
+
+    .progress-track{ background:var(--surface-2); border-radius:999px; height:12px; overflow:hidden; }
+    .progress-fill{ height:100%; width:0%; background:var(--accent); border-radius:999px; transition:width .15s ease; }
+    .progress-row{ display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--ink-soft); margin-top:8px; flex-wrap:wrap; }
+    .progress-row .big{ font-size:20px; font-weight:800; color:var(--ink); font-variant-numeric:tabular-nums; }
+
+    .result{ border-radius:10px; padding:14px 16px; margin-top:14px; display:none; }
+    .result.show{ display:block; }
+    .result.ok  { background:var(--good-soft); color:var(--good); }
+    .result.err { background:var(--danger-soft); color:var(--danger); }
+    .result .r-title{ font-weight:800; font-size:16px; }
+    .result .r-body{ font-size:13px; margin-top:2px; color:var(--ink-soft); }
+
+    .hint{ font-size:12.5px; color:var(--ink-faint); margin-top:10px; }
+
+    /* log */
+    details.logbox{ margin-top:14px; }
+    details.logbox summary{ cursor:pointer; font-size:13px; font-weight:600; color:var(--ink-soft); list-style:none; }
+    details.logbox summary::-webkit-details-marker{ display:none; }
+    details.logbox summary::before{ content:"▸ "; }
+    details.logbox[open] summary::before{ content:"▾ "; }
+    #log{
+      margin-top:8px; font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-all;
+      background:var(--log-bg); color:var(--log-ink); padding:12px; border-radius:8px;
+      height:220px; overflow-y:auto;
+    }
+    #log .ok{ color:#7fd6a0; font-weight:700; }
+    #log .err{ color:#f0918a; font-weight:700; }
+    #log .dim{ color:var(--log-dim); }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1>BLE 韌體更新</h1>
+      <div class="sub">ENDEX CAN 橋接器（ESP32-H2）· 無線 OTA</div>
+    </div>
+    <a class="manual-link" href="ota_manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+  </header>
+
+  <div id="browserWarn" class="banner danger" hidden>
+    此瀏覽器不支援 Web Bluetooth。請改用電腦或 Android 手機上的 <b>Chrome</b> 或 <b>Edge</b> 開啟本頁。
+  </div>
+  <div id="httpsWarn" class="banner" hidden>
+    目前不是以 <span class="mono">https://</span> 開啟，Web Bluetooth 可能被瀏覽器封鎖。
+  </div>
+
+  <!-- 1. 選擇韌體 -->
+  <section class="card">
+    <div class="card-head"><span class="num">1</span><span class="card-title">選擇韌體檔案</span></div>
+    <label class="drop" id="drop" for="binFile">
+      <span class="drop-icon" aria-hidden="true">📦</span>
+      <span>
+        <span class="drop-main" id="dropMain">點擊選擇，或把 .bin 檔拖曳到這裡</span><br>
+        <span class="drop-sub" id="dropSub">由工程師提供的韌體檔，例如 gattc_gatts_coex.bin</span>
+      </span>
+    </label>
+    <input type="file" id="binFile" accept=".bin">
+  </section>
+
+  <!-- 2. 版本確認 -->
+  <section class="card">
+    <div class="card-head">
+      <span class="num">2</span><span class="card-title">確認版本</span>
+      <span class="card-hint">選填，只讀取不寫入</span>
+    </div>
+    <div class="ver-grid">
+      <div class="ver-box">
+        <div class="lbl">韌體檔案</div>
+        <div class="val dim" id="fileVer">尚未選擇</div>
+        <div class="meta mono" id="fileMeta"></div>
+      </div>
+      <div class="ver-box">
+        <div class="lbl">裝置目前</div>
+        <div class="val dim" id="devVer">尚未讀取</div>
+        <div class="meta mono" id="devMeta"></div>
+      </div>
+    </div>
+    <div class="ver-verdict" id="verdict"></div>
+    <button class="btn secondary" id="btnCheckVer" type="button">🔍 連線讀取裝置版本</button>
+  </section>
+
+  <!-- 3. 更新 -->
+  <section class="card">
+    <div class="card-head"><span class="num">3</span><span class="card-title">開始更新</span></div>
+
+    <div class="stepper" aria-label="更新階段">
+      <div class="stage" data-stage="connect">連線</div>
+      <div class="stage" data-stage="start">開始</div>
+      <div class="stage" data-stage="transfer">傳輸</div>
+      <div class="stage" data-stage="verify">驗證</div>
+    </div>
+
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="progressBar">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-row">
+      <span><span class="big" id="pct">0%</span></span>
+      <span id="progressLabel" class="mono">尚未開始</span>
+    </div>
+
+    <button class="btn" id="btnOta" type="button" disabled>請先選擇韌體檔案</button>
+    <div class="device-line" id="deviceLine"></div>
+
+    <div class="result" id="result" role="status" aria-live="polite">
+      <div class="r-title" id="resultTitle"></div>
+      <div class="r-body" id="resultBody"></div>
+    </div>
+
+    <p class="hint">更新期間請讓裝置靠近、不要關閉本頁或讓螢幕休眠；中途失敗不會讓裝置變磚，舊韌體會繼續運作。</p>
+
+    <details class="logbox" id="logbox">
+      <summary>詳細記錄</summary>
+      <div id="log" class="mono"></div>
+    </details>
+  </section>
+
+</div>
+
+<script>
+  const OTA_SERVICE      = 0xfe00;
+  const OTA_CTRL_UUID    = 0xfe01;
+  const OTA_DATA_UUID    = 0xfe02;
+  const OTA_STATUS_UUID  = 0xfe03;
+  const OTA_VERSION_UUID = 0xfe04;
+  const CHUNK_SIZE      = 490;
+  const CHUNK_DELAY_MS  = 12;
+  const NAME_PREFIX     = 'ENDEX_CAN_';
+
+  const $ = id => document.getElementById(id);
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  let bleDevice = null;   // 版本檢查時選過的裝置，更新時直接沿用，不用再選一次
+  let fwBytes   = null;
+  let fwFile    = null;
+  let fileVerStr = null;
+  let devVerStr  = null;
+  let busy = false;
+  let wakeLock = null;
+
+  // ── 環境檢查 ───────────────────────────────────────────────
+  const hasBle = !!navigator.bluetooth;
+  if (!hasBle) $('browserWarn').hidden = false;
+  if (location.protocol !== 'https:' && location.protocol !== 'file:' &&
+      location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+    $('httpsWarn').hidden = false;
+  }
+
+  // ── log ───────────────────────────────────────────────────
+  function log(msg, cls = '') {
+    const el = $('log');
+    const span = document.createElement('span');
+    if (cls) span.className = cls;
+    span.textContent = msg + '\n';
+    el.appendChild(span);
+    el.scrollTop = el.scrollHeight;
+  }
+
+  // ── 進度 / 階段 / 結果 ─────────────────────────────────────
+  function setProgress(pct, label) {
+    $('progressFill').style.width = pct + '%';
+    $('progressBar').setAttribute('aria-valuenow', String(pct));
+    $('pct').textContent = pct + '%';
+    $('progressLabel').textContent = label;
+  }
+  const STAGES = ['connect', 'start', 'transfer', 'verify'];
+  function setStage(name, failed = false) {
+    const idx = STAGES.indexOf(name);
+    document.querySelectorAll('.stage').forEach(el => {
+      const i = STAGES.indexOf(el.dataset.stage);
+      el.className = 'stage' + (i < idx ? ' done' : i === idx ? (failed ? ' fail' : ' active') : '');
+    });
+  }
+  function resetStages() { document.querySelectorAll('.stage').forEach(el => el.className = 'stage'); }
+  function showResult(ok, title, body) {
+    const r = $('result');
+    r.className = 'result show ' + (ok ? 'ok' : 'err');
+    $('resultTitle').textContent = title;
+    $('resultBody').textContent = body || '';
+  }
+  function hideResult() { $('result').className = 'result'; }
+
+  // ── 錯誤訊息轉成人話 ───────────────────────────────────────
+  function friendlyError(e) {
+    const m = (e && e.message) || String(e);
+    if (e && e.name === 'NotFoundError') return '未選擇裝置（已取消，或附近找不到 ' + NAME_PREFIX + ' 裝置）';
+    if (e && e.name === 'SecurityError') return '瀏覽器封鎖了藍牙，請以 https:// 開啟本頁';
+    if (e && e.name === 'NetworkError') return '藍牙連線中斷，請靠近裝置後重試';
+    if (/GATT Server is disconnected|disconnected/i.test(m)) return '藍牙連線中斷，請靠近裝置後重試';
+    return m;
+  }
+
+  // ── 版本字串處理 ───────────────────────────────────────────
+  // 裝置/檔案版本格式："<version> <date> <time>"，例如 "1.0.4 Oct 16 2026 10:46:05"
+  function splitVer(s) {
+    const i = s.indexOf(' ');
+    return i < 0 ? { v: s, meta: '' } : { v: s.slice(0, i), meta: s.slice(i + 1) };
+  }
+  function cmpVer(a, b) {
+    const pa = a.split(/[.\-]/).map(n => parseInt(n, 10));
+    const pb = b.split(/[.\-]/).map(n => parseInt(n, 10));
+    if (pa.some(isNaN) || pb.some(isNaN)) return null;
+    for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+      const x = pa[i] || 0, y = pb[i] || 0;
+      if (x !== y) return x > y ? 1 : -1;
+    }
+    return 0;
+  }
+  function renderVerBox(valId, metaId, str, cls) {
+    const el = $(valId), meta = $(metaId);
+    if (!str) return;
+    if (cls) { el.textContent = str; el.className = 'val ' + cls; meta.textContent = ''; return; }
+    const { v, meta: m } = splitVer(str);
+    el.textContent = v; el.className = 'val mono'; meta.textContent = m;
+  }
+  function renderVerdict() {
+    const el = $('verdict');
+    if (!fileVerStr || !devVerStr) { el.className = 'ver-verdict'; return; }
+    const f = splitVer(fileVerStr), d = splitVer(devVerStr);
+    const c = cmpVer(f.v, d.v);
+    if (c === null) { el.className = 'ver-verdict'; return; }
+    if (c > 0)      { el.className = 'ver-verdict show newer'; el.textContent = `✔ 檔案版本較新（${d.v} → ${f.v}），可以更新`; }
+    else if (c < 0) { el.className = 'ver-verdict show older'; el.textContent = `⚠ 檔案版本比裝置舊（${d.v} → ${f.v}），更新會降版`; }
+    else if (fileVerStr === devVerStr) { el.className = 'ver-verdict show same'; el.textContent = '＝ 與裝置目前韌體完全相同，不需要更新'; }
+    else            { el.className = 'ver-verdict show same'; el.textContent = `＝ 版本號相同（${f.v}），但編譯時間不同`; }
+  }
+
+  // esp_app_desc_t 固定內嵌在 .bin 檔案 offset 32 處
+  // (24 bytes esp_image_header_t + 8 bytes 第一個 esp_image_segment_header_t)
+  const APP_DESC_OFFSET = 32;
+  const APP_DESC_MAGIC  = 0xABCD5432;
+  function parseFirmwareVersion(bytes) {
+    if (bytes.length < APP_DESC_OFFSET + 256 || bytes[0] !== 0xE9) return null;
+    const dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    if (dv.getUint32(APP_DESC_OFFSET, true) !== APP_DESC_MAGIC) return null;
+    const readStr = (relOffset, len) => {
+      const start = APP_DESC_OFFSET + relOffset;
+      const slice = bytes.subarray(start, start + len);
+      const nul = slice.indexOf(0);
+      return new TextDecoder().decode(nul >= 0 ? slice.subarray(0, nul) : slice);
+    };
+    return `${readStr(16, 32)} ${readStr(96, 16)} ${readStr(80, 16)}`;
+  }
+
+  // ── 選檔（點擊 / 拖曳）─────────────────────────────────────
+  async function loadFile(file) {
+    if (!file) return;
+    fwFile = file;
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const ver = parseFirmwareVersion(bytes);
+    $('dropMain').textContent = file.name;
+    $('dropSub').textContent = `${bytes.length.toLocaleString()} bytes`;
+    $('drop').classList.add('has-file');
+    if (ver) {
+      fwBytes = bytes; fileVerStr = ver;
+      renderVerBox('fileVer', 'fileMeta', ver);
+    } else {
+      fwBytes = null; fileVerStr = null;
+      renderVerBox('fileVer', 'fileMeta', '無法辨識，可能不是 ESP32 韌體', 'dim');
+      $('fileVer').style.color = 'var(--danger)';
+    }
+    if (ver) $('fileVer').style.color = '';
+    renderVerdict();
+    updateOtaButton();
+  }
+  $('binFile').addEventListener('change', e => loadFile(e.target.files[0]));
+  const drop = $('drop');
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+  drop.addEventListener('drop', e => {
+    const f = e.dataTransfer.files[0];
+    if (f && /\.bin$/i.test(f.name)) loadFile(f);
+  });
+
+  function updateOtaButton() {
+    const b = $('btnOta');
+    if (busy) return;
+    if (!hasBle)       { b.disabled = true;  b.textContent = '此瀏覽器不支援藍牙'; return; }
+    if (!fwBytes)      { b.disabled = true;  b.textContent = fwFile ? '韌體檔案無法辨識' : '請先選擇韌體檔案'; return; }
+    b.disabled = false; b.textContent = '⬆ 開始 OTA 更新';
+  }
+  function updateDeviceLine() {
+    $('deviceLine').textContent = bleDevice ? `裝置：${bleDevice.name}（更新時會直接沿用，不需再選）` : '';
+  }
+
+  // ── 取得裝置（沿用版本檢查時選的那台）─────────────────────
+  async function getDevice() {
+    if (bleDevice) return bleDevice;
+    bleDevice = await navigator.bluetooth.requestDevice({
+      filters: [{ namePrefix: NAME_PREFIX }],
+      optionalServices: [OTA_SERVICE]
+    });
+    updateDeviceLine();
+    return bleDevice;
+  }
+
+  // ── 讀裝置版本 ─────────────────────────────────────────────
+  $('btnCheckVer').addEventListener('click', async () => {
+    const btn = $('btnCheckVer');
+    btn.disabled = true;
+    $('devVer').textContent = '連線中 ...'; $('devVer').className = 'val dim'; $('devMeta').textContent = '';
+    let dev = null;
+    try {
+      dev = await navigator.bluetooth.requestDevice({
+        filters: [{ namePrefix: NAME_PREFIX }],
+        optionalServices: [OTA_SERVICE]
+      });
+      bleDevice = dev; updateDeviceLine();
+      const server  = await dev.gatt.connect();
+      const service = await server.getPrimaryService(OTA_SERVICE);
+      try {
+        const val = await (await service.getCharacteristic(OTA_VERSION_UUID)).readValue();
+        devVerStr = new TextDecoder().decode(val);
+        renderVerBox('devVer', 'devMeta', devVerStr);
+      } catch (_) {
+        devVerStr = null;
+        renderVerBox('devVer', 'devMeta', '舊版韌體（無版本資訊）', 'dim');
+      }
+    } catch (err) {
+      devVerStr = null;
+      renderVerBox('devVer', 'devMeta', friendlyError(err), 'dim');
+    } finally {
+      if (dev && dev.gatt.connected) dev.gatt.disconnect();
+      renderVerdict();
+      btn.disabled = !hasBle || busy;
+    }
+  });
+
+  // ── 防止更新中誤關頁面 / 螢幕休眠 ──────────────────────────
+  window.addEventListener('beforeunload', e => { if (busy) { e.preventDefault(); e.returnValue = ''; } });
+  async function lockScreen() {
+    try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (_) {}
+  }
+  function unlockScreen() { try { wakeLock && wakeLock.release(); } catch (_) {} wakeLock = null; }
+  document.addEventListener('visibilitychange', () => { if (busy && document.visibilityState === 'visible') lockScreen(); });
+
+  function setBusy(on) {
+    busy = on;
+    $('btnOta').disabled = on;
+    $('btnCheckVer').disabled = on || !hasBle;
+    $('binFile').disabled = on;
+    drop.style.pointerEvents = on ? 'none' : '';
+    if (on) { $('btnOta').textContent = '更新中，請勿關閉本頁 ...'; lockScreen(); }
+    else    { unlockScreen(); updateOtaButton(); }
+  }
+
+  // ── OTA 主流程（傳輸參數與順序與原版相同）────────────────
+  $('btnOta').addEventListener('click', startOTA);
+
+  async function startOTA() {
+    if (!fwBytes || busy) return;
+
+    if (fileVerStr && devVerStr && fileVerStr === devVerStr &&
+        !confirm('檔案與裝置目前韌體完全相同，仍要重新燒錄嗎？')) return;
+    if (fileVerStr && devVerStr) {
+      const c = cmpVer(splitVer(fileVerStr).v, splitVer(devVerStr).v);
+      if (c !== null && c < 0 && !confirm('檔案版本比裝置舊，確定要降版嗎？')) return;
+    }
+
+    setBusy(true);
+    hideResult();
+    $('log').innerHTML = '';
+    setProgress(0, '準備中 ...');
+    let stage = 'connect';
+
+    try {
+      const fw = fwBytes;
+      const total = fw.length;
+      const chunks = [];
+      for (let i = 0; i < total; i += CHUNK_SIZE)
+        chunks.push(fw.slice(i, Math.min(i + CHUNK_SIZE, total)));
+
+      log(`韌體 : ${fwFile.name}`);
+      log(`大小  : ${total.toLocaleString()} bytes → ${chunks.length} chunks × ${CHUNK_SIZE} B`);
+
+      // ── 連線 ──
+      setStage(stage = 'connect');
+      setProgress(0, '連線裝置 ...');
+      log('\n連線 ' + NAME_PREFIX + '* ...');
+      const dev = await getDevice();
+      const server = await dev.gatt.connect();
+      log(`已連線 : ${dev.name}`);
+
+      const service  = await server.getPrimaryService(OTA_SERVICE);
+      const ctrlChar = await service.getCharacteristic(OTA_CTRL_UUID);
+      const dataChar = await service.getCharacteristic(OTA_DATA_UUID);
+
+      let oldVersion = null;
+      try {
+        oldVersion = new TextDecoder().decode(await (await service.getCharacteristic(OTA_VERSION_UUID)).readValue());
+        log(`更新前版本 : ${oldVersion}`, 'dim');
+        devVerStr = oldVersion; renderVerBox('devVer', 'devMeta', oldVersion); renderVerdict();
+      } catch (_) {
+        log('更新前版本 : (此韌體較舊，沒有版本讀取特徵值 0xFE04)', 'dim');
+      }
+
+      // ── OTA START ──
+      setStage(stage = 'start');
+      setProgress(0, '送出 OTA START ...');
+      log('\n[1/4] 送出 OTA START ...');
+      await ctrlChar.writeValue(new Uint8Array([0x01]));
+      await sleep(500);
+
+      // ── 傳輸 ──
+      setStage(stage = 'transfer');
+      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B  delay=${CHUNK_DELAY_MS}ms) ...`);
+      const t0 = Date.now();
+      for (let i = 0; i < chunks.length; i++) {
+        await dataChar.writeValueWithoutResponse(chunks[i]);
+        const sent = Math.min((i + 1) * CHUNK_SIZE, total);
+        const pct  = Math.round((i + 1) * 100 / chunks.length);
+        const secs = (Date.now() - t0) / 1000;
+        const rate = secs > 0 ? sent / secs : 0;
+        const eta  = rate > 0 ? Math.ceil((total - sent) / rate) : 0;
+        setProgress(pct, `${(sent / 1024).toFixed(0)} / ${(total / 1024).toFixed(0)} KB · ${(rate / 1024).toFixed(1)} KB/s · 剩 ${eta} 秒`);
+        await sleep(CHUNK_DELAY_MS);
+      }
+      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      log(`    傳送完成，耗時 ${elapsed} 秒`);
+
+      // ── OTA END ──
+      setProgress(100, '寫入完成，送出 OTA END ...');
+      await sleep(1500);
+      log('[3/4] 送出 OTA END ...');
+      try {
+        await ctrlChar.writeValueWithoutResponse(new Uint8Array([0x02]));
+      } catch (_) {
+        try { await ctrlChar.writeValue(new Uint8Array([0x02])); } catch (_) {}
+      }
+      log('      ESP32 重啟中 ...');
+
+      // ── 驗證 ──
+      setStage(stage = 'verify');
+      log('\n[4/4] 等待 ESP32 重啟並重新廣播 ...');
+      for (let s = 8; s > 0; s--) { setProgress(100, `裝置重新開機中，${s} 秒後重新連線 ...`); await sleep(1000); }
+
+      let verified = false;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        try {
+          setProgress(100, `重新連線 ${attempt + 1}/8 ...`);
+          log(`    重連嘗試 ${attempt + 1}/8 ...`, 'dim');
+          const srv2 = await dev.gatt.connect();
+          await sleep(1000);
+          if (!dev.gatt.connected) { await sleep(2000); continue; }
+          const svc2   = await srv2.getPrimaryService(OTA_SERVICE);
+          const status = (await (await svc2.getCharacteristic(OTA_STATUS_UUID)).readValue()).getUint8(0);
+
+          let newVersion = null;
+          try {
+            newVersion = new TextDecoder().decode(await (await svc2.getCharacteristic(OTA_VERSION_UUID)).readValue());
+            log(`更新後版本 : ${newVersion}`, 'dim');
+            devVerStr = newVersion; renderVerBox('devVer', 'devMeta', newVersion); renderVerdict();
+          } catch (_) {
+            log('更新後版本 : (沒有版本讀取特徵值 0xFE04)', 'dim');
+          }
+
+          if (status === 0x01) {
+            log('\nOTA verified: mark_app_valid ESP_OK', 'ok');
+            log('新韌體已成功驗證並運行！', 'ok');
+            setStage('verify'); document.querySelector('[data-stage="verify"]').className = 'stage done';
+            setProgress(100, `完成 · 傳輸 ${elapsed} 秒`);
+            showResult(true, '✔ 更新成功', newVersion ? `裝置目前版本：${newVersion}` : '新韌體已驗證並運行');
+          } else {
+            log(`\nOTA status: 0x${status.toString(16).padStart(2, '0')} (未驗證)`, 'err');
+            setStage('verify', true);
+            setProgress(100, '驗證狀態異常');
+            showResult(false, '⚠ 新韌體未通過驗證',
+              `狀態碼 0x${status.toString(16).padStart(2, '0')}。裝置可能已退回舊韌體，請勿重複燒錄同一份檔案，並回報工程師。`);
+          }
+          verified = true;
+          if (dev.gatt.connected) dev.gatt.disconnect();
+          break;
+        } catch (e) {
+          log(`    失敗 (${friendlyError(e)})，等待 3 秒 ...`, 'dim');
+          await sleep(3000);
+        }
+      }
+
+      if (!verified) {
+        log('\n8 次重新連線都失敗', 'err');
+        setStage('verify', true);
+        setProgress(100, '無法重新連線');
+        showResult(false, '⚠ 無法確認更新結果',
+          '傳輸已完成，但裝置重開機後連不上。請確認燈號是否恢復快閃，再按「連線讀取裝置版本」確認目前版本。');
+      }
+
+    } catch (e) {
+      const msg = friendlyError(e);
+      log(`\n錯誤: ${msg}`, 'err');
+      // 連線階段失敗：可能是選錯台或裝置已離開，下次重試讓使用者重新選裝置
+      if (stage === 'connect') { bleDevice = null; updateDeviceLine(); }
+      setStage(stage, true);
+      setProgress(0, '發生錯誤');
+      showResult(false, '✖ 更新未完成', msg + '。裝置會繼續運行原本的韌體，可以直接重試。');
+      $('logbox').open = true;
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  updateOtaButton();
+</script>
+<script src="../_site/home-button.js"></script>
+</body>
+</html>
