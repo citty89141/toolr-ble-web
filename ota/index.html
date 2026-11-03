@@ -287,8 +287,11 @@
   const OTA_DATA_UUID    = uuid16(0xfe02);
   const OTA_STATUS_UUID  = uuid16(0xfe03);
   const OTA_VERSION_UUID = uuid16(0xfe04);
-  const CHUNK_SIZE      = 490;
-  const CHUNK_DELAY_MS  = 12;
+  // 每塊要放得進一個 ATT 封包（MTU − 3），OTA 服務不處理長寫入（prepare write）。
+  // 電腦、Android 協商到 500 以上；iPhone（Bluefy）常只有 185，用 180。
+  const IS_IOS          = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const CHUNK_SIZE      = IS_IOS ? 180 : 490;
   const NAME_PREFIX     = 'ENDEX_CAN_';
 
   const $ = id => document.getElementById(id);
@@ -583,7 +586,7 @@
     else    { unlockScreen(); updateOtaButton(); }
   }
 
-  // ── OTA 主流程（傳輸參數與順序與原版相同）────────────────
+  // ── OTA 主流程（指令順序與原版相同；資料改成等回應再送下一塊）────
   $('btnOta').addEventListener('click', startOTA);
 
   async function startOTA() {
@@ -604,6 +607,7 @@
 
     try {
       const fw = fwBytes;
+      const targetVersion = fileVerStr;
       const total = fw.length;
       const chunks = [];
       for (let i = 0; i < total; i += CHUNK_SIZE)
@@ -642,17 +646,19 @@
 
       // ── 傳輸 ──
       setStage(stage = 'transfer');
-      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B  delay=${CHUNK_DELAY_MS}ms) ...`);
+      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B, write with response) ...`);
       const t0 = Date.now();
       for (let i = 0; i < chunks.length; i++) {
-        await dataChar.writeValueWithoutResponse(chunks[i]);
+        // 要用 write with response：without response 只是排進手機的佇列就返回，Bluefy 會悄悄丟掉排不下的，
+        // 模組收到不完整的檔案、esp_ota_end 驗證失敗不重開（ble_ota_tester.py 在 Windows 也是同一個問題）。
+        // 等模組回應再送下一塊，就是流量控制。
+        await (dataChar.writeValueWithResponse ? dataChar.writeValueWithResponse(chunks[i]) : dataChar.writeValue(chunks[i]));
         const sent = Math.min((i + 1) * CHUNK_SIZE, total);
         const pct  = Math.round((i + 1) * 100 / chunks.length);
         const secs = (Date.now() - t0) / 1000;
         const rate = secs > 0 ? sent / secs : 0;
         const eta  = rate > 0 ? Math.ceil((total - sent) / rate) : 0;
         setProgress(pct, `${(sent / 1024).toFixed(0)} / ${(total / 1024).toFixed(0)} KB · ${(rate / 1024).toFixed(1)} KB/s · 剩 ${eta} 秒`);
-        await sleep(CHUNK_DELAY_MS);
       }
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       log(`    傳送完成，耗時 ${elapsed} 秒`);
@@ -661,10 +667,28 @@
       setProgress(100, '寫入完成，送出 OTA END ...');
       await sleep(1500);
       log('[3/4] 送出 OTA END ...');
+      // 模組驗證檔案通過才會重開機；沒斷線就是檔案不完整（esp_ota_end 失敗），還在跑舊韌體
+      const rebooted = new Promise(resolve => {
+        if (!dev.gatt.connected) return resolve(true);
+        const onDisc = () => { dev.removeEventListener('gattserverdisconnected', onDisc); resolve(true); };
+        dev.addEventListener('gattserverdisconnected', onDisc);
+        setTimeout(() => { dev.removeEventListener('gattserverdisconnected', onDisc); resolve(false); }, 15000);
+      });
       try {
         await ctrlChar.writeValueWithoutResponse(new Uint8Array([0x02]));
       } catch (_) {
         try { await ctrlChar.writeValue(new Uint8Array([0x02])); } catch (_) {}
+      }
+      setProgress(100, '等待裝置驗證檔案並重新開機 ...');
+      if (!(await rebooted)) {
+        log('\n送出 END 後 15 秒裝置都沒有重新開機：檔案沒有完整寫入，裝置仍是原本的韌體', 'err');
+        if (dev.gatt.connected) dev.gatt.disconnect();
+        setStage('verify', true);
+        setProgress(100, '裝置沒有重新開機');
+        showResult(false, '✖ 更新未完成',
+          '韌體檔沒有完整傳到裝置（傳輸中有資料遺失），裝置沒有換版本，仍在運行原本的韌體，可以直接重試。');
+        $('logbox').open = true;
+        return;
       }
       log('      ESP32 重啟中 ...');
 
@@ -693,7 +717,16 @@
             log('更新後版本 : (沒有版本讀取特徵值 0xFE04)', 'dim');
           }
 
-          if (status === 0x01) {
+          // 舊韌體（例如 1.0.1）每次開機都把狀態設成 0x01，光看狀態分不出有沒有換版，要比對版本字串
+          if (newVersion && targetVersion && newVersion !== targetVersion) {
+            log(`\n裝置版本 ${newVersion}，不是這次的 ${targetVersion}：新韌體沒有套用`, 'err');
+            setStage('verify', true);
+            setProgress(100, '版本沒有改變');
+            showResult(false, '✖ 新韌體沒有套用',
+              `裝置目前仍是 ${splitVer(newVersion).v}（這次傳的是 ${splitVer(targetVersion).v}）。` +
+              (newVersion === oldVersion ? '版本跟更新前一樣，可以直接重試。' : '裝置可能退回了其他版本，請勿重複燒錄，並回報工程師。'));
+            $('logbox').open = true;
+          } else if (status === 0x01) {
             log('\nOTA verified: mark_app_valid ESP_OK', 'ok');
             log('新韌體已成功驗證並運行！', 'ok');
             setStage('verify'); document.querySelector('[data-stage="verify"]').className = 'stage done';
