@@ -27,7 +27,8 @@
   const files = [];
   for (const f of rec?.csv || []) {
     const c = await get("csv", f.name);
-    if (c) files.push({ part: c.part ?? 0, file: new File([c.data], c.name, { type: "text/csv" }) });
+    // part < 0: the phone's GPS route (RAW_xxxx_GPS.CSV / .gpx), not part of the RAW recording
+    if (c && (c.part ?? 0) >= 0) files.push({ part: c.part ?? 0, file: new File([c.data], c.name, { type: "text/csv" }) });
   }
   db.close();
   if (!files.length) return alert(`找不到錄製 #${rec?.rec ?? id} 的 CSV，可能已經刪除。`);

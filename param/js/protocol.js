@@ -119,6 +119,20 @@ const DRV_RX_ASSIST   = 0x10215030;
 const DRV_RX_DISTANCE = 0x10225030;
 
 // ─────────────────────────────────────────────────────────────
+//  Torque Sensor  (CAN only)
+// ─────────────────────────────────────────────────────────────
+
+// Periodic broadcast from the torque sensor (no request needed); D0 is always 0xFF
+const TORQUE_SENSOR_RX = 0x18F50133;
+// Bus command: D0 = 0xF0 bus silent (stop broadcasting) / 0xF1 resume; D1~D7 reserved 0
+const TORQUE_SENSOR_BUS_CMD_TX = 0x08F20020;
+const TS_BUS_SILENT = 0xF0;
+const TS_BUS_RESUME = 0xF1;
+function buildTorqueSensorBusCmd(cmd) {
+  return buildToolRPacket(TORQUE_SENSOR_BUS_CMD_TX, [cmd & 0xFF, 0, 0, 0, 0, 0, 0, 0]);
+}
+
+// ─────────────────────────────────────────────────────────────
 //  Motor Calibration  (CAN only)
 // ─────────────────────────────────────────────────────────────
 
@@ -340,6 +354,26 @@ function buildBurnBleCanChunk(chunkBytes) {
   p[0] = 0xF1; p[1] = chunkBytes.length;
   p.set(chunkBytes, 2);
   return p;
+}
+
+/**
+ * Locate a 4-byte BLE-CAN line ACK (0xF1 ...) in the RX buffer, skipping whole
+ * 0xFA 0x0D Tool_R CAN frames (bus broadcasts forwarded by the bridge) so a
+ * 0xF1 byte inside one of them is never taken for an ACK.
+ * Returns the ACK's start index, or -1 if no complete ACK is buffered yet.
+ */
+function findBleCanAckStart(buf) {
+  let i = 0;
+  while (i < buf.length) {
+    if (buf[i] === 0xFA && (i + 1 >= buf.length || buf[i + 1] === 0x0D)) {
+      if (buf.length < i + 15) return -1;   // CAN frame (or its header) still arriving
+      i += 15;
+      continue;
+    }
+    if (buf[i] === 0xF1) return buf.length >= i + 4 ? i : -1;
+    i++;
+  }
+  return -1;
 }
 
 /** Parse 4-byte BLE-CAN line ACK. Returns 'ok', 'nak', or 'timeout'. */

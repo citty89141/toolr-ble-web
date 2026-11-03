@@ -51,21 +51,27 @@ footer ul { margin: 4px 0 0; padding-left: 18px; }
 <body>
 <header>
   <h1>ToolR 工具</h1>
-  <p>ToolB 模組錄製、控制器參數與燒錄、記錄分析</p>
+  <p>錄製、參數、燒錄共用一條 ToolB 藍牙連線</p>
 </header>
 <main>
   <p id="noBle" class="notice" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。Android 請用 Chrome，iPhone 請用 Bluefy，電腦請用 Chrome 或 Edge。分析頁不需要藍牙。</p>
 
-  <a class="tool" href="rec/">
-    <h2>錄製 <span class="ver" data-ver="rec"></span></h2>
+  <a class="tool" href="app/#rec">
+    <h2>錄製 <span class="ver" data-ver="app"></span></h2>
     <p>連 ToolB 模組做 RAW 錄製：開始、標記、停止。錄完轉成 RAW_xxxx.CSV，按「分析」直接開分析頁。</p>
     <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
   </a>
 
-  <a class="tool" href="param/">
-    <h2>參數與燒錄 <span class="ver" data-ver="param"></span></h2>
-    <p>eBike Tool：讀寫控制器參數、匯入匯出設定、燒錄控制器韌體。可經 ToolB 藍牙（BLE-CAN），或電腦接 COM 埠。</p>
-    <div class="tags"><span class="tag">電腦</span><span class="tag">藍牙</span><span class="tag">COM 埠（只有電腦）</span><span class="tag warn">版面為電腦設計</span></div>
+  <a class="tool" href="app/#param">
+    <h2>參數</h2>
+    <p>經 ToolB 讀寫控制器參數：分頁瀏覽、只寫入有變更的值、匯入匯出 Config、讀取後自動判斷機種。</p>
+    <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
+  </a>
+
+  <a class="tool" href="app/#burn">
+    <h2>燒錄</h2>
+    <p>經 ToolB 燒錄控制器韌體：先比對 HEX 和控制器的 SIG，再自動切 Bootloader、燒錄、回到 App 確認版本。</p>
+    <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
   </a>
 
   <a class="tool" href="analyzer/">
@@ -78,6 +84,12 @@ footer ul { margin: 4px 0 0; padding-left: 18px; }
     <h2>ToolB 韌體更新 <span class="ver" data-ver="ota"></span></h2>
     <p>用藍牙更新 ToolB 模組本身的韌體（OTA）。更新後 5 分鐘內要再連一次讓它確認，否則模組會退回舊版。</p>
     <div class="tags"><span class="tag">電腦</span><span class="tag">手機</span><span class="tag">藍牙</span></div>
+  </a>
+
+  <a class="tool" href="param/">
+    <h2>eBike Tool（電腦版） <span class="ver" data-ver="param"></span></h2>
+    <p>Alger 的完整工具：COM 埠（UART／CAN）、馬達校正、驅動狀態監看、Config 編輯。錄製、參數、燒錄三頁共用同一條藍牙連線，這個工具要另外連。</p>
+    <div class="tags"><span class="tag">電腦</span><span class="tag">COM 埠</span><span class="tag">藍牙</span><span class="tag warn">版面為電腦設計</span></div>
   </a>
 
   <footer id="build"></footer>

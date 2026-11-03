@@ -110,6 +110,11 @@ function buildParamRow(item, idx, onParamChange, onSetBitClick) {
     valueEl = document.createElement('input');
     valueEl.type = 'text';
     valueEl.dataset.idx = idx;
+    valueEl.addEventListener('focus', function() {
+      valueEl.dataset.prev = valueEl.value;   // restored when the commit is rejected
+      clearInputError(item);
+    });
+    valueEl.addEventListener('input', function() { clearInputError(item); });
     valueEl.addEventListener('keydown', function(e) {
       if (e.key === 'Enter') commitInput(item, idx, valueEl.value, onParamChange);
     });
@@ -122,6 +127,12 @@ function buildParamRow(item, idx, onParamChange, onSetBitClick) {
   }
   valWrap.appendChild(valueEl);
   item.valueEl = valueEl;
+  if (item.writeable) {
+    const errEl = document.createElement('span');
+    errEl.className = 'param-err';
+    valWrap.appendChild(errEl);
+    item.errEl = errEl;
+  }
 
   const unitEl = document.createElement('span');
   unitEl.className   = 'param-unit';
@@ -163,15 +174,50 @@ function clearImportDiffHighlight(state) {
   applyImportDiffHighlight(state, new Set(), new Set());
 }
 
+// Validates the typed text for the row's current Dec/Hex mode. Invalid or
+// out-of-range input is rejected (never silently truncated or clamped): the
+// field reverts to its value before editing and an inline error is shown.
 function commitInput(item, idx, rawValue, onParamChange) {
-  if (!rawValue || rawValue.trim() === '') return;
+  const s = (rawValue || '').trim();
   const isHex = item.hexChkEl && item.hexChkEl.checked;
-  const val = isNaN(rawValue) ? NaN : (isHex ? parseInt(rawValue, 16) : parseInt(rawValue, 10));
-  if (isNaN(val)) return;
-  const clamped = Math.max(item.lowerBound, Math.min(item.upperBound, val));
-  item.data = clamped;
+  if (s === '') { rejectInput(item, null); return; }
+
+  const formatOk = isHex ? /^(0x)?[0-9a-f]+$/i.test(s) : /^-?\d+$/.test(s);
+  if (!formatOk) {
+    rejectInput(item, isHex ? '只接受 16 進位（0–9、A–F）' : '只接受整數');
+    return;
+  }
+  const val = parseInt(s.replace(/^0x/i, ''), isHex ? 16 : 10);
+  if (val < item.lowerBound || val > item.upperBound) {
+    rejectInput(item, (isHex ? '0x' + s.replace(/^0x/i, '').toUpperCase() + ' = ' + val + '，' : '') +
+      '超出範圍 ' + item.lowerBound + '–' + item.upperBound);
+    return;
+  }
+
+  item.data = val;
+  item.valueEl.dataset.prev = isHex
+    ? (val & 0xFFFF).toString(16).toUpperCase().padStart(4, '0')
+    : val.toString();
   refreshParamDisplay(item);
-  if (onParamChange) onParamChange(idx, clamped);
+  if (onParamChange) onParamChange(idx, val);
+}
+
+function rejectInput(item, msg) {
+  const el = item.valueEl;
+  if (el.dataset.prev !== undefined) el.value = el.dataset.prev;
+  if (!msg) return;
+  el.classList.add('input-error');
+  if (item.errEl) item.errEl.textContent = msg;
+  if (typeof log === 'function') {
+    const addr = item.address.toString(16).toUpperCase().padStart(4, '0');
+    log('⚠ [' + addr + '] ' + item.name + '：' + msg + '，已還原');
+  }
+}
+
+function clearInputError(item) {
+  if (!item.valueEl) return;
+  item.valueEl.classList.remove('input-error');
+  if (item.errEl) item.errEl.textContent = '';
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -468,6 +514,79 @@ function showResultModal(title, ok, lines) {
   hdr.classList.toggle('result-fail', !ok);
   document.getElementById('resultBody').textContent = lines.join('\n');
   document.getElementById('modalResult').style.display = 'flex';
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Write confirm modal
+// ─────────────────────────────────────────────────────────────
+
+let _writeConfirmResolve = null;
+
+/**
+ * sources: [{ key, title, origin, count, writable, warn?, current?, btnLabel }]
+ * One button per source (each names its action), plus 取消.
+ * Resolves with the chosen source key, or null on cancel / ×.
+ */
+function showWriteConfirmModal(sources, note) {
+  const wrap = document.getElementById('wcSources');
+  const btns = document.getElementById('wcButtons');
+  wrap.innerHTML = '';
+  btns.innerHTML = '';
+
+  sources.forEach(function(s) {
+    const box = document.createElement('div');
+    box.className = 'wc-src' + (s.current ? ' wc-current' : '');
+    const title = document.createElement('div');
+    title.className = 'wc-src-title';
+    title.textContent = s.title;
+    box.appendChild(title);
+    [['寫入來源', s.origin], ['參數', s.count + ' 個，實際寫入 ' + s.writable + ' 個']].forEach(function(pair) {
+      const line = document.createElement('div');
+      line.className = 'wc-src-line';
+      line.textContent = pair[0] + '：';
+      const b = document.createElement('b');
+      b.textContent = pair[1];
+      line.appendChild(b);
+      box.appendChild(line);
+    });
+    if (s.warn) {
+      const w = document.createElement('div');
+      w.className = 'wc-src-warn';
+      w.textContent = '⚠ ' + s.warn;
+      box.appendChild(w);
+    }
+    wrap.appendChild(box);
+
+    const btn = document.createElement('button');
+    btn.className = 'btn ' + (s.current ? 'btn-primary' : 'btn-action');
+    btn.textContent = s.btnLabel;
+    btn.addEventListener('click', function() { closeWriteConfirm(s.key); });
+    btns.appendChild(btn);
+  });
+
+  const cancel = document.createElement('button');
+  cancel.className = 'btn';
+  cancel.textContent = '取消';
+  cancel.addEventListener('click', function() { closeWriteConfirm(null); });
+  btns.appendChild(cancel);
+
+  document.getElementById('wcNote').textContent = note || '';
+  document.getElementById('modalWriteConfirm').style.display = 'flex';
+  cancel.focus();   // Enter on open must not start a write
+  return new Promise(function(resolve) { _writeConfirmResolve = resolve; });
+}
+
+function closeWriteConfirm(result) {
+  document.getElementById('modalWriteConfirm').style.display = 'none';
+  if (_writeConfirmResolve) { _writeConfirmResolve(result); _writeConfirmResolve = null; }
+}
+
+function initWriteConfirmModal() {
+  document.querySelector('[data-close="modalWriteConfirm"]')
+    .addEventListener('click', function() { closeWriteConfirm(null); });
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && _writeConfirmResolve) closeWriteConfirm(null);
+  });
 }
 
 function initResultModal() {

@@ -11,7 +11,7 @@
 
 // All dependencies loaded via <script> tags in index.html
 
-const APP_VERSION = 'v1.5.11';
+const APP_VERSION = 'v1.5.18';
 
 // ─────────────────────────────────────────────────────────────
 //  Application state
@@ -37,6 +37,7 @@ const state = {
   bleSerial: new BleManager(),
   serial:    null,   // active channel — set at boot and on channel change
   busy: false,
+  connecting: false,   // true while btnOpen's open() is in flight (BLE chooser / port picker)
 };
 
 // ─────────────────────────────────────────────────────────────
@@ -55,11 +56,66 @@ function setProgress(pct, label = '') {
 
 function setBusy(busy) {
   state.busy = busy;
-  ['btnRead', 'btnWrite', 'btnOpen'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.disabled = busy;
-  });
+  updateUiState();
 }
+
+// True while a device operation is running (read/write, burn or FW check,
+// calibration) — used to lock the UI and to warn before leaving the page.
+function isOperationRunning() {
+  return state.busy || state.connecting || burnState.burning || calRunning;
+}
+
+// Single place that derives every connection/operation-dependent control's
+// enabled state. A disabled control's title explains why; the original
+// title is kept in data-title-orig and restored when it is re-enabled.
+function updateUiState() {
+  const isBle     = document.getElementById('selChannel').value === 'ble';
+  const supported = isBle ? !!navigator.bluetooth : !!navigator.serial;
+  const connected = !!(state.serial && state.serial.isOpen);
+  const running   = isOperationRunning();
+
+  const setCtl = (id, disabled, reason) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.dataset.titleOrig === undefined) el.dataset.titleOrig = el.title || '';
+    el.disabled = disabled;
+    el.title = disabled && reason ? reason : el.dataset.titleOrig;
+  };
+  const busyMsg = '作業進行中，請稍候';
+  const connMsg = '請先開啟連線';
+
+  setCtl('btnOpen',  !supported || connected || running,
+    !supported ? '此瀏覽器不支援' + (isBle ? ' Web Bluetooth' : ' Web Serial') : connected ? '已連線' : busyMsg);
+  setCtl('btnClose', !connected || running, running ? busyMsg : '尚未連線');
+  ['selChannel', 'selProtocol', 'selBaudrate'].forEach(id =>
+    setCtl(id, connected || running, connected ? '連線中無法變更，請先關閉連線' : busyMsg));
+
+  setCtl('btnRead',  !connected || running, running ? busyMsg : connMsg);
+  setCtl('btnWrite', !connected || running, running ? busyMsg : connMsg);
+
+  const canMsg = !connected ? connMsg : running ? busyMsg : '僅支援 CAN 模式';
+  ['btnDriverStatus', 'btnCalibrate', 'btnCalTrigger', 'btnTsDetect', 'btnTsSilent', 'btnTsResume'].forEach(id =>
+    setCtl(id, !connected || !state.isCAN || running, canMsg));
+
+  ['btnImport', 'btnConfig', 'selModel', 'btnReloadIni', 'btnClearIniCache',
+   'btnLoadPageIni', 'btnLoadParamIni'].forEach(id => setCtl(id, running, busyMsg));
+
+  // Burn buttons: while burning, setBurnBusy() owns btnBurn (it becomes the stop button)
+  if (!burnState.burning) {
+    const hasFile = burnState.lines.length > 0;
+    const reason  = !hasFile ? '請先載入 HEX 檔' : !connected ? connMsg : busyMsg;
+    setCtl('btnBurn',    !hasFile || !connected || running, reason);
+    setCtl('btnCheckFw', !connected || running, !connected ? connMsg : busyMsg);
+  }
+  setCtl('btnLoadHex', running, busyMsg);
+}
+
+// Warn before closing/reloading the page mid-operation (write, burn, calibration)
+window.addEventListener('beforeunload', (e) => {
+  if (!isOperationRunning()) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
 
 // ─────────────────────────────────────────────────────────────
 //  Serial port  ─  Open / Close
@@ -82,6 +138,8 @@ document.getElementById('btnOpen').addEventListener('click', async () => {
     const stopBits = parseFloat(document.getElementById('selStopBits').value);
     const parity   = document.getElementById('selParity').value;
 
+    state.connecting = true;
+    updateUiState();
     if (protocol === 'CAN') {
       const canBaud = baudRate === 9600 ? 460800 : baudRate;
       await state.serial.open({ baudRate: canBaud, dataBits, stopBits, parity });
@@ -115,7 +173,12 @@ document.getElementById('btnOpen').addEventListener('click', async () => {
     }
     log('❌ ' + hint);
     alert(hint);
+  } finally {
+    state.connecting = false;
+    updateUiState();
   }
+  // CAN (COM or BLE): check for the torque sensor right after connecting (listen only, sends nothing)
+  if (state.serial.isOpen && state.isCAN) await tsDetect(true);
 });
 
 document.getElementById('btnClose').addEventListener('click', async () => {
@@ -127,9 +190,11 @@ document.getElementById('btnClose').addEventListener('click', async () => {
 });
 
 function setDot(connected) {
+  if (!connected) { setTsStatus('unknown'); tsAutoSilentDone = false; }
   const dot = document.getElementById('statusDot');
   dot.classList.toggle('connected',    connected);
   dot.classList.toggle('disconnected', !connected);
+  updateUiState();
 
   const bleInfo = document.getElementById('bleInfo');
   if (!bleInfo) return;
@@ -241,7 +306,10 @@ async function autoLoadIni() {
   }
   if (paramText) {
     state.hrList = parseParameterIni(paramText);
-    const paramName = paramFromFetch ? paramFile : (localStorage.getItem(lsParamNameKey(model)) || paramFile);
+    // Fetched or embedded text is always MODEL_FILES[model]; only a cache hit uses the stored name
+    // (which may be a stale '(未載入)' placeholder left by an earlier failed load).
+    const paramName = (paramFromFetch || paramFromEmbedded) ? paramFile
+                    : (localStorage.getItem(lsParamNameKey(model)) || paramFile);
     setParamIniName(paramName, model);
     const src = paramFromFetch ? '檔案' : (paramFromEmbedded ? '內嵌預設值' : '快取');
     log('parameter.ini 載入 (' + src + ': ' + paramName + ') → ' + state.hrList.length + ' 個參數');
@@ -591,33 +659,73 @@ document.getElementById('btnRead').addEventListener('click', () => performRead()
 // ─────────────────────────────────────────────────────────────
 //  Write parameters to device
 // ─────────────────────────────────────────────────────────────
+/** 寫入確認視窗用：說明主/副列表目前的值從哪裡來。 */
+function describeListOrigin(source, fileName, fallback) {
+  if (source === 'import') return `匯入 Config（${fileName}）`;
+  if (source === 'read')   return '從裝置讀取';
+  return fallback;
+}
+
 document.getElementById('btnWrite').addEventListener('click', async () => {
   if (!state.serial.isOpen) { alert('請先開啟序列埠'); return; }
   if (!state.hrList.length)  { alert('請先載入 parameter.ini'); return; }
   if (state.busy) return;
+
+  // ── 寫入前確認來源（在任何裝置通訊之前，取消時不碰裝置）────────
+  // UART skips first 4 items (SIG), CAN writes all
+  const startIdx = state.isCAN ? 0 : 4;
+  const countWritable = (lst) => lst.slice(startIdx).filter(item => {
+    const hr = state.hrList.find(h => h.address === item.address);
+    return !hr?.production && item.address > 0x0020;
+  }).length;
+  const filterNote = state.isCAN
+    ? '※ 不寫入：address ≤ 0x0020、production 參數'
+    : '※ 不寫入：SIG/SIN 序號（前 4 筆）、address ≤ 0x0020、production 參數';
+
+  const srcInfo = {
+    hr: {
+      key: 'hr', list: state.hrList,
+      title: '主：畫面上的參數值',
+      origin: describeListOrigin(state.hrListSource, state.fileName1, '參數表預設值'),
+      warn: state.hrListSource === null ? '尚未從裝置讀取或匯入 Config，寫入的會是參數表的預設值' : null,
+    },
+    para: {
+      key: 'para', list: state.paraList,
+      title: '副：比較參數',
+      origin: describeListOrigin(state.paraListSource, state.fileName2, '（無資料）'),
+      warn: state.paraList.length === 0 ? '比較參數沒有資料，沒有可寫入的值' : null,
+    },
+  };
+  // 勾選「顯示比較參數」時寫入的是副列表；兩份筆數不同時才讓使用者改選主列表
+  const shown = state.showPara
+    ? (state.paraList.length !== state.hrList.length ? ['para', 'hr'] : ['para'])
+    : ['hr'];
+  const current = shown[0];
+  const choice = await showWriteConfirmModal(shown.map(k => {
+    const s = srcInfo[k];
+    const writable = countWritable(s.list);
+    return { ...s, count: s.list.length, writable, current: k === current,
+             btnLabel: `寫入${k === 'hr' ? '主' : '副'}參數 (${writable} 個)` };
+  }), filterNote + (state.showPara && shown.length === 1
+    ? '\n※ 目前勾選「顯示比較參數」，寫入的是副列表；要寫入主列表請先取消勾選'
+    : ''));
+  if (!choice) { log('已取消寫入'); return; }
+  const list = srcInfo[choice].list;
+  log(`寫入來源：${srcInfo[choice].title}（${srcInfo[choice].origin}，可寫入 ${countWritable(list)} 個）`);
 
   setBusy(true);
 
   // ── 寫入前驗證：讀取裝置 SIG0~SIG3 與本機比對 ──────────────
   if (state.hrList.length >= 4) {
     log('驗證裝置 SIG...');
-    const devSigItems = [];
-    for (let i = 0; i < 4; i++) {
-      const val = await retryOp(3, () =>
-        state.isCAN
-          ? readCanParam(state.hrList[i].address)
-          : readUartParam(state.hrList[i].address),
-        () => state.isCAN && lastCanReadRejected
-      );
-      if (val === null || val === false) {
-        log('❌ SIG' + i + ' 讀取失敗，中止寫入');
-        setBusy(false);
-        return;
-      }
-      devSigItems.push({ data: val });
+    const devRead = await readDeviceSig();
+    if (devRead.sig === null) {
+      log('❌ SIG' + devRead.failedIdx + ' 讀取失敗，中止寫入');
+      setBusy(false);
+      return;
     }
-    const devSig   = decodeSig(devSigItems);
-    const sigSource = (state.showPara && state.paraList.length >= 4) ? state.paraList : state.hrList;
+    const devSig   = devRead.sig;
+    const sigSource = (choice === 'para' && state.paraList.length >= 4) ? state.paraList : state.hrList;
     const localSig = decodeSig(sigSource);
     if (devSig !== localSig) {
       log('❌ SIG 不符：裝置="' + devSig + '"  本機="' + localSig + '"，中止寫入');
@@ -628,31 +736,6 @@ document.getElementById('btnWrite').addEventListener('click', async () => {
   }
   // ────────────────────────────────────────────────────────────
 
-  // 決定寫入來源清單
-  // UART skips first 4 items (SIG), CAN writes all
-  const startIdx = state.isCAN ? 0 : 4;
-  const countWritable = (lst) => lst.slice(startIdx).filter(item => {
-    const hr = state.hrList.find(h => h.address === item.address);
-    return !hr?.production && item.address > 0x0020;
-  }).length;
-
-  const filterNote = state.isCAN
-    ? '※ 可寫入已排除：address ≤ 0x0020、production 參數'
-    : '※ 可寫入已排除：SIG/SIN 序號（前 4 筆）、address ≤ 0x0020、production 參數';
-
-  let list = state.showPara ? state.paraList : state.hrList;
-  if (state.showPara && state.paraList.length !== state.hrList.length) {
-    const wLocal  = countWritable(state.hrList);
-    const wImport = countWritable(state.paraList);
-    const useLocal = confirm(
-      `匯入 Config 有 ${state.paraList.length} 個參數，本機有 ${state.hrList.length} 個參數。\n\n` +
-      `確定 → 本機（${state.hrList.length} 個，可寫入 ${wLocal} 個）\n` +
-      `取消 → 匯入 Config（${state.paraList.length} 個，可寫入 ${wImport} 個）\n\n` +
-      filterNote
-    );
-    list = useLocal ? state.hrList : state.paraList;
-    log('寫入來源：' + (useLocal ? `本機 (${state.hrList.length} 個，可寫入 ${wLocal} 個)` : `匯入 Config (${state.paraList.length} 個，可寫入 ${wImport} 個)`));
-  }
   const failed   = [];
   let   count    = 0;
 
@@ -945,6 +1028,22 @@ function logFlashResult(label, r) {
 }
 
 /** stopIf()：失敗後回傳 true 則不再重試（例如裝置明確拒絕，重試結果必然相同）。 */
+// Reads SIG0~SIG3 from the device and decodes the 8-char SIG string.
+// Returns { sig } on success, or { sig: null, failedIdx } on the first register that fails.
+async function readDeviceSig() {
+  const items = [];
+  for (let i = 0; i < 4; i++) {
+    const addr = state.hrList.length >= 4 ? state.hrList[i].address : i;
+    const val = await retryOp(3, () =>
+      state.isCAN ? readCanParam(addr) : readUartParam(addr),
+      () => state.isCAN && lastCanReadRejected
+    );
+    if (val === null || val === false) return { sig: null, failedIdx: i };
+    items.push({ data: val });
+  }
+  return { sig: decodeSig(items) };
+}
+
 async function retryOp(maxRetries, fn, stopIf = null) {
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -1749,6 +1848,194 @@ document.getElementById('btnCalTrigger').addEventListener('click', async () => {
   }
 });
 
+// ── Torque sensor bus command (0x08F20020 D0=F0/F1) ──
+// The sensor broadcasts 0x18F50133 (D0=0xFF) on its own; seeing that frame on
+// the bus is taken as proof the sensor is fitted. Both commands are sent
+// straight away; after Silent (F0) the bus is polled until the broadcast
+// stops, after Resume (F1) it is listened to once to confirm it is back.
+
+/** Listen for torque sensor broadcasts for `ms`. Returns { count, last } (last = data bytes or null). */
+async function tsListen(ms) {
+  state.serial.clearBuffer();
+  const deadline = Date.now() + ms;
+  let count = 0, last = null;
+  for (let left = ms; left > 0; left = deadline - Date.now()) {
+    const frame = await state.serial.readCanFrame(left);
+    if (!frame) break;
+    const r = parseCanResponse(frame);
+    if (r && r.id === TORQUE_SENSOR_RX && r.len >= 8 && r.data[0] === 0xFF) { count++; last = r.data; }
+  }
+  return { count, last };
+}
+
+function tsDescribe(d) {
+  const torque = ((d[4] >> 6) << 8) | d[2];
+  const temp   = d[1] <= 210 ? (d[1] - 30) + '°C' : '—';
+  return `Torque=${torque}  Cadence=${d[3]}  Temp=${temp}`;
+}
+
+function tsListenMs() {
+  // BLE bridge batches notifications, so allow a longer window
+  return state.serial === state.bleSerial ? 1500 : 1000;
+}
+
+/**
+ * Sidebar torque sensor status. kind: 'unknown' (not checked / disconnected),
+ * 'ok' (broadcast received), 'none' (nothing received), 'silent' (silenced by F0).
+ */
+function setTsStatus(kind, detail = '') {
+  const text = { unknown: '未偵測', ok: '✔ 有訊號', none: '✖ 訊號斷訊', silent: '⏸ 已靜默' }[kind];
+  const box = document.getElementById('tsStatus');
+  box.className = 'ts-status' + (kind === 'unknown' ? '' : ' ' + kind);
+  document.getElementById('tsStatusText').textContent = '力矩感測器：' + text;
+  document.getElementById('tsStatusSub').textContent = kind === 'unknown' ? '' :
+    [detail, new Date().toLocaleTimeString('zh-TW', { hour12: false })].filter(Boolean).join('  ');
+  if (kind !== 'unknown') {
+    void box.offsetWidth;   // restart the flash animation on every update
+    box.classList.add('flash');
+  }
+}
+
+function tsCheckReady() {
+  if (!state.isCAN) { alert('僅支援 CAN 模式\n請先選擇 CAN 並開啟序列埠'); return false; }
+  if (!state.serial.isOpen) { alert('請先開啟序列埠'); return false; }
+  return true;
+}
+
+let tsToastTimer = null;
+
+/** Pop-up banner at the top of the page; click to dismiss, auto-hides after 5 s. */
+function showTsToast(kind, title, sub) {
+  const el = document.getElementById('tsToast');
+  el.className = 'ts-toast ' + kind;
+  document.getElementById('tsToastTitle').textContent = title;
+  document.getElementById('tsToastSub').textContent = sub;
+  el.hidden = false;
+  clearTimeout(tsToastTimer);
+  tsToastTimer = setTimeout(() => { el.hidden = true; }, 5000);
+}
+document.getElementById('tsToast').addEventListener('click', (e) => { e.currentTarget.hidden = true; });
+
+/** Listen for the torque sensor broadcast and update the sidebar status. auto = run on connect. */
+// "Auto silent" checkbox: once a detection sees the sensor, send F0 straight away.
+// Checked by default; the user's last choice is remembered per browser (a
+// convenience only — falls back to checked when nothing is stored).
+const LS_TS_AUTO_SILENT = 'endex_ts_auto_silent';
+const chkTsAutoSilent = document.getElementById('chkTsAutoSilent');
+try {
+  const saved = localStorage.getItem(LS_TS_AUTO_SILENT);
+  if (saved !== null) chkTsAutoSilent.checked = saved === '1';
+} catch {}
+chkTsAutoSilent.addEventListener('change', () => {
+  try { localStorage.setItem(LS_TS_AUTO_SILENT, chkTsAutoSilent.checked ? '1' : '0'); } catch {}
+});
+
+// Auto silent runs only once per connection: set when it has confirmed the sensor
+// went silent, cleared on disconnect (setDot(false)).
+let tsAutoSilentDone = false;
+
+async function tsDetect(auto = false) {
+  const ms = tsListenMs();
+  let found = false;
+  setBusy(true);
+  try {
+    if (auto) log(`偵測力矩感測器廣播 0x18F50133（${ms} ms）...`);
+    const r = await tsListen(ms);
+    if (r.count) {
+      found = true;
+      setTsStatus('ok', `(${r.count} 筆)`);
+      log(`✓ 力矩感測器 0x18F50133：${ms} ms 內收到 ${r.count} 筆  ${tsDescribe(r.last)}`);
+      showTsToast('ok', '✔ 偵測到力矩感測器訊號', `0x18F50133  ${ms} ms 內收到 ${r.count} 筆  ${tsDescribe(r.last)}`);
+    } else {
+      setTsStatus('none');
+      log(`✖ 力矩感測器訊號斷訊：0x18F50133 ${ms} ms 內未收到（未接、或已靜默）`);
+      showTsToast('none', '✖ 力矩感測器訊號斷訊', `0x18F50133  ${ms} ms 內未收到（未接、或已靜默）`);
+    }
+  } catch (e) {
+    log('力矩感測器偵測失敗: ' + e.message);
+  } finally {
+    setBusy(false);
+  }
+  if (found && chkTsAutoSilent.checked && state.serial.isOpen) {
+    if (tsAutoSilentDone) {
+      log('本次連線已自動靜默過一次，不再自動靜默（需要時請按「靜默 (F0)」）');
+    } else {
+      log('已勾選「偵測到力矩感測器自動靜默」→ 自動送出靜默 (F0)');
+      if (await tsRunBusCmd(TS_BUS_SILENT)) tsAutoSilentDone = true;
+    }
+  }
+}
+
+document.getElementById('btnTsDetect').addEventListener('click', () => {
+  if (tsCheckReady()) tsDetect();
+});
+
+/**
+ * After F0: keep listening in short windows until one window passes with no
+ * 0x18F50133 frame (sensor has gone silent), or give up after TS_SILENT_TIMEOUT_MS.
+ */
+const TS_SILENT_TIMEOUT_MS = 10000;
+
+/** Returns true once the broadcast has stopped, false if it was still running at the timeout. */
+async function tsWaitSilent(sentAt) {
+  // Window must comfortably exceed the broadcast period (~15 ms) plus BLE notify batching
+  const win = state.serial === state.bleSerial ? 500 : 300;
+  log(`自動偵測力矩感測器，直到無訊號（每輪 ${win} ms，最多 ${TS_SILENT_TIMEOUT_MS / 1000} 秒）...`);
+  let total = 0, last = null;
+  while (Date.now() - sentAt < TS_SILENT_TIMEOUT_MS) {
+    const r = await tsListen(win);
+    if (!r.count) {
+      // Sensor stopped somewhere before this empty window began
+      const stopMs = Date.now() - sentAt - win;
+      setTsStatus('silent');
+      if (total) {
+        log(`✅ 力矩感測器已靜默：送出後約 ${stopMs} ms 停止廣播（停止前收到 ${total} 筆）`);
+        showTsToast('silent', '⏸ 力矩感測器已靜默', `送出 F0 後約 ${stopMs} ms 停止廣播 0x18F50133`);
+      } else {
+        log('✅ 送出後未收到任何 0x18F50133（已靜默，或未接力矩感測器）');
+        showTsToast('silent', '⏸ 力矩感測器無訊號', '送出 F0 後未收到 0x18F50133（已靜默，或未接感測器）');
+      }
+      return true;
+    }
+    total += r.count;
+    last = r.last;
+    setTsStatus('ok', `(靜默中… ${total} 筆)`);
+  }
+  setTsStatus('ok', `(${total} 筆)`);
+  log(`⚠ 送出 F0 後 ${TS_SILENT_TIMEOUT_MS / 1000} 秒內仍持續收到 0x18F50133（${total} 筆），靜默未生效  ${tsDescribe(last)}`);
+  showTsToast('none', '⚠ 力矩感測器靜默未生效', `送出 F0 後 ${TS_SILENT_TIMEOUT_MS / 1000} 秒內仍收到 ${total} 筆 0x18F50133`);
+  return false;
+}
+
+async function tsRunBusCmd(cmd) {
+  if (!tsCheckReady()) return;
+  const silent = cmd === TS_BUS_SILENT;
+  const label  = silent ? '靜默 (F0)' : '恢復 (F1)';
+  const ms     = tsListenMs();
+  setBusy(true);
+  try {
+    log(`--- 力矩感測器 ${label} ---`);
+    await state.serial.write(buildTorqueSensorBusCmd(cmd));
+    const sentAt = Date.now();
+    log(`已送出總線命令 0x08F20020 D0=0x${cmd.toString(16).toUpperCase()}`);
+    if (silent) {
+      return await tsWaitSilent(sentAt);
+    }
+    await sleep(100);
+    const after = await tsListen(ms);
+    setTsStatus(after.count ? 'ok' : 'none', after.count ? `(${after.count} 筆)` : '');
+    log(after.count ? `✅ 力矩感測器已恢復廣播：${after.count} 筆  ${tsDescribe(after.last)}`
+                    : `⚠ 送出後 ${ms} ms 內未收到 0x18F50133（感測器可能未接或尚未恢復）`);
+  } catch (e) {
+    log(`力矩感測器 ${label} 失敗: ` + e.message);
+  } finally {
+    setBusy(false);
+  }
+}
+
+document.getElementById('btnTsSilent').addEventListener('click', () => tsRunBusCmd(TS_BUS_SILENT));
+document.getElementById('btnTsResume').addEventListener('click', () => tsRunBusCmd(TS_BUS_RESUME));
+
 document.querySelectorAll('[data-close="modalCalibrate"]').forEach(btn => {
   btn.addEventListener('click', () => {
     document.getElementById('modalCalibrate').style.display = 'none';
@@ -1878,8 +2165,9 @@ function setBurnBusy(busy) {
     btn.classList.remove('btn-burn-stop');
     btn.disabled = !hasFile;
   }
-  document.getElementById('btnCheckFw').disabled = busy || !hasFile;
+  document.getElementById('btnCheckFw').disabled = busy;
   document.getElementById('btnLoadHex').disabled = busy;
+  updateUiState();
 }
 
 function setBurnProgress(pct, label = '') {
@@ -1903,11 +2191,6 @@ document.getElementById('btnLoadHex').addEventListener('click', () => {
   input.click();
 });
 
-function burnEnableFileButtons(enabled) {
-  document.getElementById('btnCheckFw').disabled = !enabled;
-  document.getElementById('btnBurn').disabled    = !enabled;
-}
-
 function burnLoadFile(text, fileName) {
   const raw = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
   const lines = [];
@@ -1926,12 +2209,31 @@ function burnLoadFile(text, fileName) {
   document.getElementById('hexFileInfo').textContent  =
     (burnState.newVersion ? '新版本: ' + burnState.newVersion + '  ' : '') +
     lines.length + ' 行  ' + size + ' bytes';
-  burnEnableFileButtons(true);
+  updateUiState();
   setBurnProgress(0);
   log('已載入 HEX: ' + fileName + (burnState.newVersion ? '  新版本: ' + burnState.newVersion : ''));
 }
 
 // ── Helpers ───────────────────────────────────────────────
+
+/**
+ * Read CAN frames until one with `id` arrives or `timeoutMs` runs out, skipping
+ * frames with other IDs (e.g. torque sensor / battery broadcasts that share the bus).
+ * Returns { r, skipped } — r = parseCanResponse() result or null on timeout,
+ * skipped = IDs of the frames passed over.
+ */
+async function readCanFrameById(id, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+  const skipped = [];
+  for (let left = timeoutMs; left > 0; left = deadline - Date.now()) {
+    const frame = await state.serial.readCanFrame(left);
+    if (!frame) break;
+    const r = parseCanResponse(frame);
+    if (r && r.id === id) return { r, skipped };
+    if (r) skipped.push(r.id);
+  }
+  return { r: null, skipped };
+}
 
 async function burnCheckFirmware(sig) {
   // Returns 0=bootloader, 1=app, 2=error/timeout
@@ -1940,10 +2242,11 @@ async function burnCheckFirmware(sig) {
     if (state.isCAN) {
       await state.serial.write(buildBurnCanCheckFw(sig));
       await sleep(1);
-      const frame = await state.serial.readCanFrame(3000);
-      if (!frame) { log('check_Firmware: 無回應'); return 2; }
-      const r = parseCanResponse(frame);
-      if (!r || r.id !== 0x000000B3) { log('check_Firmware: ID錯誤 ' + (r ? '0x' + r.id.toString(16) : 'null')); return 2; }
+      const { r, skipped } = await readCanFrameById(0x000000B3, 3000);
+      if (!r) {
+        log('check_Firmware: 無回應' + (skipped.length ? `（期間略過 ${describeCanSkips(skipped, 0)}）` : ''));
+        return 2;
+      }
       const execState = r.data[0] + r.data[1];
       const major = r.data[2] | (r.data[3] << 8);
       const minor = r.data[4] | (r.data[5] << 8);
@@ -1966,16 +2269,46 @@ async function burnCheckFirmware(sig) {
   }
 }
 
+/**
+ * 比對 HEX 檔 SIG 與裝置 SIG0~SIG3。App 模式的韌體回應 check_fw 時不驗 SIG，
+ * 所以 HEX 與裝置是否相符必須由這裡另外確認。
+ * Returns 'match' | 'mismatch' | 'unknown'（讀不到裝置 SIG，例如停在 Bootloader）。
+ */
+async function verifyHexSigWithDevice() {
+  // BLE bridge (ESP32) enables a CAN ID filter once it sees a 0x03002050
+  // param command, which then drops the 0xB2/0xB3 burn frames — so over BLE
+  // the device SIG is not read here.
+  if (state.serial === state.bleSerial) {
+    log('BLE 模式：略過讀取裝置 SIG0~SIG3 比對（避免觸發 ESP32 CAN ID 過濾）');
+    return 'unknown';
+  }
+  // Readable order (no UART reversal), same form as decodeSig()
+  const hexSig = Array.from(burnGetSig(burnState.lines[0], false))
+    .map(b => String.fromCharCode(b)).join('');
+  const dev = await readDeviceSig();
+  if (dev.sig === null || dev.sig.length !== 8) {
+    log('⚠ 無法讀取裝置 SIG（裝置可能停在 Bootloader），略過 HEX / 裝置 SIG 比對');
+    return 'unknown';
+  }
+  log('SIG（裝置）: ' + dev.sig);
+  if (dev.sig !== hexSig) {
+    log(`❌ SIG 不符：HEX 檔為 ${hexSig}，裝置為 ${dev.sig}，此 HEX 不適用於這台裝置`);
+    return 'mismatch';
+  }
+  return 'match';
+}
+
 async function burnJumpToBootLoader(sig) {
   try {
     state.serial.clearBuffer();
     log('Jump to BootLoader...');
     if (state.isCAN) {
       await state.serial.write(buildBurnCanJumpBoot(sig));
-      const frame = await state.serial.readCanFrame(5000);
-      if (!frame) { log('Jump to BootLoader: 無回應'); return false; }
-      const r = parseCanResponse(frame);
-      if (!r || r.id !== 0x000000B5) { log('Jump to BootLoader: ID錯誤'); return false; }
+      const { r, skipped } = await readCanFrameById(0x000000B5, 5000);
+      if (!r) {
+        log('Jump to BootLoader: 無回應' + (skipped.length ? `（期間略過 ${describeCanSkips(skipped, 0)}）` : ''));
+        return false;
+      }
       if (r.data[0] !== 0x30) { log('Jump to BootLoader: 狀態錯誤 0x' + r.data[0].toString(16)); return false; }
     } else {
       await state.serial.write(buildBurnUartJumpBoot(sig));
@@ -2121,7 +2454,7 @@ async function burnFlashBleCan(sig) {
           break;
         } else if (result === 'nak') {
           if (chunkRetryCnt >= 3) { log('Still fail after retry 3 times, aborted.'); return false; }
-          log('Chunk error, retry...');
+          log(`Chunk error, retry...  (offset ${i}, ACK: ${hexBytes(ack)})`);
           chunkRetry = true;
         } else {
           chunkCount++;
@@ -2230,14 +2563,38 @@ async function burnFlashCan(sig) {
 
 document.getElementById('btnCheckFw').addEventListener('click', async () => {
   if (!state.serial.isOpen) { alert('請先開啟序列埠'); return; }
-  if (!burnState.lines.length) { alert('請先載入 HEX 檔案'); return; }
 
   setBurnBusy(true);
   log('--- Check Firmware ---');
   try {
-    const sig = burnGetSig(burnState.lines[0], !state.isCAN);
-    if (!sig) { log('❌ SIG 解析失敗：HEX 檔第一行格式不符'); return; }
-    log('SIG: ' + Array.from(sig).map(b => String.fromCharCode(b)).join(''));
+    // SIG source: the loaded HEX (checked against the device's SIG0~SIG3),
+    // otherwise SIG0~SIG3 read from the device itself.
+    let sig;
+    if (burnState.lines.length) {
+      sig = burnGetSig(burnState.lines[0], !state.isCAN);
+      if (!sig) { log('❌ SIG 解析失敗：HEX 檔第一行格式不符'); return; }
+      log('SIG（HEX 檔）: ' + Array.from(burnGetSig(burnState.lines[0], false))
+        .map(b => String.fromCharCode(b)).join(''));
+      if (await verifyHexSigWithDevice() === 'mismatch') {
+        log('結果: ❌ HEX 與裝置 SIG 不符');
+        return;
+      }
+    } else if (state.serial === state.bleSerial) {
+      // Reading SIG0~SIG3 over BLE would trigger the ESP32 CAN ID filter (see verifyHexSigWithDevice)
+      log('❌ BLE 模式不讀取裝置 SIG，請先載入 HEX 檔後再檢查');
+      return;
+    } else {
+      const dev = await readDeviceSig();
+      if (dev.sig === null || dev.sig.length !== 8) {
+        log('❌ 無法讀取裝置 SIG' + (dev.sig === null ? dev.failedIdx : '') +
+            '（裝置可能停在 Bootloader），請載入 HEX 檔後再檢查');
+        return;
+      }
+      log('SIG（裝置）: ' + dev.sig);
+      // Same byte order as burnGetSig(): UART takes the SIG reversed, CAN as-is
+      const s = state.isCAN ? dev.sig : dev.sig.split('').reverse().join('');
+      sig = new Uint8Array(s.split('').map(c => c.charCodeAt(0)));
+    }
     const result = await burnCheckFirmware(sig);
     const label = result === 0 ? '✅ Bootloader（可燒錄）'
                 : result === 1 ? '✅ App（正常運行中）'
@@ -2283,7 +2640,13 @@ document.getElementById('btnBurn').addEventListener('click', async () => {
       log('❌ SIG 解析失敗：HEX 檔第一行格式不符 (@@<SIG8>v<VV>.<vv>)');
       return;
     }
-    log('SIG: ' + Array.from(sig).map(b => String.fromCharCode(b)).join(''));
+    log('SIG（HEX 檔）: ' + Array.from(burnGetSig(burnState.lines[0], false))
+      .map(b => String.fromCharCode(b)).join(''));
+    // 讀不到裝置 SIG（停在 Bootloader）時仍允許燒錄，以便救回燒錄中斷的裝置
+    if (await verifyHexSigWithDevice() === 'mismatch') {
+      log('❌ 燒錄中止：HEX 與裝置 SIG 不符');
+      return;
+    }
 
     const burnMode = document.getElementById('selBurnMode').value;
     const versionState = await burnCheckFirmware(sig);
@@ -2319,6 +2682,14 @@ document.getElementById('btnBurn').addEventListener('click', async () => {
     const jumpOk = await burnJumpToApp(sig);
     if (!jumpOk) log('⚠ Jump to App 失敗（燒錄已完成但無法驗證）');
 
+    // Ask the torque sensor to resume once the new firmware is up. Sent whenever
+    // checked: the page can't know whether the sensor was silenced (F0 may have
+    // been sent before a reload or by another tool), and F1 is harmless otherwise.
+    if (jumpOk && state.isCAN && document.getElementById('chkTsResumeAfterBurn').checked) {
+      log('已勾選「燒錄完成後恢復力矩感測器」→ 自動送出恢復 (F1)');
+      await tsRunBusCmd(TS_BUS_RESUME);
+    }
+
   } catch (e) {
     log('❌ Burn 異常: ' + e.message + '  耗時: ' + burnElapsed());
     console.error(e);
@@ -2334,6 +2705,7 @@ document.getElementById('btnBurn').addEventListener('click', async () => {
 initSetbitModal();
 initConfigModal();
 initResultModal();
+initWriteConfirmModal();
 
 // Show version
 document.getElementById('appVersion').textContent = APP_VERSION;
@@ -2357,12 +2729,18 @@ function applyChannelSelection(channel) {
   // Show/hide comport-specific params
   const params = document.getElementById('serialParams');
   if (params) params.style.display = isBle ? 'none' : 'contents';
+  // Burn mode follows the channel: BLE → BLE-CAN with 248-byte chunks, COM port → standard.
+  // Still changeable by hand afterwards.
+  document.getElementById('selBurnMode').value = isBle ? 'blecan' : 'uart';
+  if (isBle) document.getElementById('selBleChunk').value = '248';
+  applyBurnModeSelection(document.getElementById('selBurnMode').value);
   // Wire up BLE unexpected-disconnect handler (set once; no-op for comport)
   state.bleSerial.onDisconnect = () => {
     setDot(false);
     log('⚠ BLE 連線意外中斷');
   };
   state.bleSerial._onLog = (msg) => log(msg);
+  updateUiState();
 }
 
 document.getElementById('selChannel').addEventListener('change', (e) => {
@@ -2406,9 +2784,7 @@ if (!navigator.bluetooth) {
   document.getElementById('statusLog').value +=
     '⚠ 此瀏覽器不支援 Web Bluetooth API。BLE 通道無法使用。\n請使用 Chrome 或 Edge 並以 https:// 開啟。\n';
 }
-if (!navigator.serial && !navigator.bluetooth) {
-  document.getElementById('btnOpen').disabled = true;
-}
+updateUiState();
 
 // ── 桌機版：讓收合按鈕跟隨 sidebar 右邊緣 ──
 function updateSbTogglePos() {

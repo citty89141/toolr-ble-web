@@ -7,6 +7,10 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+<div id="tsToast" class="ts-toast" hidden title="點擊關閉">
+  <div id="tsToastTitle" class="ts-toast-title"></div>
+  <div id="tsToastSub" class="ts-toast-sub"></div>
+</div>
 
 <!-- ── Top bar: serial connection ── -->
 <header class="topbar">
@@ -140,6 +144,19 @@
       <button id="btnDriverStatus" class="btn btn-block btn-monitor" title="即時監控裝置狀態 (CAN only)">⚡ Driver Status</button>
       <button id="btnCalibrate" class="btn btn-block btn-monitor" title="馬達校正流程 (CAN only)">🔧 馬達校正</button>
       <button id="btnCalTrigger" class="btn btn-block btn-monitor" title="單獨送出觸發訊框 CAN ID 0x141030FF，不執行校正握手與輪詢流程 (CAN only)">🔔 CAN 通訊測試</button>
+      <div id="tsStatus" class="ts-status" title="力矩感測器廣播 0x18F50133 的接收狀態（偵測／靜默／恢復時更新）">
+        <span id="tsStatusDot" class="ts-dot"></span>
+        <span class="ts-status-text">
+          <span id="tsStatusText">力矩感測器：未偵測</span>
+          <span id="tsStatusSub" class="ts-status-sub"></span>
+        </span>
+        <button id="btnTsDetect" class="btn-tiny" title="監聽 bus，確認是否收到力矩感測器廣播 0x18F50133 (CAN only)">偵測</button>
+      </div>
+      <label class="chk-label ts-auto-silent" title="勾選後，偵測（含連線後自動偵測）收到力矩感測器廣播 0x18F50133 時，自動送出靜默 (F0)">
+        <input type="checkbox" id="chkTsAutoSilent" checked><span>偵測到力矩感測器自動靜默 (F0)</span>
+      </label>
+      <button id="btnTsSilent" class="btn btn-block btn-monitor" title="直接送出總線命令 0x08F20020 D0=0xF0 要求停止廣播，並自動偵測直到 0x18F50133 無訊號 (CAN only)">🔇 力矩感測器 靜默 (F0)</button>
+      <button id="btnTsResume" class="btn btn-block btn-monitor" title="送出總線命令 0x08F20020 D0=0xF1 恢復廣播，並確認是否收到 0x18F50133 (CAN only)">🔊 力矩感測器 恢復 (F1)</button>
     </section>
 
     <section class="sb-section" id="burnSection">
@@ -162,6 +179,9 @@
           <option value="248">248 bytes</option>
         </select>
       </div>
+      <label class="chk-label ts-auto-silent" title="勾選後，燒錄完成且 Jump to App OK 時，自動送出力矩感測器恢復 (F1) 0x08F20020 D0=0xF1 (CAN only)">
+        <input type="checkbox" id="chkTsResumeAfterBurn" checked><span>燒錄完成後恢復力矩感測器 (F1)</span>
+      </label>
       <button id="btnBurn" class="btn btn-block btn-burn" disabled>⚡ 開始燒錄</button>
       <div class="burn-progress-wrap">
         <div id="burnProgressBar" class="burn-progress-fill"></div>
@@ -454,6 +474,23 @@
     <div class="modal-ftr">
       <button class="btn" data-close="modalResult">關閉</button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     Write confirm modal — buttons injected by JS
+     ══════════════════════════════════════════════════════ -->
+<div id="modalWriteConfirm" class="modal-overlay" style="display:none">
+  <div class="modal-box wc-box">
+    <div class="modal-hdr">
+      <span>確認寫入參數</span>
+      <button class="modal-x" data-close="modalWriteConfirm">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="wcSources"></div>
+      <div id="wcNote" class="wc-note"></div>
+    </div>
+    <div class="modal-ftr" id="wcButtons"></div>
   </div>
 </div>
 
