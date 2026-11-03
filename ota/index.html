@@ -287,11 +287,8 @@
   const OTA_DATA_UUID    = uuid16(0xfe02);
   const OTA_STATUS_UUID  = uuid16(0xfe03);
   const OTA_VERSION_UUID = uuid16(0xfe04);
-  // 每塊要放得進一個 ATT 封包（MTU − 3），OTA 服務不處理長寫入（prepare write）。
-  // 電腦、Android 協商到 500 以上；iPhone（Bluefy）常只有 185，用 180。
-  const IS_IOS          = /iPhone|iPad|iPod/.test(navigator.userAgent) ||
-                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  const CHUNK_SIZE      = IS_IOS ? 180 : 490;
+  const CHUNK_SIZE      = 490;
+  const CHUNK_DELAY_MS  = 12;
   const NAME_PREFIX     = 'ENDEX_CAN_';
 
   const $ = id => document.getElementById(id);
@@ -586,7 +583,7 @@
     else    { unlockScreen(); updateOtaButton(); }
   }
 
-  // ── OTA 主流程（指令順序與原版相同；資料改成等回應再送下一塊）────
+  // ── OTA 主流程（傳輸參數與順序與原版相同；結果改用版本判斷）────────
   $('btnOta').addEventListener('click', startOTA);
 
   async function startOTA() {
@@ -646,19 +643,17 @@
 
       // ── 傳輸 ──
       setStage(stage = 'transfer');
-      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B, write with response) ...`);
+      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B  delay=${CHUNK_DELAY_MS}ms) ...`);
       const t0 = Date.now();
       for (let i = 0; i < chunks.length; i++) {
-        // 要用 write with response：without response 只是排進手機的佇列就返回，Bluefy 會悄悄丟掉排不下的，
-        // 模組收到不完整的檔案、esp_ota_end 驗證失敗不重開（ble_ota_tester.py 在 Windows 也是同一個問題）。
-        // 等模組回應再送下一塊，就是流量控制。
-        await (dataChar.writeValueWithResponse ? dataChar.writeValueWithResponse(chunks[i]) : dataChar.writeValue(chunks[i]));
+        await dataChar.writeValueWithoutResponse(chunks[i]);
         const sent = Math.min((i + 1) * CHUNK_SIZE, total);
         const pct  = Math.round((i + 1) * 100 / chunks.length);
         const secs = (Date.now() - t0) / 1000;
         const rate = secs > 0 ? sent / secs : 0;
         const eta  = rate > 0 ? Math.ceil((total - sent) / rate) : 0;
         setProgress(pct, `${(sent / 1024).toFixed(0)} / ${(total / 1024).toFixed(0)} KB · ${(rate / 1024).toFixed(1)} KB/s · 剩 ${eta} 秒`);
+        await sleep(CHUNK_DELAY_MS);
       }
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       log(`    傳送完成，耗時 ${elapsed} 秒`);
