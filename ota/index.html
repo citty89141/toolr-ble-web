@@ -280,11 +280,13 @@
 </div>
 
 <script>
-  const OTA_SERVICE      = 0xfe00;
-  const OTA_CTRL_UUID    = 0xfe01;
-  const OTA_DATA_UUID    = 0xfe02;
-  const OTA_STATUS_UUID  = 0xfe03;
-  const OTA_VERSION_UUID = 0xfe04;
+  // 完整 128-bit 字串：Bluefy（iPhone）不接受數字 UUID，requestDevice 會直接失敗、不跳裝置清單
+  const uuid16 = n => `0000${n.toString(16).padStart(4, '0')}-0000-1000-8000-00805f9b34fb`;
+  const OTA_SERVICE      = uuid16(0xfe00);
+  const OTA_CTRL_UUID    = uuid16(0xfe01);
+  const OTA_DATA_UUID    = uuid16(0xfe02);
+  const OTA_STATUS_UUID  = uuid16(0xfe03);
+  const OTA_VERSION_UUID = uuid16(0xfe04);
   const CHUNK_SIZE      = 490;
   const CHUNK_DELAY_MS  = 12;
   const NAME_PREFIX     = 'ENDEX_CAN_';
