@@ -1,11 +1,11 @@
 {
-  "built": "2026-11-03T02:26:35.374Z",
+  "built": "2026-11-03T02:36:19.948Z",
   "tools": {
     "rec": {
       "name": "錄製",
       "path": "rec/",
       "repo": "toolsb_gattc_gatts app/",
-      "commit": "9981715"
+      "commit": "ea07c08"
     },
     "param": {
       "name": "參數與燒錄",
@@ -25,7 +25,11 @@
       "name": "ToolB 韌體更新",
       "path": "ota/",
       "repo": "toolsb_gattc_gatts ble_ota.html",
-      "commit": "9981715"
+      "commit": "ea07c08",
+      "version": "最新韌體 1.1.1",
+      "firmware": [
+        "1.1.1"
+      ]
     }
   }
 }

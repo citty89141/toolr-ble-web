@@ -96,6 +96,22 @@
     .drop-sub{ font-size:12.5px; color:var(--ink-faint); }
     #binFile{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
 
+    /* released firmware (integrated site: firmware/index.json) */
+    .fw-list{ display:grid; gap:8px; }
+    .fw-item{
+      display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width:100%;
+      font:inherit; text-align:left; cursor:pointer; color:var(--ink);
+      background:var(--surface); border:1px solid var(--line-strong); border-radius:10px; padding:11px 14px;
+      transition:border-color .15s, background .15s;
+    }
+    .fw-item:hover:not(:disabled){ border-color:var(--accent); }
+    .fw-item[aria-checked="true"]{ border:2px solid var(--accent); padding:10px 13px; background:color-mix(in srgb, var(--accent) 8%, var(--surface)); }
+    .fw-item:disabled{ opacity:0.45; cursor:not-allowed; }
+    .fw-ver{ font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px; }
+    .fw-tag{ font-size:11.5px; font-weight:700; padding:1px 8px; border-radius:999px; background:var(--accent); color:var(--accent-ink); }
+    .fw-meta{ font-size:12px; color:var(--ink-faint); }
+    .fw-or{ font-size:12.5px; color:var(--ink-faint); margin:14px 0 8px; }
+
     /* version compare */
     .ver-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .ver-box{ background:var(--surface-2); border-radius:10px; padding:10px 12px; min-width:0; }
@@ -186,7 +202,14 @@
 
   <!-- 1. 選擇韌體 -->
   <section class="card">
-    <div class="card-head"><span class="num">1</span><span class="card-title">選擇韌體檔案</span></div>
+    <div class="card-head">
+      <span class="num">1</span><span class="card-title">選擇韌體檔案</span>
+      <span class="card-hint" id="fwHint" hidden>已自動選最新版</span>
+    </div>
+    <div id="fwRelease" hidden>
+      <div class="fw-list" id="fwList" role="radiogroup" aria-label="發行版韌體"></div>
+      <div class="fw-or">或使用其他檔案</div>
+    </div>
     <label class="drop" id="drop" for="binFile">
       <span class="drop-icon" aria-hidden="true">📦</span>
       <span>
@@ -382,14 +405,22 @@
   }
 
   // ── 選檔（點擊 / 拖曳）─────────────────────────────────────
-  async function loadFile(file) {
-    if (!file) return;
+  // release: the file came from the released-firmware list, so the drop zone stays free for "其他檔案"
+  async function loadFile(file, release = false) {
+    if (!file || busy) return;
     fwFile = file;
     const bytes = new Uint8Array(await file.arrayBuffer());
     const ver = parseFirmwareVersion(bytes);
-    $('dropMain').textContent = file.name;
-    $('dropSub').textContent = `${bytes.length.toLocaleString()} bytes`;
-    $('drop').classList.add('has-file');
+    if (release) {
+      $('dropMain').textContent = DROP_MAIN;
+      $('dropSub').textContent = DROP_SUB;
+      $('drop').classList.remove('has-file');
+    } else {
+      markRelease(null);
+      $('dropMain').textContent = file.name;
+      $('dropSub').textContent = `${bytes.length.toLocaleString()} bytes`;
+      $('drop').classList.add('has-file');
+    }
     if (ver) {
       fwBytes = bytes; fileVerStr = ver;
       renderVerBox('fileVer', 'fileMeta', ver);
@@ -410,6 +441,72 @@
     const f = e.dataTransfer.files[0];
     if (f && /\.bin$/i.test(f.name)) loadFile(f);
   });
+
+  // ── 發行版韌體 ─────────────────────────────────────────────
+  // On the integrated ToolR site web/build_site.mjs puts the newest three firmware/*.bin next to this page with an
+  // index.json; list them and take the newest, so nobody has to find a .bin file. Opened on its own there is no list.
+  const DROP_MAIN = $('dropMain').textContent;
+  const DROP_SUB  = $('dropSub').textContent;
+  let releasePick = 0;
+
+  function markRelease(btn) {
+    for (const b of $('fwList').children) b.setAttribute('aria-checked', String(b === btn));
+  }
+
+  const hex = buf => [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+
+  async function pickRelease(f, btn) {
+    if (busy) return;
+    const pick = ++releasePick;
+    markRelease(btn);
+    $('fwHint').textContent = `下載 ${f.version}…`;
+    try {
+      const r = await fetch('firmware/' + encodeURIComponent(f.file), { cache: 'no-cache' });
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const buf = await r.arrayBuffer();
+      if (crypto.subtle && hex(await crypto.subtle.digest('SHA-256', buf)) !== f.sha256) throw new Error('檔案內容和清單不符');
+      if (pick !== releasePick) return;   // another one was picked meanwhile
+      await loadFile(new File([buf], f.file), true);
+      $('fwHint').textContent = btn === $('fwList').firstChild ? '已自動選最新版' : `已選 ${f.version}`;
+      log(`已載入發行版韌體 ${f.file}（${f.version}，${f.date} ${f.time}）`, 'dim');
+    } catch (e) {
+      if (pick !== releasePick) return;
+      markRelease(null);
+      $('fwHint').textContent = '下載失敗，請重試或用其他檔案';
+      log(`下載 ${f.file} 失敗：${e.message}`, 'err');
+    }
+  }
+
+  async function loadReleases() {
+    let list;
+    try {
+      const r = await fetch('firmware/index.json', { cache: 'no-cache' });
+      if (!r.ok) return;
+      list = await r.json();
+    } catch { return; }
+    if (!Array.isArray(list) || !list.length) return;
+    list.forEach((f, i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'fw-item';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-checked', 'false');
+      const ver = document.createElement('span');
+      ver.className = 'fw-ver';
+      ver.textContent = f.version;
+      if (i === 0) ver.append(Object.assign(document.createElement('span'), { className: 'fw-tag', textContent: '最新' }));
+      const meta = document.createElement('span');
+      meta.className = 'fw-meta mono';
+      meta.textContent = `${f.date} ${f.time} · ${Math.round(f.size / 1024)} KB`;
+      b.append(ver, meta);
+      b.addEventListener('click', () => pickRelease(f, b));
+      $('fwList').append(b);
+    });
+    $('fwRelease').hidden = false;
+    $('fwHint').hidden = false;
+    if (!fwFile) pickRelease(list[0], $('fwList').firstChild);
+  }
+  loadReleases();
 
   function updateOtaButton() {
     const b = $('btnOta');
@@ -479,6 +576,7 @@
     $('btnCheckVer').disabled = on || !hasBle;
     $('binFile').disabled = on;
     drop.style.pointerEvents = on ? 'none' : '';
+    for (const b of $('fwList').children) b.disabled = on;
     if (on) { $('btnOta').textContent = '更新中，請勿關閉本頁 ...'; lockScreen(); }
     else    { unlockScreen(); updateOtaButton(); }
   }
