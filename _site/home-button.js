@@ -9,7 +9,7 @@
   a.style.cssText = [
     "position:fixed", "right:12px", "bottom:calc(12px + env(safe-area-inset-bottom))", "z-index:2147483000",
     "width:36px", "height:36px", "border-radius:50%", "display:flex", "align-items:center", "justify-content:center",
-    "background:#1f6feb", "color:#fff", "font:20px/1 system-ui,sans-serif", "text-decoration:none",
+    "background:#425563", "color:#fff", "font:20px/1 system-ui,sans-serif", "text-decoration:none",
     "box-shadow:0 2px 6px rgba(0,0,0,.35)", "opacity:.85",
   ].join(";");
   document.body.append(a);

@@ -3,41 +3,42 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#425563">
   <title>ENDEX BLE OTA 更新</title>
   <style>
     :root{
-      --bg:#eef2f1; --surface:#ffffff; --surface-2:#e3e9e7;
-      --ink:#16211f; --ink-soft:#4b5a57; --ink-faint:#7c8b87;
-      --line:rgba(22,33,31,0.14); --line-strong:rgba(22,33,31,0.28);
-      --accent:#0f7a72; --accent-strong:#0b5f59; --accent-ink:#f2fbf9;
-      --amber:#a8660a; --amber-soft:#f2e2c8;
+      --bg:#eef1f3; --surface:#ffffff; --surface-2:#e3e8ec;
+      --ink:#1c252d; --ink-soft:#4a5966; --ink-faint:#5e6c78;
+      --line:rgba(28,37,45,0.14); --line-strong:rgba(28,37,45,0.28);
+      --accent:#425563; --accent-strong:#33434f; --accent-ink:#ffffff;
+      --amber:#8f560a; --amber-soft:#f2e2c8;
       --danger:#a6392f; --danger-soft:#f6dfdb;
-      --good:#2f7d4f; --good-soft:#dcefe1;
-      --log-bg:#16211f; --log-ink:#d6e2df; --log-dim:#7c8b87;
-      --shadow:0 1px 2px rgba(16,24,22,0.06), 0 8px 24px -12px rgba(16,24,22,0.18);
+      --good:#276b43; --good-soft:#dcefe1;
+      --log-bg:#1c252d; --log-ink:#d5dde2; --log-dim:#8d9ba7;
+      --shadow:0 1px 2px rgba(28,37,45,0.06), 0 8px 24px -12px rgba(28,37,45,0.18);
     }
     @media (prefers-color-scheme: dark){
       :root:not([data-theme="light"]){
-        --bg:#101615; --surface:#182120; --surface-2:#1f2a29;
-        --ink:#e9f1ee; --ink-soft:#a4b6b1; --ink-faint:#748782;
-        --line:rgba(233,241,238,0.14); --line-strong:rgba(233,241,238,0.26);
-        --accent:#39c4b4; --accent-strong:#5ddac9; --accent-ink:#062521;
+        --bg:#141b21; --surface:#1c252d; --surface-2:#25313b;
+        --ink:#eef2f4; --ink-soft:#b4c0ca; --ink-faint:#8d9ba7;
+        --line:rgba(238,242,244,0.14); --line-strong:rgba(238,242,244,0.26);
+        --accent:#9fb4c4; --accent-strong:#bccbd7; --accent-ink:#141b21;
         --amber:#e0a34a; --amber-soft:#3a2c14;
         --danger:#e2837a; --danger-soft:#3a1e1b;
         --good:#68c48c; --good-soft:#173226;
-        --log-bg:#0b100f; --log-ink:#cfdcd8; --log-dim:#6b7d78;
+        --log-bg:#0f1418; --log-ink:#cfd8de; --log-dim:#77858f;
         --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
       }
     }
     :root[data-theme="dark"]{
-      --bg:#101615; --surface:#182120; --surface-2:#1f2a29;
-      --ink:#e9f1ee; --ink-soft:#a4b6b1; --ink-faint:#748782;
-      --line:rgba(233,241,238,0.14); --line-strong:rgba(233,241,238,0.26);
-      --accent:#39c4b4; --accent-strong:#5ddac9; --accent-ink:#062521;
+      --bg:#141b21; --surface:#1c252d; --surface-2:#25313b;
+      --ink:#eef2f4; --ink-soft:#b4c0ca; --ink-faint:#8d9ba7;
+      --line:rgba(238,242,244,0.14); --line-strong:rgba(238,242,244,0.26);
+      --accent:#9fb4c4; --accent-strong:#bccbd7; --accent-ink:#141b21;
       --amber:#e0a34a; --amber-soft:#3a2c14;
       --danger:#e2837a; --danger-soft:#3a1e1b;
       --good:#68c48c; --good-soft:#173226;
-      --log-bg:#0b100f; --log-ink:#cfdcd8; --log-dim:#6b7d78;
+      --log-bg:#0f1418; --log-ink:#cfd8de; --log-dim:#77858f;
       --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
     }
 
@@ -91,7 +92,7 @@
     }
     .drop:hover, .drop.drag{ border-color:var(--accent); background:color-mix(in srgb, var(--accent) 6%, transparent); }
     .drop.has-file{ border-style:solid; border-color:var(--accent); }
-    .drop-icon{ font-size:26px; line-height:1; flex:none; }
+    .drop-icon{ width:26px; height:26px; flex:none; fill:none; stroke:var(--accent); stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
     .drop-main{ font-weight:600; font-size:14px; word-break:break-all; }
     .drop-sub{ font-size:12.5px; color:var(--ink-faint); }
     #binFile{ position:absolute; width:1px; height:1px; opacity:0; pointer-events:none; }
@@ -190,7 +191,7 @@
       <h1>BLE 韌體更新</h1>
       <div class="sub">ENDEX CAN 橋接器（ESP32-H2）· 無線 OTA</div>
     </div>
-    <a class="manual-link" href="ota_manual.html" target="_blank" rel="noopener">📖 操作手冊</a>
+    <a class="manual-link" href="ota_manual.html" target="_blank" rel="noopener">操作手冊</a>
   </header>
 
   <div id="browserWarn" class="banner danger" hidden>
@@ -211,7 +212,7 @@
       <div class="fw-or">或使用其他檔案</div>
     </div>
     <label class="drop" id="drop" for="binFile">
-      <span class="drop-icon" aria-hidden="true">📦</span>
+      <svg class="drop-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M14 3v6h6M12 18v-6M9 15l3-3 3 3"/></svg>
       <span>
         <span class="drop-main" id="dropMain">點擊選擇，或把 .bin 檔拖曳到這裡</span><br>
         <span class="drop-sub" id="dropSub">由工程師提供的韌體檔，例如 gattc_gatts_coex.bin</span>
@@ -239,7 +240,7 @@
       </div>
     </div>
     <div class="ver-verdict" id="verdict"></div>
-    <button class="btn secondary" id="btnCheckVer" type="button">🔍 連線讀取裝置版本</button>
+    <button class="btn secondary" id="btnCheckVer" type="button">連線讀取裝置版本</button>
   </section>
 
   <!-- 3. 更新 -->
@@ -515,7 +516,7 @@
     if (busy) return;
     if (!hasBle)       { b.disabled = true;  b.textContent = '此瀏覽器不支援藍牙'; return; }
     if (!fwBytes)      { b.disabled = true;  b.textContent = fwFile ? '韌體檔案無法辨識' : '請先選擇韌體檔案'; return; }
-    b.disabled = false; b.textContent = '⬆ 開始 OTA 更新';
+    b.disabled = false; b.textContent = '開始 OTA 更新';
   }
   function updateDeviceLine() {
     $('deviceLine').textContent = bleDevice ? `裝置：${bleDevice.name}（更新時會直接沿用，不需再選）` : '';

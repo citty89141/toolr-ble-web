@@ -6,60 +6,60 @@
 <title>ENDEX CAN 橋接器 — 韌體更新與燈號手冊</title>
 <style>
   :root{
-    --bg:#eef2f1;
+    --bg:#eef1f3;
     --surface:#ffffff;
-    --surface-2:#e3e9e7;
-    --ink:#16211f;
-    --ink-soft:#4b5a57;
-    --ink-faint:#7c8b87;
-    --line:rgba(22,33,31,0.14);
-    --line-strong:rgba(22,33,31,0.28);
-    --accent:#0f7a72;
-    --accent-strong:#0b5f59;
-    --accent-ink:#f2fbf9;
-    --amber:#a8660a;
+    --surface-2:#e3e8ec;
+    --ink:#1c252d;
+    --ink-soft:#4a5966;
+    --ink-faint:#5e6c78;
+    --line:rgba(28,37,45,0.14);
+    --line-strong:rgba(28,37,45,0.28);
+    --accent:#425563;
+    --accent-strong:#33434f;
+    --accent-ink:#ffffff;
+    --amber:#8f560a;
     --amber-soft:#f2e2c8;
     --danger:#a6392f;
     --danger-soft:#f6dfdb;
-    --good:#2f7d4f;
+    --good:#276b43;
     --good-soft:#dcefe1;
-    --shadow: 0 1px 2px rgba(16,24,22,0.06), 0 8px 24px -12px rgba(16,24,22,0.18);
+    --shadow:0 1px 2px rgba(28,37,45,0.06), 0 8px 24px -12px rgba(28,37,45,0.18);
   }
   @media (prefers-color-scheme: dark){
     :root{
-      --bg:#101615;
-      --surface:#182120;
-      --surface-2:#1f2a29;
-      --ink:#e9f1ee;
-      --ink-soft:#a4b6b1;
-      --ink-faint:#748782;
-      --line:rgba(233,241,238,0.14);
-      --line-strong:rgba(233,241,238,0.26);
-      --accent:#39c4b4;
-      --accent-strong:#5ddac9;
-      --accent-ink:#062521;
+      --bg:#141b21;
+      --surface:#1c252d;
+      --surface-2:#25313b;
+      --ink:#eef2f4;
+      --ink-soft:#b4c0ca;
+      --ink-faint:#8d9ba7;
+      --line:rgba(238,242,244,0.14);
+      --line-strong:rgba(238,242,244,0.26);
+      --accent:#9fb4c4;
+      --accent-strong:#bccbd7;
+      --accent-ink:#141b21;
       --amber:#e0a34a;
       --amber-soft:#3a2c14;
       --danger:#e2837a;
       --danger-soft:#3a1e1b;
       --good:#68c48c;
       --good-soft:#173226;
-      --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#101615; --surface:#182120; --surface-2:#1f2a29; --ink:#e9f1ee; --ink-soft:#a4b6b1;
-    --ink-faint:#748782; --line:rgba(233,241,238,0.14); --line-strong:rgba(233,241,238,0.26);
-    --accent:#39c4b4; --accent-strong:#5ddac9; --accent-ink:#062521; --amber:#e0a34a; --amber-soft:#3a2c14;
+    --bg:#141b21; --surface:#1c252d; --surface-2:#25313b; --ink:#eef2f4; --ink-soft:#b4c0ca;
+    --ink-faint:#8d9ba7; --line:rgba(238,242,244,0.14); --line-strong:rgba(238,242,244,0.26);
+    --accent:#9fb4c4; --accent-strong:#bccbd7; --accent-ink:#141b21; --amber:#e0a34a; --amber-soft:#3a2c14;
     --danger:#e2837a; --danger-soft:#3a1e1b; --good:#68c48c; --good-soft:#173226;
-    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
   }
   :root[data-theme="light"]{
-    --bg:#eef2f1; --surface:#ffffff; --surface-2:#e3e9e7; --ink:#16211f; --ink-soft:#4b5a57;
-    --ink-faint:#7c8b87; --line:rgba(22,33,31,0.14); --line-strong:rgba(22,33,31,0.28);
-    --accent:#0f7a72; --accent-strong:#0b5f59; --accent-ink:#f2fbf9; --amber:#a8660a; --amber-soft:#f2e2c8;
-    --danger:#a6392f; --danger-soft:#f6dfdb; --good:#2f7d4f; --good-soft:#dcefe1;
-    --shadow: 0 1px 2px rgba(16,24,22,0.06), 0 8px 24px -12px rgba(16,24,22,0.18);
+    --bg:#eef1f3; --surface:#ffffff; --surface-2:#e3e8ec; --ink:#1c252d; --ink-soft:#4a5966;
+    --ink-faint:#5e6c78; --line:rgba(28,37,45,0.14); --line-strong:rgba(28,37,45,0.28);
+    --accent:#425563; --accent-strong:#33434f; --accent-ink:#ffffff; --amber:#8f560a; --amber-soft:#f2e2c8;
+    --danger:#a6392f; --danger-soft:#f6dfdb; --good:#276b43; --good-soft:#dcefe1;
+    --shadow:0 1px 2px rgba(28,37,45,0.06), 0 8px 24px -12px rgba(28,37,45,0.18);
   }
 
   *{box-sizing:border-box;}
@@ -308,7 +308,7 @@
       <span><b>瀏覽器</b> Chrome / Edge（電腦或 Android）</span>
     </div>
     <div class="hero-actions">
-      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">⬆ 開啟韌體更新頁面</a>
+      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">開啟韌體更新頁面</a>
       <a class="cta ghost" href="#ota">先看更新步驟</a>
       <a class="cta ghost" href="#led">燈號對照</a>
     </div>
@@ -392,7 +392,7 @@
     <p class="sec-lede">使用瀏覽器版更新頁面，全程六個步驟，最後會自動驗證新韌體是否開機成功。更新頁面會在新分頁開啟，可以一邊對照本手冊操作。</p>
 
     <div class="hero-actions" style="margin:0 0 6px;">
-      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">⬆ 開啟韌體更新頁面</a>
+      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">開啟韌體更新頁面</a>
     </div>
 
     <div class="callout warn">
@@ -420,7 +420,7 @@
         <div class="step-rail"><div class="stepnum">3</div><div class="rail-line"></div></div>
         <div class="step-body">
           <h3>選擇裝置、確認版本（建議）</h3>
-          <p>按「<b>🔍 連線讀取裝置版本</b>」，瀏覽器會跳出裝置清單，選取名稱開頭為 <code>ENDEX_CAN_</code> 的裝置後按「配對」。頁面會顯示裝置目前版本，並自動比對：</p>
+          <p>按「<b>連線讀取裝置版本</b>」，瀏覽器會跳出裝置清單，選取名稱開頭為 <code>ENDEX_CAN_</code> 的裝置後按「配對」。頁面會顯示裝置目前版本，並自動比對：</p>
           <div class="tablewrap" style="margin:8px 0;"><table style="min-width:0;"><tbody>
             <tr><td>✔ 檔案版本較新</td><td>正常情況，可以更新</td></tr>
             <tr><td>＝ 與裝置完全相同</td><td>不需要更新；硬要更新時頁面會再確認一次</td></tr>
@@ -433,7 +433,7 @@
         <div class="step-rail"><div class="stepnum">4</div><div class="rail-line"></div></div>
         <div class="step-body">
           <h3>開始更新，等待傳輸完成</h3>
-          <p>按「<b>⬆ 開始 OTA 更新</b>」。上方的「連線 → 開始 → 傳輸 → 驗證」會顯示目前階段，進度條下方會顯示已傳送大小、傳輸速度與<b>預估剩餘秒數</b>。過程中裝置燈號應保持「慢閃」。</p>
+          <p>按「<b>開始 OTA 更新</b>」。上方的「連線 → 開始 → 傳輸 → 驗證」會顯示目前階段，進度條下方會顯示已傳送大小、傳輸速度與<b>預估剩餘秒數</b>。過程中裝置燈號應保持「慢閃」。</p>
           <p class="fine">更新期間頁面會盡量防止螢幕休眠，誤按關閉分頁也會先跳出提醒。仍請讓手機／電腦靠近裝置、不要切換到省電模式，以免藍牙連線中斷。</p>
         </div>
       </div>
