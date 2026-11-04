@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-04T06:51:38.192Z",
+  "built": "2026-11-04T15:53:24.873Z",
   "tools": {
     "app": {
       "name": "ToolR App（錄製、參數、燒錄）",
@@ -18,7 +18,7 @@
       "name": "分析",
       "path": "analyzer/",
       "repo": "tool_r tools/toolr_analyzer.html（std）",
-      "commit": "2bc1e77",
+      "commit": "8370aa2",
       "version": "V1.14"
     },
     "ota": {
