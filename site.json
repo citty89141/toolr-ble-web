@@ -1,11 +1,11 @@
 {
-  "built": "2026-11-04T15:53:24.873Z",
+  "built": "2026-11-11T10:03:57.807Z",
   "tools": {
     "app": {
       "name": "ToolR App（錄製、參數、燒錄）",
       "path": "app/",
       "repo": "toolsb_gattc_gatts app/",
-      "commit": "8c742c1"
+      "commit": "19a8a7c"
     },
     "param": {
       "name": "eBike Tool（電腦版）",

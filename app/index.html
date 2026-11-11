@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-CsY38FuN.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CdvmPrx1.css">
+  <script type="module" crossorigin src="./assets/index-DxaFeCsP.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CuzKB725.css">
 </head>
 <body>
 <header>
@@ -171,6 +171,31 @@
     </details>
   </div>
 
+  <!-- ===== 輔助感受 ===== -->
+  <div id="view-assist" class="view" hidden>
+    <section class="card">
+      <p class="notice busy-note" hidden></p>
+      <div class="row big">
+        <button id="aRead" type="button" class="primary">讀取車輛設定</button>
+        <button id="aWrite" type="button" disabled>寫入車輛</button>
+      </div>
+      <div class="prog" hidden><div class="bar"><i id="aBar"></i></div><span id="aProg"></span></div>
+      <dl class="stats">
+        <div><dt>機種</dt><dd id="aSig">—</dd></div>
+        <div><dt>可以調整</dt><dd id="aScope">—</dd></div>
+      </dl>
+      <div class="row a-batt">
+        <label class="grow">電池電壓（V）<input id="aVolts" type="number" min="12" max="100" step="0.1" inputmode="decimal"></label>
+        <label class="grow">電池容量（Ah）<input id="aAh" type="number" min="1" max="100" step="0.1" inputmode="decimal"></label>
+      </div>
+      <label class="a-effort">騎乘方式<select id="aEffort"></select></label>
+      <p class="muted">電池規格和騎乘方式只用來估算可以騎多遠，不會寫進車子。</p>
+    </section>
+    <p id="aEmpty" class="muted a-note">按「讀取車輛設定」，從車上讀回目前的輔助設定。</p>
+    <div id="aBody" class="view"></div>
+    <div class="row big"><button id="aUndo" type="button" disabled>還原成車上的設定</button></div>
+  </div>
+
   <!-- ===== 燒錄 ===== -->
   <div id="view-burn" class="view" hidden>
     <section class="card">
@@ -224,6 +249,7 @@
 <nav class="tabs" aria-label="功能">
   <a href="#rec" data-view="rec"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>錄製</a>
   <a href="#param" data-view="param"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>參數</a>
+  <a href="#assist" data-view="assist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8 8 0 0 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/></svg>感受</a>
   <a href="#burn" data-view="burn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>燒錄</a>
 </nav>
 
