@@ -25,16 +25,13 @@
 
   const rec = await get("recs", id);
   const files = [];
-  // part < 0: the phone's GPS route (RAW_xxxx_GPS.CSV / .gpx). An analyzer with GPS support (tool_r claude/analyzer-gps:
-  // it has attachGps) gets the CSV, which puts the route on the timeline; the .gpx is the same points. An older analyzer
-  // would refuse to merge it with the RAW files, so it gets the RAW files only.
-  const gps = typeof window.attachGps === "function";
   for (const f of rec?.csv || []) {
     const c = await get("csv", f.name);
-    if (c && ((c.part ?? 0) >= 0 || (gps && /_GPS\.CSV$/i.test(c.name)))) files.push({ part: c.part ?? 0, file: new File([c.data], c.name, { type: "text/csv" }) });
+    // part < 0: the phone's GPS route (RAW_xxxx_GPS.CSV / .gpx), not part of the RAW recording
+    if (c && (c.part ?? 0) >= 0) files.push({ part: c.part ?? 0, file: new File([c.data], c.name, { type: "text/csv" }) });
   }
   db.close();
-  if (!files.some((f) => f.part >= 0)) return alert(`找不到錄製 #${rec?.rec ?? id} 的 CSV，可能已經刪除。`);
+  if (!files.length) return alert(`找不到錄製 #${rec?.rec ?? id} 的 CSV，可能已經刪除。`);
   const list = files.sort((a, b) => a.part - b.part).map((f) => f.file);
 
   // Hand the files to the analyzer's own "開啟檔案" input, as if the user had picked them (several parts are merged by the analyzer)
