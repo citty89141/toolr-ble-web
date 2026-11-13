@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
-<title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-DxaFeCsP.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-CuzKB725.css">
+<title>ToolR 工具</title>
+  <script type="module" crossorigin src="./assets/index-B7oTngo2.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-D_DSfPGa.css">
 </head>
 <body>
 <header>
@@ -287,7 +287,18 @@
     <label>使用者<input id="metaUser" type="text" required autocomplete="name"></label>
     <label>車輛型號<input id="metaVehicle" type="text" required></label>
     <label>地點<input id="metaPlace" type="text" required></label>
-    <label>備註<textarea id="metaNote" rows="3"></textarea></label>
+    <div class="row meta-2">
+      <label class="grow">騎乘者＋裝備重量（kg）<input id="metaWeight" type="number" min="20" max="250" step="0.5" inputmode="decimal"></label>
+      <label class="grow">胎壓<input id="metaTyre" type="text" placeholder="例：40／45 psi"></label>
+    </div>
+    <fieldset class="meta-feel">
+      <legend>騎乘感受（1 很差 – 5 很好，可不填）</legend>
+      <label>起步<select id="metaFeelStart"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>爬坡<select id="metaFeelClimb"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>高速<select id="metaFeelSpeed"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>平順<select id="metaFeelSmooth"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+    </fieldset>
+    <label>備註<textarea id="metaNote" rows="3" placeholder="這趟的感覺、路況，或用了哪組設定"></textarea></label>
     <div class="row">
       <button type="submit" class="primary" value="ok">上傳</button>
       <button type="button" id="metaLater">稍後</button>
@@ -295,6 +306,6 @@
   </form>
 </dialog>
 
-<div id="toast" class="toast" role="status" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>
