@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ENDEX CAN 橋接器 — 韌體更新與燈號手冊</title>
+<style>
+  :root{
+    --bg:#eef1f3;
+    --surface:#ffffff;
+    --surface-2:#e3e8ec;
+    --ink:#1c252d;
+    --ink-soft:#4a5966;
+    --ink-faint:#5e6c78;
+    --line:rgba(28,37,45,0.14);
+    --line-strong:rgba(28,37,45,0.28);
+    --accent:#425563;
+    --accent-strong:#33434f;
+    --accent-ink:#ffffff;
+    --amber:#8f560a;
+    --amber-soft:#f2e2c8;
+    --danger:#a6392f;
+    --danger-soft:#f6dfdb;
+    --good:#276b43;
+    --good-soft:#dcefe1;
+    --shadow:0 1px 2px rgba(28,37,45,0.06), 0 8px 24px -12px rgba(28,37,45,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141b21;
+      --surface:#1c252d;
+      --surface-2:#25313b;
+      --ink:#eef2f4;
+      --ink-soft:#b4c0ca;
+      --ink-faint:#8d9ba7;
+      --line:rgba(238,242,244,0.14);
+      --line-strong:rgba(238,242,244,0.26);
+      --accent:#9fb4c4;
+      --accent-strong:#bccbd7;
+      --accent-ink:#141b21;
+      --amber:#e0a34a;
+      --amber-soft:#3a2c14;
+      --danger:#e2837a;
+      --danger-soft:#3a1e1b;
+      --good:#68c48c;
+      --good-soft:#173226;
+      --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#141b21; --surface:#1c252d; --surface-2:#25313b; --ink:#eef2f4; --ink-soft:#b4c0ca;
+    --ink-faint:#8d9ba7; --line:rgba(238,242,244,0.14); --line-strong:rgba(238,242,244,0.26);
+    --accent:#9fb4c4; --accent-strong:#bccbd7; --accent-ink:#141b21; --amber:#e0a34a; --amber-soft:#3a2c14;
+    --danger:#e2837a; --danger-soft:#3a1e1b; --good:#68c48c; --good-soft:#173226;
+    --shadow:0 1px 2px rgba(0,0,0,0.3), 0 12px 28px -14px rgba(0,0,0,0.55);
+  }
+  :root[data-theme="light"]{
+    --bg:#eef1f3; --surface:#ffffff; --surface-2:#e3e8ec; --ink:#1c252d; --ink-soft:#4a5966;
+    --ink-faint:#5e6c78; --line:rgba(28,37,45,0.14); --line-strong:rgba(28,37,45,0.28);
+    --accent:#425563; --accent-strong:#33434f; --accent-ink:#ffffff; --amber:#8f560a; --amber-soft:#f2e2c8;
+    --danger:#a6392f; --danger-soft:#f6dfdb; --good:#276b43; --good-soft:#dcefe1;
+    --shadow:0 1px 2px rgba(28,37,45,0.06), 0 8px 24px -12px rgba(28,37,45,0.18);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Microsoft JhengHei","PingFang TC","Noto Sans TC","Segoe UI",system-ui,sans-serif;
+    font-size:15.5px;
+    line-height:1.75;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .eyebrow{
+    font-family:"Bahnschrift","SF Compact Display","Segoe UI Semibold",system-ui,sans-serif;
+    font-weight:700;
+    font-size:11.5px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--accent-strong);
+  }
+  @media (prefers-color-scheme:dark){ .eyebrow{color:var(--accent);} }
+  :root[data-theme="dark"] .eyebrow{ color:var(--accent); }
+  :root[data-theme="light"] .eyebrow{ color:var(--accent-strong); }
+
+  code, .mono, table.reftable td, table.reftable th, .stepnum, .led-caption b{
+    font-family:ui-monospace,"Cascadia Code","Consolas","SFMono-Regular",monospace;
+  }
+
+  h1,h2,h3{ text-wrap:balance; font-family:"Bahnschrift","SF Compact Display","Segoe UI Semibold",system-ui,sans-serif; }
+
+  a{ color:var(--accent-strong); }
+  @media (prefers-color-scheme:dark){ a{ color:var(--accent); } }
+  :root[data-theme="dark"] a{ color:var(--accent); }
+  :root[data-theme="light"] a{ color:var(--accent-strong); }
+
+  a:focus-visible, button:focus-visible, summary:focus-visible{
+    outline:2px solid var(--accent);
+    outline-offset:2px;
+    border-radius:4px;
+  }
+
+  /* ── top bar ─────────────────────────────────────────────── */
+  .topbar{
+    position:sticky; top:0; z-index:10;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:760px; margin:0 auto; padding:14px 20px;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+  }
+  .topbar-title{ font-weight:700; font-size:14px; letter-spacing:0.02em; white-space:nowrap; }
+  .navchips{ display:flex; gap:6px; flex-wrap:wrap; }
+  .navchips a{
+    text-decoration:none; color:var(--ink-soft); font-size:12.5px; font-weight:600;
+    padding:6px 10px; border-radius:999px; border:1px solid transparent;
+    white-space:nowrap;
+  }
+  .navchips a:hover{ border-color:var(--line-strong); color:var(--ink); }
+  .navchips a.active{ background:var(--surface); border-color:var(--line-strong); color:var(--ink); }
+  .topbar-cta{
+    margin-left:auto; text-decoration:none; font-size:12.5px; font-weight:700; white-space:nowrap;
+    padding:7px 14px; border-radius:999px; background:var(--accent); color:var(--accent-ink) !important;
+  }
+  .topbar-cta:hover{ background:var(--accent-strong); }
+  /* 手機：導覽改成單行橫向捲動，不再換成好幾行佔掉畫面 */
+  @media (max-width:640px){
+    .topbar-inner{ flex-wrap:nowrap; gap:10px; padding:10px 14px; }
+    .topbar-title{ display:none; }
+    .navchips{ flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; flex:1; min-width:0; }
+    .navchips::-webkit-scrollbar{ display:none; }
+    .topbar-cta{ margin-left:0; }
+  }
+
+  .hero-actions{ display:flex; flex-wrap:wrap; gap:10px; margin-top:20px; }
+  .cta{
+    display:inline-flex; align-items:center; gap:8px; text-decoration:none;
+    font-weight:700; font-size:15px; padding:12px 20px; border-radius:10px;
+    background:var(--accent); color:var(--accent-ink) !important; box-shadow:var(--shadow);
+  }
+  .cta:hover{ background:var(--accent-strong); }
+  .cta.ghost{ background:transparent; color:var(--ink-soft) !important; border:1px solid var(--line-strong); box-shadow:none; font-weight:600; }
+  .cta.ghost:hover{ background:var(--surface); color:var(--ink) !important; }
+
+  /* ── page frame ──────────────────────────────────────────── */
+  .wrap{ max-width:760px; margin:0 auto; padding:36px 20px 80px; }
+
+  header.hero{ padding:8px 0 30px; border-bottom:1px solid var(--line); margin-bottom:34px; }
+  header.hero h1{ font-size:27px; font-weight:800; margin:10px 0 8px; letter-spacing:0.01em; }
+  header.hero .lede{ color:var(--ink-soft); font-size:15px; max-width:56ch; }
+  .metaline{
+    display:flex; flex-wrap:wrap; gap:8px 18px; margin-top:16px;
+    font-size:12.5px; color:var(--ink-faint);
+  }
+  .metaline span b{ color:var(--ink-soft); font-weight:600; }
+
+  section{ margin-bottom:52px; scroll-margin-top:70px; }
+  section > .eyebrow{ display:block; margin-bottom:6px; }
+  section > h2{ font-size:21px; font-weight:800; margin:0 0 6px; }
+  section > .sec-lede{ color:var(--ink-soft); font-size:14.5px; max-width:60ch; margin-bottom:20px; }
+
+  /* ── overview diagram ────────────────────────────────────── */
+  .diagram{
+    display:flex; align-items:stretch; gap:0; margin:22px 0 8px;
+    flex-wrap:wrap;
+  }
+  .node{
+    background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    padding:16px 14px; text-align:center; flex:1; min-width:140px;
+    box-shadow:var(--shadow);
+  }
+  .node .node-label{ font-weight:700; font-size:13.5px; }
+  .node .node-sub{ font-size:11.5px; color:var(--ink-faint); margin-top:4px; }
+  .link{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:0 10px; min-width:64px; position:relative;
+  }
+  .link .lbl{ font-size:10.5px; font-weight:700; letter-spacing:0.08em; color:var(--accent-strong); margin-bottom:4px; text-transform:uppercase;}
+  .link .line{ width:100%; height:2px; background:var(--line-strong); position:relative; }
+  .link .line::after{
+    content:""; position:absolute; right:-1px; top:50%; transform:translateY(-50%);
+    border-style:solid; border-width:5px 0 5px 7px;
+    border-color:transparent transparent transparent var(--line-strong);
+  }
+  .branch{
+    flex-basis:100%; display:flex; justify-content:center; margin-top:4px;
+  }
+  .branch-inner{ display:flex; align-items:center; gap:10px; color:var(--ink-faint); font-size:11.5px; }
+  .branch-inner .dash{ width:60px; height:0; border-top:2px dashed var(--line-strong); }
+
+  /* ── cards / callouts ────────────────────────────────────── */
+  .card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; box-shadow:var(--shadow);
+  }
+  .callout{
+    border-left:3px solid var(--line-strong); background:var(--surface); border-radius:0 10px 10px 0;
+    padding:12px 16px; font-size:13.8px; color:var(--ink-soft); margin:14px 0;
+  }
+  .callout b{ color:var(--ink); }
+  .callout.warn{ border-color:var(--amber); background:color-mix(in srgb, var(--amber-soft) 55%, var(--surface)); }
+  .callout.danger{ border-color:var(--danger); background:color-mix(in srgb, var(--danger-soft) 55%, var(--surface)); }
+  .callout.good{ border-color:var(--good); background:color-mix(in srgb, var(--good-soft) 55%, var(--surface)); }
+
+  /* ── LED reference ───────────────────────────────────────── */
+  .led-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(190px,1fr)); gap:12px; }
+  .led-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:12px;
+    padding:16px; display:flex; gap:12px; align-items:flex-start; box-shadow:var(--shadow);
+  }
+  .led-dot{
+    width:15px; height:15px; border-radius:50%; margin-top:3px; flex:none;
+    background:var(--surface-2); border:1px solid var(--line-strong);
+  }
+  .led-dot.lit{ background:var(--amber); box-shadow:0 0 0 4px color-mix(in srgb, var(--amber) 22%, transparent); border-color:var(--amber); }
+  @media (prefers-reduced-motion:no-preference){
+    .led-dot.fast{ animation:blink .25s steps(1) infinite; }
+    .led-dot.slow{ animation:blink 1s steps(1) infinite; }
+  }
+  @keyframes blink{ 0%,49%{ background:var(--amber); box-shadow:0 0 0 4px color-mix(in srgb, var(--amber) 22%, transparent); border-color:var(--amber);} 50%,100%{ background:var(--surface-2); box-shadow:none; border-color:var(--line-strong);} }
+  .led-caption .title{ font-weight:700; font-size:13.5px; }
+  .led-caption .pattern{ font-size:12px; color:var(--accent-strong); margin:2px 0 4px; }
+  .led-caption .desc{ font-size:12.5px; color:var(--ink-soft); }
+
+  /* ── steps ───────────────────────────────────────────────── */
+  .steps{ display:flex; flex-direction:column; }
+  .step{ display:flex; gap:16px; position:relative; padding-bottom:26px; }
+  .step:last-child{ padding-bottom:0; }
+  .step-rail{ display:flex; flex-direction:column; align-items:center; flex:none; }
+  .stepnum{
+    width:30px; height:30px; border-radius:50%; background:var(--accent); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:none;
+  }
+  .step-rail .rail-line{ flex:1; width:2px; background:var(--line-strong); margin:4px 0; }
+  .step-body{ padding-top:2px; }
+  .step-body h3{ font-size:15px; font-weight:700; margin:0 0 4px; }
+  .step-body p{ margin:0 0 6px; font-size:14px; color:var(--ink-soft); }
+  .step-body .fine{ font-size:12.5px; color:var(--ink-faint); }
+
+  /* ── tables ──────────────────────────────────────────────── */
+  .tablewrap{ overflow-x:auto; border:1px solid var(--line); border-radius:10px; }
+  table{ border-collapse:collapse; width:100%; font-size:13px; min-width:480px; }
+  table th{
+    text-align:left; font-family:"Bahnschrift","SF Compact Display","Segoe UI Semibold",system-ui,sans-serif;
+    font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--ink-faint);
+    background:var(--surface-2); padding:9px 12px; border-bottom:1px solid var(--line);
+    position:sticky; top:0;
+  }
+  table td{ padding:9px 12px; border-bottom:1px solid var(--line); color:var(--ink-soft); font-variant-numeric:tabular-nums; }
+  table tr:last-child td{ border-bottom:none; }
+  table.reftable td:first-child, table.reftable th:first-child{ color:var(--ink); font-weight:600; }
+
+  /* ── troubleshoot rows ───────────────────────────────────── */
+  .tr-item{ border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:10px; background:var(--surface); }
+  .tr-item .sym{ font-weight:700; font-size:14px; margin-bottom:4px; }
+  .tr-item .cause{ font-size:12.5px; color:var(--ink-faint); margin-bottom:6px; }
+  .tr-item .fix{ font-size:13.5px; color:var(--ink-soft); }
+  .tr-item .fix::before{ content:"處理方式 — "; font-weight:700; color:var(--accent-strong); }
+
+  details{ border:1px solid var(--line); border-radius:10px; background:var(--surface); padding:4px 0; margin-bottom:12px; }
+  summary{ cursor:pointer; padding:14px 18px; font-weight:700; font-size:14px; list-style:none; }
+  summary::-webkit-details-marker{ display:none; }
+  summary::before{ content:"▸ "; color:var(--accent-strong); }
+  details[open] summary::before{ content:"▾ "; }
+  details .details-body{ padding:0 18px 16px; }
+
+  .toolgrid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:560px){ .toolgrid{ grid-template-columns:1fr; } .diagram{flex-direction:column;} .link{ flex-direction:row; padding:6px 0;} .link .line{height:24px;width:2px;} .link .line::after{ right:auto; top:auto; bottom:-1px; left:50%; transform:translateX(-50%); border-width:7px 5px 0 5px; border-color:var(--line-strong) transparent transparent transparent;} }
+
+  .note{ font-size:12.5px; color:var(--ink-faint); margin-top:12px; line-height:1.7; }
+  footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:12px; color:var(--ink-faint); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-title">ENDEX CAN 橋接器手冊</div>
+    <nav class="navchips">
+      <a href="#overview">系統一覽</a>
+      <a href="#led">燈號</a>
+      <a href="#ota">無線更新</a>
+      <a href="#fallback">備援工具</a>
+      <a href="#initial">首次燒錄</a>
+      <a href="#troubleshoot">疑難排解</a>
+      <a href="#reference">技術參考</a>
+    </nav>
+    <a class="topbar-cta" href="ble_ota.html" target="_blank" rel="noopener">開啟更新頁 ↗</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">現場操作手冊</span>
+    <h1>ENDEX CAN 橋接器 — 韌體更新與燈號手冊</h1>
+    <p class="lede">給燒錄／現場維護人員的操作指南：如何用瀏覽器對裝置進行 BLE 無線韌體更新（OTA）、如何從裝置燈號判斷目前狀態，以及更新失敗時的處理方式。</p>
+    <div class="metaline">
+      <span><b>裝置代號</b> ENDEX_CAN_XXYY（開機自動產生，XXYY 依每台裝置不同）</span>
+      <span><b>目標晶片</b> ESP32-H2</span>
+      <span><b>瀏覽器</b> Chrome / Edge（電腦或 Android）</span>
+    </div>
+    <div class="hero-actions">
+      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">開啟韌體更新頁面</a>
+      <a class="cta ghost" href="#ota">先看更新步驟</a>
+      <a class="cta ghost" href="#led">燈號對照</a>
+    </div>
+  </header>
+
+  <section id="overview">
+    <span class="eyebrow">01 · 系統一覽</span>
+    <h2>這台裝置在做什麼</h2>
+    <p class="sec-lede">ENDEX CAN 橋接器夾在「手機／電腦」與「車輛 CAN 匯流排」之間，同時也會主動去連線車上的踏頻功率感測器。更新韌體時，實際走的是最左邊這條 BLE 路徑。</p>
+
+    <div class="diagram">
+      <div class="node">
+        <div class="node-label">手機 / 電腦瀏覽器</div>
+        <div class="node-sub">ble_ota.html · Web Bluetooth</div>
+      </div>
+      <div class="link"><span class="lbl">BLE</span><div class="line"></div></div>
+      <div class="node">
+        <div class="node-label">ENDEX CAN 橋接器</div>
+        <div class="node-sub">ESP32-H2</div>
+      </div>
+      <div class="link"><span class="lbl">CAN</span><div class="line"></div></div>
+      <div class="node">
+        <div class="node-label">車輛控制器</div>
+        <div class="node-sub">驅動器 / 電池 / 儀表</div>
+      </div>
+      <div class="branch">
+        <div class="branch-inner"><div class="dash"></div>亦以 BLE 主動連線車上踏頻／功率感測器<div class="dash"></div></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      韌體更新全程只透過 <b>BLE 無線</b> 進行，不需要拆開裝置或接電腦排線 — 除非是全新、從未燒錄過的裝置（見「<a href="#initial">首次燒錄</a>」章節）。
+    </div>
+  </section>
+
+  <section id="led">
+    <span class="eyebrow">02 · 狀態確認</span>
+    <h2>燈號對照表</h2>
+    <p class="sec-lede">裝置上的指示燈預設為「自動模式」，用閃爍快慢反映目前的 BLE 連線狀態 — 更新前後都可以先看燈號確認裝置活著、且處於預期狀態。</p>
+
+    <div class="led-grid">
+      <div class="led-card">
+        <div class="led-dot fast lit"></div>
+        <div class="led-caption">
+          <div class="title">快閃</div>
+          <div class="pattern">週期約 125 ms</div>
+          <div class="desc">尚未連線，裝置正在廣播、等待配對。開始 OTA 前應該看到這個狀態。</div>
+        </div>
+      </div>
+      <div class="led-card">
+        <div class="led-dot slow lit"></div>
+        <div class="led-caption">
+          <div class="title">慢閃</div>
+          <div class="pattern">週期約 500 ms</div>
+          <div class="desc">已與手機／電腦建立 BLE 連線。傳輸韌體期間應維持這個狀態。</div>
+        </div>
+      </div>
+      <div class="led-card">
+        <div class="led-dot"></div>
+        <div class="led-caption">
+          <div class="title">常滅</div>
+          <div class="pattern">手動關閉</div>
+          <div class="desc">由主控 App 送出燈號指令強制關閉，不影響 BLE／CAN 功能。</div>
+        </div>
+      </div>
+      <div class="led-card">
+        <div class="led-dot lit"></div>
+        <div class="led-caption">
+          <div class="title">常亮</div>
+          <div class="pattern">手動開啟</div>
+          <div class="desc">由主控 App 送出燈號指令強制恆亮，同樣不影響連線狀態判讀。</div>
+        </div>
+      </div>
+    </div>
+    <p class="note">常滅／常亮是可被手機主控 App 手動覆蓋的模式，OTA 更新頁面本身不會去改燈號 — 如果更新前燈號不是快閃或慢閃，通常代表有人手動切換過，不影響更新，但無法單靠燈號判斷連線狀態，可直接進行下一步嘗試連線。</p>
+  </section>
+
+  <section id="ota">
+    <span class="eyebrow">03 · 主要流程</span>
+    <h2>BLE 無線更新（OTA）</h2>
+    <p class="sec-lede">使用瀏覽器版更新頁面，全程六個步驟，最後會自動驗證新韌體是否開機成功。更新頁面會在新分頁開啟，可以一邊對照本手冊操作。</p>
+
+    <div class="hero-actions" style="margin:0 0 6px;">
+      <a class="cta" href="ble_ota.html" target="_blank" rel="noopener">開啟韌體更新頁面</a>
+    </div>
+
+    <div class="callout warn">
+      <b>瀏覽器需求：</b>必須使用電腦或 Android 手機上的 <b>Chrome</b> 或 <b>Edge</b>（需支援 Web Bluetooth）。iPhone Safari 不支援，請改用「<a href="#fallback">備援工具</a>」章節的方式。
+    </div>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">1</div><div class="rail-line"></div></div>
+        <div class="step-body">
+          <h3>準備韌體檔案</h3>
+          <p>取得工程師提供、經過驗證的 <code>.bin</code> 韌體檔（例如 <code>gattc_gatts_coex.bin</code>）。</p>
+          <p class="fine">請確認檔案來源與版本正確 — 頁面本身不會檢查這份 .bin 是不是「對的那一份」。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">2</div><div class="rail-line"></div></div>
+        <div class="step-body">
+          <h3>開啟更新頁面並選檔</h3>
+          <p>開啟 <a href="ble_ota.html" target="_blank" rel="noopener">韌體更新頁面</a>，在「<b>① 選擇韌體檔案</b>」點一下選檔，或直接把 <code>.bin</code> 拖曳進虛線框。</p>
+          <p class="fine">選好後會顯示檔名與大小，「② 確認版本」左側會立刻顯示這份 .bin 內嵌的版本號（不需連線裝置）。若顯示「無法辨識」，代表檔案不是正確的韌體，更新按鈕會維持停用。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">3</div><div class="rail-line"></div></div>
+        <div class="step-body">
+          <h3>選擇裝置、確認版本（建議）</h3>
+          <p>按「<b>連線讀取裝置版本</b>」，瀏覽器會跳出裝置清單，選取名稱開頭為 <code>ENDEX_CAN_</code> 的裝置後按「配對」。頁面會顯示裝置目前版本，並自動比對：</p>
+          <div class="tablewrap" style="margin:8px 0;"><table style="min-width:0;"><tbody>
+            <tr><td>✔ 檔案版本較新</td><td>正常情況，可以更新</td></tr>
+            <tr><td>＝ 與裝置完全相同</td><td>不需要更新；硬要更新時頁面會再確認一次</td></tr>
+            <tr><td>⚠ 檔案版本比裝置舊</td><td>會降版，按更新時頁面會跳出確認</td></tr>
+          </tbody></table></div>
+          <p class="fine">這一步只讀取、不寫入。選過的裝置在按「開始 OTA 更新」時會直接沿用，不必再選一次。附近有多台裝置時，請對照實體序號（貼在裝置上或由工程師告知），避免選錯台。跳過這一步也可以，按更新時才會跳出裝置清單。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">4</div><div class="rail-line"></div></div>
+        <div class="step-body">
+          <h3>開始更新，等待傳輸完成</h3>
+          <p>按「<b>開始 OTA 更新</b>」。上方的「連線 → 開始 → 傳輸 → 驗證」會顯示目前階段，進度條下方會顯示已傳送大小、傳輸速度與<b>預估剩餘秒數</b>。過程中裝置燈號應保持「慢閃」。</p>
+          <p class="fine">更新期間頁面會盡量防止螢幕休眠，誤按關閉分頁也會先跳出提醒。仍請讓手機／電腦靠近裝置、不要切換到省電模式，以免藍牙連線中斷。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">5</div><div class="rail-line"></div></div>
+        <div class="step-body">
+          <h3>裝置自動重新開機</h3>
+          <p>傳輸完成後頁面會自動送出結束指令，裝置隨即重開機套用新韌體，約需數秒鐘。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-rail"><div class="stepnum">6</div></div>
+        <div class="step-body">
+          <h3>自動驗證結果</h3>
+          <p>頁面會倒數 8 秒等裝置開機，再自動重新連線（最多 8 次），最後在進度條下方顯示結果卡片，並把「裝置目前」版本更新成實際運行的版本：</p>
+          <div class="callout good" style="margin-top:10px;"><b>✔ 更新成功</b> — 新韌體驗證通過並正常運行，卡片會顯示新版本號，可以結束頁面。</div>
+          <div class="callout danger"><b>⚠ 新韌體未通過驗證 / 無法確認更新結果</b> — 請見下方「<a href="#troubleshoot">疑難排解</a>」，先不要重複燒錄同一份檔案。</div>
+          <p class="fine">需要回報工程師時，展開頁面最下方的「詳細記錄」，截圖或複製內容一起附上。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="fallback">
+    <span class="eyebrow">04 · 備援方式</span>
+    <h2>瀏覽器無法使用時</h2>
+    <p class="sec-lede">若手邊只有不支援 Web Bluetooth 的裝置（例如 iPhone），可改用命令列版工具，流程與網頁版一致，一樣會自動驗證。</p>
+
+    <div class="toolgrid">
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px;">命令列工具</div>
+        <p style="margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);"><code>ble_ota_tester.py</code>，需要 Windows/Mac 電腦裝好 Python。</p>
+        <div class="tablewrap"><table><tbody>
+          <tr><td>1</td><td><code>pip install bleak</code></td></tr>
+          <tr><td>2</td><td><code>python ble_ota_tester.py firmware.bin</code></td></tr>
+        </tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px;">獨立執行檔</div>
+        <p style="margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);">不想裝 Python 時，工程師可事先把上述工具打包成單一 <code>ble_ota_tester.exe</code>（PyInstaller），直接雙擊執行、拖入或帶入韌體路徑即可，其餘步驟相同。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="initial">
+    <span class="eyebrow">05 · 特殊情況</span>
+    <h2>首次燒錄（全新／裸機裝置）</h2>
+    <p class="sec-lede">從未燒錄過韌體的全新板子，還沒有 BLE OTA 服務可用，必須先用 USB 排線接上電腦，用燒錄工具寫入一次完整韌體。之後才能改用上面的無線 OTA 流程更新。</p>
+
+    <div class="tablewrap">
+      <table class="reftable">
+        <thead><tr><th>檔案</th><th>燒錄位址</th><th>備註</th></tr></thead>
+        <tbody>
+          <tr><td>bootloader.bin</td><td>0x0000</td><td>ESP32-H2 開機程式，位址是 0，不是常見的 0x1000</td></tr>
+          <tr><td>partition-table.bin</td><td>0x8000</td><td>分割表</td></tr>
+          <tr><td>ota_data_initial.bin</td><td>0x10000</td><td>OTA 狀態區，缺這個之後無法用無線更新</td></tr>
+          <tr><td>gattc_gatts_coex.bin</td><td>0x20000</td><td>應用程式本體</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="toolgrid">
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px;">簡易燒錄工具（推薦）</div>
+        <p style="margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);">將上表四個 <code>.bin</code> 檔與 <code>flash_first_time.bat</code> 放在同一個資料夾，雙擊執行、輸入連接埠（如 <code>COM5</code>）並確認，會自動依上表位址燒錄四個檔案，不需要手動輸入指令。</p>
+        <p class="fine" style="margin:0;">需求：電腦已安裝 Python 並可執行 <code>esptool.py</code>。</p>
+      </div>
+      <div class="card">
+        <div class="eyebrow" style="margin-bottom:6px;">手動指令</div>
+        <p style="margin:0 0 8px;font-size:13.5px;color:var(--ink-soft);">燒錄指令範例（<code>COMx</code> 換成實際連接埠）：</p>
+        <div class="tablewrap"><table><tbody>
+          <tr><td colspan="1" style="word-break:break-all;"><code>esptool.py --chip esp32h2 -p COMx -b 460800 write_flash 0x0 bootloader.bin 0x8000 partition-table.bin 0x10000 ota_data_initial.bin 0x20000 gattc_gatts_coex.bin</code></td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="troubleshoot">
+    <span class="eyebrow">06 · 疑難排解</span>
+    <h2>更新失敗時怎麼辦</h2>
+
+    <div class="tr-item">
+      <div class="sym">頁面顯示「此瀏覽器不支援 Web Bluetooth」，按鈕無法按</div>
+      <div class="cause">使用了 Safari、Firefox，或 iPhone 上的任何瀏覽器</div>
+      <div class="fix">改用電腦或 Android 手機上的 Chrome / Edge；只有 iPhone 時請改用「<a href="#fallback">備援工具</a>」。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">顯示「未選擇裝置」</div>
+      <div class="cause">裝置清單跳出後按了取消，或清單裡沒有任何 ENDEX_CAN_ 裝置可選</div>
+      <div class="fix">重新按一次按鈕並選取裝置；若清單是空的，請看下一項。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">掃描不到 ENDEX_CAN_ 開頭的裝置</div>
+      <div class="cause">裝置未通電、不在藍牙範圍內，或已被其他手機／電腦占用連線中</div>
+      <div class="fix">確認裝置電源與燈號（應為快閃／未連線狀態）；若燈號是慢閃，代表已有其他裝置連著，請先讓那邊斷線再試。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">傳輸到一半突然中斷、進度條卡住</div>
+      <div class="cause">藍牙訊號不穩、裝置離太遠，或手機進入省電/鎖螢幕模式打斷了連線</div>
+      <div class="fix">讓裝置與手機保持近距離、關閉省電模式，重新整理頁面後從頭再做一次即可，不會因此把裝置變磚（新韌體要驗證通過才會生效）。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">重連後顯示「未驗證」或 8 次都連線失敗</div>
+      <div class="cause">新韌體開機自我檢查沒通過，系統已自動退回原本可用的舊版本</div>
+      <div class="fix">不要重複燒錄同一份 .bin。先確認燈號是否恢復快閃（代表裝置仍正常運作於舊韌體），並回報工程師這份韌體檔案與序號，待確認後再重新嘗試。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">更新顯示成功，但不確定裝到的是哪個版本</div>
+      <div class="cause">結果卡片沒有顯示版本，或「裝置目前」顯示「舊版韌體（無版本資訊）」</div>
+      <div class="fix">網頁版會在結果卡片與「裝置目前」欄位顯示實際運行的版本；若沒顯示，代表裝置上跑的是更早、還沒有 0xFE04 版本特徵值的舊韌體（不影響本次更新是否成功），可直接以提供的 .bin 檔名／交付紀錄核對版本。</div>
+    </div>
+  </section>
+
+  <section id="reference">
+    <span class="eyebrow">07 · 附錄</span>
+    <h2>技術參考</h2>
+    <p class="sec-lede">給工程師 / 進階排錯用，一般更新流程不需要用到以下內容。</p>
+
+    <details>
+      <summary>OTA 服務特徵值（0xFE00）</summary>
+      <div class="details-body">
+        <div class="tablewrap">
+          <table class="reftable">
+            <thead><tr><th>名稱</th><th>UUID</th><th>方向</th><th>用途</th></tr></thead>
+            <tbody>
+              <tr><td>Ctrl</td><td>0xFE01</td><td>手機 → 裝置</td><td><code>0x01</code>=開始, <code>0x02</code>=結束</td></tr>
+              <tr><td>Data</td><td>0xFE02</td><td>手機 → 裝置</td><td>韌體資料塊，每塊最多 512 bytes</td></tr>
+              <tr><td>Status</td><td>0xFE03</td><td>裝置 → 手機</td><td><code>0x00</code>=閒置, <code>0x01</code>=驗證通過並運行中</td></tr>
+              <tr><td>Version</td><td>0xFE04</td><td>裝置 → 手機（讀取）</td><td>組成 <code>"版本 日期 時間"</code> 字串，例如 <code>1.0.0 Mar 30 2025 17:22:33</code></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="fine" style="margin-top:10px;">「版本」來自專案根目錄的 <code>version.txt</code>（純文字檔，工程師每次發版手動更新），build 時會自動內嵌進韌體；「日期／時間」是編譯當下的時間戳，由 build 系統自動填入，可用來確認是不是最新那次 build。這個值跟 <code>ble_ota.html</code>「更新檔案版本」本機解析 .bin 顯示的內容是同一個來源，兩邊必定一致。</p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Web Bluetooth 掃描過濾條件</summary>
+      <div class="details-body">
+        <p style="font-size:13.5px;color:var(--ink-soft);">更新頁面以裝置名稱前綴 <code>namePrefix: 'ENDEX_CAN_'</code> 過濾掃描結果；裝置名稱在每次開機時，由藍牙 MAC 位址末兩碼動態組成（例如 <code>ENDEX_CAN_A1B2</code>），並非固定字串。</p>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    適用 ENDEX CAN 橋接器（ESP32-H2）。韌體檔案、命令列工具與協定技術細節請洽負責工程師。
+  </footer>
+
+</div>
+
+<script>
+  // 捲動時標示目前所在章節，手機上同時把該章節的導覽捲進可視範圍
+  (function () {
+    const links = Array.from(document.querySelectorAll('.navchips a'));
+    const byId = new Map(links.map(a => [a.getAttribute('href').slice(1), a]));
+    if (!('IntersectionObserver' in window)) return;
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        const a = byId.get(en.target.id);
+        if (!a) return;
+        links.forEach(l => l.classList.toggle('active', l === a));
+        a.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+    document.querySelectorAll('section[id]').forEach(s => obs.observe(s));
+  })();
+</script>
+</body>
+</html>

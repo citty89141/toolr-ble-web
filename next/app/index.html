@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#425563">
+<title>ToolR 工具</title>
+  <script type="module" crossorigin src="./assets/index-2yGRhb9D.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CBqFqSoL.css">
+</head>
+<body>
+<header>
+  <h1><a id="homeLink" class="home" href="../" title="ToolR 工具首頁" aria-label="ToolR 工具首頁" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></a><span id="viewTitle">儀表板</span></h1>
+  <span class="hdr-right">
+    <a id="hdrRec" class="hdr-rec" href="#dash" hidden>● REC <b id="hdrRecTime"></b></a>
+    <button id="connChip" type="button" class="conn" data-state="off" aria-haspopup="dialog">未連線</button>
+  </span>
+</header>
+
+<main>
+  <!-- ===== 儀表板 ===== -->
+  <div id="view-dash" class="view">
+    <div id="connFail" class="notice notice-x" role="alert" hidden>
+      <div><b id="connFailTitle">連線失敗</b><span id="connFailText"></span></div>
+      <button id="connFailClose" type="button" class="xbtn" aria-label="關閉訊息"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <p id="noRaw" class="notice" hidden>這個模組的韌體沒有錄製服務（1.1.0 以前的版本）。設定與燒錄照常可用；要錄製請先用「ToolB 韌體更新」更新模組。</p>
+    <section id="dash" class="dash" data-rec="0" aria-label="儀表板">
+      <div class="dash-bar">
+        <span id="dLink">未連線</span>
+        <span id="dRec" class="dash-rec" hidden>● REC <b id="dRecTime"></b></span>
+        <span class="dash-right">
+          <button id="dGps" type="button" class="dpill" data-state="off" hidden>GPS —</button>
+          <button id="dWake" type="button" class="dpill" data-state="off" hidden>常亮 —</button>
+          <b id="dClock"></b>
+          <button id="btnLock" type="button" class="dash-lock-btn" aria-label="鎖定螢幕"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
+          <button id="btnFull" type="button" class="dash-full-btn" aria-label="全螢幕儀表" aria-pressed="false"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span>全螢幕</span></button>
+        </span>
+      </div>
+      <button id="dWarn" type="button" class="dash-warn" hidden></button>
+      <div class="dash-row dash-top">
+        <div class="dcell big"></div>
+        <div class="dcell"></div>
+      </div>
+      <div class="dash-row dash-power">
+        <div class="dhead"><span>踩踏功率</span><span class="motor">馬達功率</span></div>
+        <div class="dpw-vals">
+          <span class="dv"><b id="dPped">—</b><small>W</small></span>
+          <span class="dv motor"><b id="dPmot">—</b><small>W</small></span>
+        </div>
+        <div class="dpw-bar"><i id="dPbar"></i></div>
+        <div class="dfoot"><span id="dPshare">人力 —</span><span id="dPtotal">總輸出 — W</span></div>
+      </div>
+      <div class="dash-row dash-iph">
+        <div class="dhead"><span>電機相電流</span><span id="dIpeak" class="dsub">峰值 — A</span></div>
+        <div class="dv dright"><b id="dIph">—</b><small>A</small></div>
+        <div class="dgauge"><i id="dIbar"></i><s id="dIpk" hidden></s></div>
+        <div class="dfoot dscale"><span>0</span><span id="dImid">30</span><span id="dImax">60 A</span></div>
+      </div>
+      <div class="dash-row dash-small">
+        <div class="dcell"></div>
+        <div class="dcell"></div>
+        <div class="dcell"></div>
+      </div>
+      <div class="dash-ctl">
+        <div class="dctl">
+          <button id="btnMark" type="button" class="dround" aria-label="加標記" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg></button>
+          <span id="dMarks">標記 —</span>
+        </div>
+        <div class="dctl">
+          <button id="btnRec" type="button" class="drec" aria-label="開始錄製" disabled><i></i></button>
+          <b id="dRecLabel">開始錄製</b>
+        </div>
+        <div class="dctl">
+          <button id="btnFields" type="button" class="dround" aria-label="資料欄位設定"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="7" rx="1"/><rect x="3" y="14" width="8" height="7" rx="1"/><rect x="13" y="14" width="8" height="7" rx="1"/></svg></button>
+          <span>欄位</span>
+        </div>
+      </div>
+      <!-- 未連線: a guide over the whole dashboard instead of a screen of dashes -->
+      <div id="dashEmpty" class="dash-empty">
+        <h2>先連接 ToolB 模組</h2>
+        <p>連線後這裡會顯示速度、功率和相電流，按紅色按鈕就能開始錄製。</p>
+        <button id="btnConnect" type="button" class="dash-connect">連接模組</button>
+        <button id="btnDemo" type="button" class="dash-demo" hidden>示範模式</button>
+        <p id="noBle" class="dash-note" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。</p>
+        <p class="dash-note">iPhone 請用 Bluefy 開啟；Android 和電腦用 Chrome。</p>
+      </div>
+      <!-- 鎖定螢幕: covers the whole dashboard so nothing reacts to a touch; only holding the unlock button opens it -->
+      <div id="dLock" class="dash-lock" hidden>
+        <button id="btnUnlock" type="button" class="dunlock" aria-label="按住 1.5 秒解鎖">
+          <svg class="dunlock-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="29"/><circle id="dUnlockArc" cx="32" cy="32" r="29" pathLength="100"/></svg>
+          <svg class="dunlock-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+        </button>
+        <span id="dLockHint" class="dlock-hint">按住解鎖</span>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== 紀錄 ===== -->
+  <div id="view-logs" class="view" hidden>
+    <button id="cloudRow" type="button" class="cloud-row" data-state="off">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5 4.25 4.25 0 0 1 17.5 18z"/></svg>
+      <span id="cloudRowText">還沒設定雲端上傳</span>
+      <b>雲端設定 ›</b>
+    </button>
+    <p id="recsEmpty" class="muted a-note">還沒有錄製。到「儀表板」連接模組後按紅色按鈕開始。</p>
+    <ul id="recs" class="rides"></ul>
+  </div>
+
+  <!-- ===== 設定：感受 / 參數 ===== -->
+  <div id="view-tune" class="view" hidden>
+    <div class="seg" role="group" aria-label="設定類型">
+      <a href="#assist" data-sub="assist">感受</a>
+      <a href="#param" data-sub="param">參數</a>
+    </div>
+
+    <div id="view-assist" class="view">
+      <p class="notice busy-note" hidden></p>
+      <div class="tune-head">
+        <p class="muted"><span id="aSig"></span><span id="aScope">還沒讀取</span></p>
+        <button id="aRead" type="button">讀取車輛設定</button>
+      </div>
+      <div class="prog" hidden><div class="bar"><i id="aBar"></i></div><span id="aProg"></span></div>
+      <p id="aEmpty" class="muted a-note">按「讀取車輛設定」，從車上讀回目前的輔助設定。</p>
+      <div id="aBody" class="view"></div>
+      <details class="card">
+        <summary>估算里程用的條件</summary>
+        <div class="row a-batt">
+          <label class="grow">電池電壓（V）<input id="aVolts" type="number" min="12" max="100" step="0.1" inputmode="decimal"></label>
+          <label class="grow">電池容量（Ah）<input id="aAh" type="number" min="1" max="100" step="0.1" inputmode="decimal"></label>
+        </div>
+        <label class="a-effort">騎乘方式<select id="aEffort"></select></label>
+        <p class="muted">只用來估算可以騎多遠，不會寫進車子。</p>
+      </details>
+      <div id="aAct" class="actbar" hidden>
+        <div class="actbar-in">
+          <span id="aCount" class="act-count"></span>
+          <button id="aUndo" type="button">還原</button>
+          <button id="aWrite" type="button" class="primary">寫入車輛</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-param" class="view" hidden>
+      <p class="notice busy-note" hidden></p>
+      <div class="tune-head">
+        <input id="pSearch" type="search" aria-label="搜尋參數" placeholder="搜尋名稱或位址" autocomplete="off">
+        <button id="pRead" type="button">讀取參數</button>
+      </div>
+      <div class="prog" hidden><div class="bar"><i id="pBar"></i></div><span id="pProg"></span></div>
+      <p class="muted p-src"><span id="pSig"></span><span id="pSrc">參數表預設值（還沒讀取）</span></p>
+      <nav id="pPages" class="pages" aria-label="參數分頁"></nav>
+      <section class="card plist-card">
+        <p id="pEmpty" class="muted">按「讀取參數」從控制器讀回目前的設定。</p>
+        <ul id="pList" class="plist"></ul>
+      </section>
+      <details class="card">
+        <summary>更多</summary>
+        <label>機種
+          <select id="pModel"></select>
+        </label>
+        <p id="pIni" class="muted p-ini"></p>
+        <dl class="stats"><div class="wide"><dt>序號</dt><dd id="pSn">—</dd></div></dl>
+        <div class="row p-more">
+          <button id="pImport" type="button">匯入 Config</button>
+          <button id="pExport" type="button">匯出 Config</button>
+          <button id="pWriteAll" type="button">全部寫入</button>
+        </div>
+        <label class="check"><input id="pEng" type="checkbox"> 工程模式（顯示 SIG 分頁與隱藏參數）</label>
+        <label class="check"><input id="pOnlyChanged" type="checkbox"> 只顯示有變更的參數</label>
+        <label>同時讀取數（1 = 和 ebike-tool 一樣一次一個；2、4 較快，實機驗證中）
+          <select id="pWindow"><option value="1">1</option><option value="2">2</option><option value="4">4</option></select>
+        </label>
+        <div class="row"><button id="pPickIni" type="button">選擇 parameter.ini</button></div>
+        <p class="muted">完整功能（UART／COM 埠、馬達校正、驅動狀態監看、Config 編輯）請用電腦版 <a id="pDesktop" href="../param/">eBike Tool</a>。</p>
+      </details>
+      <div id="pAct" class="actbar" hidden>
+        <div class="actbar-in">
+          <span id="pCount" class="act-count"></span>
+          <button id="pUndo" type="button">還原</button>
+          <button id="pWrite" type="button" class="primary">寫入變更</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 燒錄 ===== -->
+  <div id="view-burn" class="view" hidden>
+    <p class="notice busy-note" hidden></p>
+    <section id="bRun" class="card brun" hidden>
+      <h2 id="bRunTitle"></h2>
+      <div class="brun-main"><b id="bPct">0</b><span id="bEta"></span></div>
+      <div class="bar" role="progressbar" aria-label="燒錄進度" aria-valuemin="0" aria-valuemax="100"><i id="bBar"></i></div>
+      <p id="bKeep" class="brun-keep">請保持在這個畫面，不要鎖螢幕或切到別的 App。</p>
+      <ol id="bStages" class="stages"></ol>
+      <p id="bResult" class="health"></p>
+    </section>
+    <section class="card">
+      <div class="a-title"><h2>這台控制器</h2><button id="bCheck" type="button">重新檢查</button></div>
+      <p id="bDevSig" class="bsig">—</p>
+      <p id="bDevState" class="bstate">還沒檢查</p>
+      <p id="bTs" class="muted"></p>
+    </section>
+    <section class="card">
+      <div class="a-title"><h2>選擇版本</h2><button id="bRefresh" type="button">重新整理</button></div>
+      <p id="bVersNote" class="muted"></p>
+      <div id="bVers" class="vers" role="radiogroup" aria-label="韌體版本"></div>
+      <p id="bSrc" class="muted"></p>
+    </section>
+    <details class="card">
+      <summary>自己的 HEX 檔與進階選項</summary>
+      <div class="row">
+        <button id="bPick" type="button">選擇 HEX 檔</button>
+        <button id="bDemoHex" type="button" hidden>示範 HEX</button>
+        <button id="bTsDetect" type="button">偵測力矩感測器</button>
+      </div>
+      <dl class="stats">
+        <div class="wide"><dt>檔案</dt><dd id="bFile">—</dd></div>
+        <div><dt>機種／版本</dt><dd id="bHexSig">—</dd></div>
+        <div><dt>大小</dt><dd id="bSize">—</dd></div>
+      </dl>
+      <label class="check"><input id="bSilence" type="checkbox"> 燒錄前靜默力矩感測器（F0）</label>
+      <label class="check"><input id="bResume" type="checkbox" checked> 燒錄完成後恢復力矩感測器（F1）</label>
+    </details>
+    <p id="bMatch" class="health"></p>
+    <div id="bAct" class="actbar">
+      <div class="actbar-in col">
+        <button id="bStart" type="button" class="primary" disabled>開始燒錄</button>
+        <span id="bHint" class="act-hint">燒錄中請保持在這個畫面</span>
+      </div>
+    </div>
+  </div>
+</main>
+
+<p id="tabsLock" class="tabs-lock" hidden>燒錄中，分頁已鎖定</p>
+<nav class="tabs" aria-label="功能">
+  <a href="#dash" data-view="dash"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8 8 0 0 1 16 0"/><path d="M12 18l4-6"/></svg>儀表板</a>
+  <a href="#logs" data-view="logs"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>紀錄</a>
+  <a href="#tune" data-view="tune"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>設定</a>
+  <a href="#burn" data-view="burn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg>燒錄</a>
+</nav>
+
+<!-- 連線面板: the connection chip in the header opens it -->
+<dialog id="connDlg" class="sheet">
+  <form method="dialog">
+    <div class="a-title"><h2 id="connTitle">未連線</h2><span id="connBadge" class="chip">未連線</span></div>
+    <dl id="connRows" class="rows">
+      <div><dt>ToolB 韌體</dt><dd id="cFw">—</dd></div>
+      <div><dt>車輛</dt><dd id="cBike">—</dd></div>
+      <div><dt>模組狀態</dt><dd id="cHealth">—</dd></div>
+    </dl>
+    <p id="gpsState" class="wake" data-state="off">GPS：未啟用（連線後在儀表板啟用）</p>
+    <p id="wakeState" class="wake" data-state="off">螢幕常亮：未啟用（連線後啟用）</p>
+    <details>
+      <summary>診斷資訊</summary>
+      <p id="devInfo" class="muted"></p>
+      <p id="devHealth" class="health"></p>
+      <dl class="stats">
+        <div><dt>匯流排</dt><dd id="vFps">—</dd></div>
+        <div><dt>手機已收到</dt><dd id="vRx">—</dd></div>
+        <div><dt>藍牙速率</dt><dd id="vRate">—</dd></div>
+        <div><dt>模組緩衝</dt><dd id="vBuf">—</dd></div>
+        <div><dt>漏收列數</dt><dd id="vDrop">—</dd></div>
+        <div><dt>標記</dt><dd id="vMarks">—</dd></div>
+        <div class="wide"><dt>CAN 錯誤</dt><dd id="vCan">—</dd></div>
+        <div class="wide"><dt>藍牙連線</dt><dd id="vLink">—</dd></div>
+      </dl>
+      <div class="row dev-sim">
+        <label class="grow">模組模擬模式 frame/s（0 = 關閉，不接車測藍牙用）<input id="setSim" type="number" min="0" max="5000" step="1" value="0"></label>
+        <button id="btnSim" type="button">套用</button>
+      </div>
+    </details>
+    <details>
+      <summary>系統日誌</summary>
+      <ul id="log" class="log"></ul>
+    </details>
+    <div class="row sheet-acts">
+      <button id="btnDisconnect" type="button" class="danger" hidden>中斷連線</button>
+      <button id="btnDrop" type="button" hidden>模擬藍牙斷線</button>
+      <button id="btnConnect2" type="button" class="primary">連接模組</button>
+      <button value="cancel" type="submit">關閉</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 雲端設定: Google Drive (Apps Script) for uploads and controller firmware -->
+<dialog id="cloudDlg" class="sheet">
+  <form method="dialog">
+    <h2>雲端設定</h2>
+    <p id="cloudState" class="health" data-state=""></p>
+    <div class="row">
+      <button id="cloudScan" type="button" class="primary">掃描設定 QR</button>
+      <button id="cloudPaste" type="button">貼上設定連結</button>
+      <button id="cloudTest" type="button">測試連線</button>
+    </div>
+    <p class="muted">設定 QR 和設定連結由已經設定好的手機產生，掃描或貼上就完成，不用打字。同一組設定用在上傳錄製和下載控制器韌體。</p>
+    <details id="cloudManual">
+      <summary>手動輸入</summary>
+      <label>上傳網址（Apps Script 的 …/exec，或自己的伺服器）<input id="setUrl" type="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></label>
+      <label>Token（和 Apps Script 指令碼屬性 TOKEN 相同）<input id="setToken" type="password" autocomplete="off"></label>
+    </details>
+    <details id="cloudShareBox">
+      <summary>分享給另一支手機</summary>
+      <p class="muted">設定連結和 QR 內含 Token，等同密碼，只給自己人。</p>
+      <div class="row">
+        <button id="cloudShare" type="button">分享設定連結</button>
+        <button id="cloudQr" type="button">顯示 QR</button>
+      </div>
+      <div id="cloudQrBox" class="qr" hidden></div>
+    </details>
+    <label class="check"><input id="setAuto" type="checkbox"> 自動上傳（Google Drive：錄完填好錄製資訊就上傳；伺服器：錄製中每 2 分鐘分段上傳）</label>
+    <div class="row sheet-acts">
+      <button value="ok" type="submit" class="primary">完成</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 掃描設定 QR (scan.js): the live camera, or a photo where the browser is not given the camera -->
+<dialog id="scanDlg" class="sheet">
+  <form method="dialog">
+    <h2>掃描設定 QR</h2>
+    <div id="scanBox" class="scan-box"><video id="scanVideo" playsinline muted></video></div>
+    <p id="scanState" class="scan-state" role="status"></p>
+    <input id="scanFile" type="file" accept="image/*" capture="environment" hidden>
+    <div class="row sheet-acts">
+      <button id="scanPhoto" type="button">改用拍照</button>
+      <button value="cancel" type="submit">取消</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="sheet" class="sheet">
+  <form method="dialog">
+    <h2 id="sheetTitle"></h2>
+    <div id="sheetBody"></div>
+    <div class="row sheet-acts">
+      <button value="cancel" type="submit">取消</button>
+      <button id="sheetOk" value="ok" type="submit" class="primary">確定</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="fieldsDlg" class="sheet">
+  <form method="dialog">
+    <h2>儀表板欄位</h2>
+    <p class="muted">先點格子，再點要放的資料。中間的「踩踏／馬達功率」和「電機相電流」固定顯示。</p>
+    <div id="fSlots" class="fslots"></div>
+    <b id="fSelName" class="fsel"></b>
+    <div id="fGroups" class="fgroups"></div>
+    <label class="check"><input id="fDay" type="checkbox"> 日間配色（陽光下比較好讀）</label>
+    <label class="check"><input id="fLive" type="checkbox"> 沒在錄製時也顯示即時數據</label>
+    <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
+    <label class="check"><input id="setGps" type="checkbox"> 記錄手機 GPS 路徑（存成 _GPS.CSV 和 .gpx）</label>
+    <div class="row sheet-acts">
+      <button id="fReset" type="button">恢復預設</button>
+      <button value="ok" type="submit" class="primary">完成</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="metaDlg" class="sheet">
+  <form id="metaForm" method="dialog">
+    <h2 id="metaTitle">錄製資訊</h2>
+    <p id="metaWhen" class="muted"></p>
+    <label>使用者<input id="metaUser" type="text" required autocomplete="name"></label>
+    <label>車輛型號<input id="metaVehicle" type="text" required></label>
+    <label>地點<input id="metaPlace" type="text" required></label>
+    <div class="row meta-2">
+      <label class="grow">騎乘者＋裝備重量（kg）<input id="metaWeight" type="number" min="20" max="250" step="0.5" inputmode="decimal"></label>
+      <label class="grow">胎壓<input id="metaTyre" type="text" placeholder="例：40／45 psi"></label>
+    </div>
+    <fieldset class="meta-feel">
+      <legend>騎乘感受（1 很差 – 5 很好，可不填）</legend>
+      <label>起步<select id="metaFeelStart"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>爬坡<select id="metaFeelClimb"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>高速<select id="metaFeelSpeed"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+      <label>平順<select id="metaFeelSmooth"><option value="">—</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+    </fieldset>
+    <label>備註<textarea id="metaNote" rows="3" placeholder="這趟的感覺、路況，或用了哪組設定"></textarea></label>
+    <div class="row sheet-acts">
+      <button type="button" id="metaLater">稍後</button>
+      <button type="submit" class="primary" value="ok">上傳</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
