@@ -100,6 +100,15 @@ tr.click { cursor: pointer; } tr.click:hover td { background: var(--accent-bg); 
 .ev .t { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; width: 64px; color: var(--text2); flex: none; }
 .ev .len { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; font-size: 12px; width: 70px; text-align: right; flex: none; }
 .ev .who { font-size: 12px; width: 130px; color: var(--muted); flex: none; }
+.errs { display: flex; flex-direction: column; gap: 10px; }
+.err { background: var(--sub); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; border-left: 4px solid var(--warndot); }
+.err.ef { border-left-color: var(--baddot); }
+.err .eh { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.err .code { font-family: "IBM Plex Mono", Consolas, ui-monospace, monospace; font-weight: 700; font-size: 18px; }
+.err .nm { font-weight: 700; font-size: 15px; }
+.err .ctx { font-size: 12px; color: var(--text2); }
+.err ol, .err ul { margin: 0; padding-left: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+.errfix { white-space: normal !important; min-width: 280px; }
 .tl { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; }
 .tl-main { flex: 999 1 640px; min-width: 0; }
 .tl-side { flex: 1 1 300px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
@@ -293,6 +302,28 @@ details.card > summary { cursor: pointer; font-weight: 700; min-height: 28px; }
         <ul id="notes" style="margin:0;padding-left:20px;display:flex;flex-direction:column;gap:4px"></ul>
       </section>
 
+      <section class="card" id="errCard" aria-labelledby="errh">
+        <div class="cardhead">
+          <h2 id="errh">控制器錯誤碼分析</h2>
+          <span class="help">儀表 Err 50–61 = 驅動器 Fault bit 0–11，Err 62–66 = Warning bit 0–4 · 處理方式依「錯誤碼」表（KD 儀表顯示）</span>
+        </div>
+        <div class="errs" id="errList"></div>
+        <details>
+          <summary style="cursor:pointer;font-weight:700;min-height:28px">儀表歷史錯誤換算</summary>
+          <div style="display:flex;flex-direction:column;gap:10px;padding-top:6px">
+            <span class="help">儀表 Setting → Information 的 Driver History Fault / Driver History Warning，照儀表上顯示的值輸入（16 進位，例如 10 = 電機霍爾異常）</span>
+            <div class="row" style="flex-wrap:wrap;gap:8px 16px">
+              <label class="help" style="display:flex;align-items:center;gap:6px">History Fault <input id="hisFault" type="text" placeholder="例 10" style="width:90px" class="mono"></label>
+              <label class="help" style="display:flex;align-items:center;gap:6px">History Warning <input id="hisWarn" type="text" placeholder="例 4" style="width:90px" class="mono"></label>
+            </div>
+            <div class="errs" id="hisOut"></div>
+          </div>
+        </details>
+        <details>
+          <summary style="cursor:pointer;font-weight:700;min-height:28px">錯誤碼對照與處理方式（全部）</summary>
+          <div class="tablewrap" id="errRef"></div>
+        </details>
+      </section>
 
       <section class="card" id="nodeCard" aria-labelledby="nodeh">
         <div class="cardhead">
@@ -551,6 +582,36 @@ const BITS = {
 };
 const BIT_TABLES = [["驅動器 Fault（DRIVE_INFO_3 byte 0-1）", "fault"], ["驅動器 Warning（DRIVE_INFO_3 byte 2-3）", "warn"], ["驅動器狀態（DRIVE_INFO_0 byte 0）", "drvStat"],
   ["周邊狀態（DRIVE_INFO_0 byte 1）", "drvPep"], ["電池 Fault（BMS_INFO_1 byte 4-5）", "batF"], ["電池狀態（BMS_INFO_1 byte 6）", "batSt"]];
+// meter Err code -> driver Fault / Warning bit, with the handling steps of the Drive sheet「錯誤碼」(KD儀表顯示, 2026-10-28);
+// 65 / 66 are blank there and come from「錯誤碼 轉換工具」(alt: true); bits without a code are firmware additions
+const ERR_CODES = [
+  [50, "fault", 0, "過電流", ["更換電機做交叉比對", "更換控制器", "仍出現此錯誤，聯絡控制器廠商"]],
+  [51, "fault", 1, "過電壓", ["檢查電池規格", "確認正確，仍出現此錯誤聯絡控制器廠商"]],
+  [52, "fault", 2, "低電壓", ["檢查電池規格", "確認正確，仍出現此錯誤聯絡控制器廠商"]],
+  [53, "fault", 3, "電路錯誤（OPAMP）", ["控制器損壞，請更換控制器 / 聯絡控制器廠商"]],
+  [54, "fault", 4, "電機霍爾異常", ["檢查電機接線是否接妥", "更換電機做交叉比對", "仍出現，請更換控制器 / 聯絡控制器廠商"]],
+  [55, "fault", 5, "電機相線異常", ["檢查電機線材是否有損傷（若確認損傷，控制器與電機有機會已毀損，切勿繼續測試以免損壞更多零件）", "更換電機做交叉比對", "仍出現，請更換控制器 / 聯絡控制器廠商"]],
+  [56, "fault", 6, "E-Lock 異常", ["確認接線與配件，是否都正確搭配", "參數配對錯誤，請聯繫控制器廠商"]],
+  [57, "fault", 7, "踏頻傳感器異常", ["傳感器損壞，更換傳感器"]],
+  [58, "fault", 8, "力矩傳感器異常", ["確認開機時，腳沒有踩在踏板上，踏板沒有任何應力", "檢查傳感器接線", "力矩傳感器損壞，更換傳感器"]],
+  [59, "fault", 9, "油門異常", ["確認開機時，沒有按下油門", "檢查油門接線", "油門損壞，請更換"]],
+  [60, "fault", 10, "霍爾換相異常", []],
+  [61, "fault", 11, "通訊異常", ["檢查儀表接線，是否接妥"]],
+  [null, "fault", 12, "啟動運轉錯誤（韌體）", []],
+  [62, "warn", 0, "控制器過溫", ["請稍待降溫後，再使用，錯誤會自己消失", "開發時，請聯繫廠商，降低控制器輸出，或加強控制器散熱"]],
+  [63, "warn", 1, "電機過溫", ["請稍待降溫後，再使用，錯誤會自己消失"]],
+  [64, "warn", 2, "電機堵轉", ["檢查機構，確認電機能正常轉動"]],
+  [65, "warn", 3, "輪鼓鎖異常", ["檢查輪鼓鎖接線是否鬆脫", "更新到最新版本程式", "換一顆輪鼓鎖交叉比對，若另一顆可以請更換輪鼓鎖", "若另一顆不行，請更換控制器"], true],
+  [66, "warn", 4, "速度感測器異常", ["參數異常，請更新參數"], true],
+  [null, "warn", 5, "輪速與馬達不符（韌體）", []],
+  [null, "warn", 6, "Flash 讀取錯誤（韌體）", []],
+].map(([code, k, bit, name, fix, alt]) => ({ code, k, bit, name, fix, alt: !!alt }));
+const errOf = (k, bit) => ERR_CODES.find((e) => e.k === k && e.bit === bit);
+const k2who = (k) => (k === "fault" ? "Fault" : "Warning");
+const errTag = (e) => (e.code ? "Err " + e.code : k2who(e.k) + " bit " + e.bit);
+// names of the bits set in a driver fault-history read (same bit layout as DRIVE_INFO_3)
+const storyNames = (h) => [["fault", h.fault], ["warn", h.warn]].flatMap(([k, v]) =>
+  [...Array(16).keys()].filter((b) => v & (1 << b)).map((b) => BITS[k][b] || `${k === "fault" ? "Fault" : "Warning"} bit${b}（未定義）`));
 const HMI_SWITCH = { 0x00: "閒置", 0x5A: "開機", 0xA5: "關機" };
 const HMI_BCAST = { 0: "停止驅動器廣播", 1: "啟用廣播", 2: "靜音（驅動器全部停止傳送）" };
 
@@ -608,6 +669,9 @@ function decodeFrame(key, info, t, b) {
     else if (e.idx === 0x6A && L >= 7) { const ch = (x) => (x >= 32 && x < 127 ? String.fromCharCode(x) : "?"); r.sn = `${ch(b[0])}${ch(b[1])} ${hx(b[2], 2)}-${hx(b[3], 2)} v${b[4]} #${u16(b, 5)}`; }
     return;
   }
+  // driver fault history (INDEX 0x24 read response, 4 bytes: fault u16, warning u16 = fault_story);
+  // survives power cycles once the controller has the fault journal (CAN-004 / Schaca 8af2506a)
+  if (e.cmd === 0 && e.src === 0x50 && e.idx === 0x24 && L >= 4) { S.story.push({ t, fault: u16(b, 0), warn: u16(b, 2), dst: e.dst }); return; }
   if (e.cmd !== 4) return;
   if (e.src === 0x50) {
     if (e.idx === 0x20 && L >= 8) { put("drvStat", key, t, b[0]); put("drvPep", key, t, b[1]); put("spd", key, t, u16(b, 2) / 10); put("cur", key, t, s16(b, 4) / 10); put("volt", key, t, u16(b, 6) / 10); }
@@ -642,7 +706,7 @@ let S = null;
 function newState(name) {
   return { name, kind: "", ver: "", end: "", endKV: {}, rows: 0, t0: 0, t1: 0, dt: 0, ids: {}, sig: {}, cadRaw: [], chkErr: {}, stat: [], tx: [], bat: {},
     recGaps: [], restarts: [], extraHeaders: 0, pulses: [], pairs: [], marks: [], segs: [], rideMarks: [], charts: [], ov: null, bus: null, bal: null,
-    syncing: false, cursorChart: null, health: null, faults: [], lds: false, lanes: null, gps: null, alignU: null, rangeMode: "all" };
+    syncing: false, cursorChart: null, health: null, faults: [], story: [], lds: false, lanes: null, gps: null, alignU: null, rangeMode: "all" };
 }
 
 // ================= parsing =================
@@ -975,7 +1039,7 @@ function faultEvents() {
         if (!(ch & (1 << b)) || (keep && !keep.includes(b))) continue;
         const name = table[b] || "bit" + b + "（未定義）";
         const on = !!(v & (1 << b));
-        if (on) { const ev = { t: s.t[i], who, txt: (i === 0 ? "開始時已有：" : "出現：") + name, on: true, sev, bit: b, key: k }; out.push(ev); open[b] = ev; }
+        if (on) { const ev = { t: s.t[i], who, txt: (i === 0 ? "開始時已有：" : "出現：") + name, on: true, sev, bit: b, key: k, start: i === 0 }; out.push(ev); open[b] = ev; }
         else { if (open[b]) { open[b].t1 = s.t[i]; open[b] = null; } out.push({ t: s.t[i], who, txt: "解除：" + name, on: false, sev: "na" }); }
       }
       prev = v;
@@ -1031,9 +1095,13 @@ function summarize() {
   const nErr = S.faults.filter((e) => e.sev === "bad" && e.on).length, nWarn = S.faults.filter((e) => e.sev === "warn" && e.on).length;
   tiles.push({ k: "故障 / 警告事件", v: `${nErr} / ${nWarn}`, s: nErr + nWarn ? "詳見事件列表" : "沒有偵測到", bad: nErr > 0 });
   // notes
+  if (S.story.length) {
+    const h = S.story[S.story.length - 1], nm = storyNames(h);
+    notes.push({ lvl: nm.length ? "warn" : "info", text: nm.length ? `控制器故障歷史（0x24 讀回）：${nm.join("、")}。這是累積紀錄，不代表這段錄製中發生。` : "控制器故障歷史（0x24 讀回）：沒有紀錄。", t: h.t });
+  }
   const byBit = {};
   for (const e of S.faults) if (e.on && (e.sev === "bad" || e.sev === "warn")) { const k = e.who + "|" + e.bit; (byBit[k] = byBit[k] || { e, n: 0, dur: 0 }).n++; byBit[k].dur += (e.t1 || e.t) - e.t; }
-  for (const { e, n, dur } of Object.values(byBit)) notes.push({ lvl: e.sev, text: `${e.who}：${e.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")}，發生 ${n} 次，累計 ${dur.toFixed(1)} s，第一次在 ${fmtS(e.t)} s`, t: e.t });
+  for (const { e, n, dur } of Object.values(byBit)) notes.push({ lvl: e.sev, text: `${e.who}：${(errOf(e.key, e.bit) || {}).code ? "儀表 Err " + errOf(e.key, e.bit).code + " " : ""}${e.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")}，發生 ${n} 次，累計 ${dur.toFixed(1)} s，第一次在 ${fmtS(e.t)} s`, t: e.t });
   for (const [k, lb] of [["drvTemp", "驅動器溫度"], ["motTemp", "馬達溫度"]]) {
     if (!(r = stats(k))) continue;
     if (r.mx > 80) notes.push({ lvl: "warn", text: `${lb}最高 ${fx(r.mx, 0)} °C（超過 80 °C），注意散熱。`, t: r.tmx });
@@ -1113,6 +1181,12 @@ function renderVerdicts() {
   const uniq = (arr) => [...new Set(arr.map((x) => x.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")))];
   add(fb.length ? "bad" : fw.length ? "warn" : "ok", "故障碼", fb.length || fw.length ? `${uniq(fb).length} 種故障 · ${uniq(fw).length} 種警告` : "沒有故障",
     fb.length || fw.length ? esc([...uniq(fb), ...uniq(fw)].slice(0, 4).join(" · ")) : (S.sig.fault || Object.keys(S.sig).some((k) => /^bat..f$/.test(k)) ? "整段沒有驅動器或電池故障碼" : "這個檔沒有故障碼欄位"));
+  if (S.story.length) {   // driver fault history read back (INDEX 0x24)
+    const h = S.story[S.story.length - 1], nm = storyNames(h);
+    add(nm.length ? "warn" : "ok", "控制器故障歷史", nm.length ? `${nm.length} 種曾發生` : "沒有紀錄",
+      (nm.length ? esc(nm.join(" · ")) + "<br>" : "") + `Fault 0x${hx(h.fault, 4)} · Warning 0x${hx(h.warn, 4)}，${fmtS(h.t)} s 由${esc(nodeName(h.dst))}讀回` +
+      "<br>累積到上次清除（工具寫 0x0090=0xC 或存參數）為止；控制器韌體含 fault journal 才會跨關機保留");
+  }
   const B = batteryList();
   if (B.length) {
     const sohs = B.filter((b) => b.dup == null).map((b) => b.soh).filter((x) => x != null), issues = B.filter((b) => b.cls !== "ok");
@@ -1173,7 +1247,84 @@ function renderFaults() {
   $("faultTable").onclick = (e) => { const b = e.target.closest("[data-f]"); if (b) { const x = F[+b.dataset.f]; goTime(x.t - 5, (x.t1 || x.t) + 5); } };
 }
 function renderBits() {
-  $("bitdefs").innerHTML = BIT_TABLES.map(([title, k]) => `<h3>${esc(title)}</h3><table style="margin-bottom:8px"><tbody>${BITS[k].map((n, i) => n ? `<tr><td class="num" style="width:60px">bit ${i}</td><td>${esc(n)}</td></tr>` : "").join("")}</tbody></table>`).join("");
+  const code = (k, i) => ((errOf(k, i) || {}).code ? "儀表 Err " + errOf(k, i).code : "");
+  $("bitdefs").innerHTML = BIT_TABLES.map(([title, k]) => `<h3>${esc(title)}</h3><table style="margin-bottom:8px"><tbody>${BITS[k].map((n, i) => n ? `<tr><td class="num" style="width:60px">bit ${i}</td><td>${esc(n)}</td><td class="help">${code(k, i)}</td></tr>` : "").join("")}</tbody></table>`).join("");
+}
+
+// ================= controller error codes (meter Err 50-66) =================
+function valAt(k, t) {   // sample-and-hold value of signal k at time t
+  const s = S.sig[k]; if (!s || !s.t.length || t < s.t[0]) return null;
+  let lo = 0, hi = s.t.length - 1;
+  while (lo < hi) { const m = (lo + hi + 1) >> 1; if (s.t[m] <= t) lo = m; else hi = m - 1; }
+  return s.v[lo];
+}
+function winStats(k, a, b) {   // min / max of signal k inside [a, b]
+  const s = S.sig[k]; if (!s) return null;
+  let mn = Infinity, mx = -Infinity, tmn = null, tmx = null;
+  for (let i = 0; i < s.t.length; i++) {
+    const x = s.v[i]; if (s.t[i] < a || s.t[i] > b || !isFinite(x)) continue;
+    if (x < mn) { mn = x; tmn = s.t[i]; } if (x > mx) { mx = x; tmx = s.t[i]; }
+  }
+  return isFinite(mn) ? { mn, mx, tmn, tmx } : null;
+}
+const CTX = [["volt", "電壓", "V", 1], ["cur", "電流", "A", 1], ["mpc", "相電流", "A", 0], ["spd", "車速", "km/h", 1], ["rpm", "馬達", "rpm", 0], ["drvTemp", "驅動器", "°C", 0], ["motTemp", "馬達", "°C", 0], ["ass", "段位", "", 0]];
+function ctxAt(t) {
+  return CTX.map(([k, lb, u, d]) => { const v = valAt(k, t); return v == null || !isFinite(v) ? null : `${lb} ${fx(v, d)}${u ? " " + u : ""}`; }).filter(Boolean).join(" · ");
+}
+const occ = (k, bit) => S.faults.filter((x) => x.on && x.key === k && x.bit === bit);
+const touches = (A, B, pad) => A.some((x) => B.some((y) => x.t - pad <= (y.t1 ?? y.t) && y.t - pad <= (x.t1 ?? x.t)));
+// what the log itself says about this error, next to the generic handling steps
+function errHints(e, evs) {
+  const H = [], t0 = evs[0].t, c = e.code;
+  if (evs.some((x) => x.start)) H.push(c === 58 ? "紀錄一開始就已經有：如果是開機就開始錄，最常見的是開機時腳踩在踏板上" : c === 59 ? "紀錄一開始就已經有：如果是開機就開始錄，最常見的是開機時按著油門" : "紀錄一開始就已經有（錄製前或開機時就發生）");
+  if (evs.some((x) => x.open)) H.push("到紀錄結束都沒有解除");
+  const around = (k, pre, post) => evs.map((x) => winStats(k, x.t - pre, (x.t1 ?? x.t) + post)).filter(Boolean)   // min / max over every occurrence
+    .reduce((a, w) => (a ? { mn: Math.min(a.mn, w.mn), mx: Math.max(a.mx, w.mx) } : w), null);
+  let r;
+  if (c === 50) for (const [k, lb] of [["mpc", "相電流"], ["cur", "驅動電流"]]) if ((r = around(k, 2, 0))) H.push(`發生前 2 s 最大${lb} ${fx(r.mx, 1)} A`);
+  if ((c === 51 || c === 52) && (r = around("volt", 3, 3))) H.push(`發生前後 3 s 驅動器電壓 ${fx(r.mn)} – ${fx(r.mx)} V`);
+  if ((c === 54 || c === 60) && touches(evs, occ("fault", 2), 2)) H.push("和 Err 52 低電壓同時出現：電壓掉落可能讓霍爾誤判，先查電池 / 電源");
+  if (c === 52 || c === 51) {
+    const bf = S.faults.filter((x) => x.on && /^bat..f$/.test(x.key || ""));
+    if (touches(evs, bf, 3)) H.push("同一時間電池也報錯：" + [...new Set(bf.filter((y) => touches(evs, [y], 3)).map((y) => y.who + " " + y.txt.replace(/^(出現|開始時已有)：/, "").replace(/（.*）$/, "")))].slice(0, 3).join("、"));
+  }
+  if (c === 61 && S.kind === "RAW" && S.health) {
+    const hmi = S.health.events.filter((x) => (x.whole ? x.node.node : x.id.info.node) === "N30" && x.a - 3 <= (evs[0].t1 ?? t0) && t0 - 3 <= x.b);
+    if (!S.health.nodes.some((n) => n.node === "N30")) H.push("整段沒收到儀表（0x30）的封包");
+    else if (hmi.length) H.push(`同一時間儀表（0x30）斷訊 ${(Math.max(...hmi.map((x) => x.b)) - Math.min(...hmi.map((x) => x.a))).toFixed(1)} s`);
+    else H.push("儀表（0x30）封包在這段時間沒有斷訊");
+  }
+  if (c === 62 && (r = stats("drvTemp"))) H.push(`整段驅動器最高 ${fx(r.mx, 0)} °C（${fmtS(r.tmx)} s）`);
+  if (c === 63 && (r = stats("motTemp"))) H.push(`整段馬達最高 ${fx(r.mx, 0)} °C（${fmtS(r.tmx)} s）`);
+  if (c === 64 && (r = valAt("spd", t0)) != null && r <= 1) H.push("發生時車速接近 0：電機被卡住或起步負載過重");
+  return H;
+}
+function errBlock(e, head, body) {
+  const fix = e.fix.length ? `<div><b style="font-size:13px">處理方式</b>${e.alt ? '<span class="help">（取自「錯誤碼 轉換工具」）</span>' : ""}<ol>${e.fix.map((f) => `<li>${esc(f)}</li>`).join("")}</ol></div>`
+    : `<div class="help">${e.code ? "「錯誤碼」表還沒有填處理方式" : "儀表沒有對應的 Err 碼（韌體擴充位元）"}</div>`;
+  return `<div class="err ${e.k === "fault" ? "ef" : ""}"><div class="eh"><span class="code">${esc(errTag(e))}</span><span class="nm">${esc(e.name)}</span>
+    <span class="chip ${e.k === "fault" ? "bad" : "warn"}">${e.k === "fault" ? "故障" : "警告"}</span>${head || ""}</div>${body || ""}${fix}</div>`;
+}
+function renderErrors() {
+  const found = ERR_CODES.map((e) => ({ e, evs: occ(e.k, e.bit) })).filter((x) => x.evs.length);
+  found.sort((a, b) => (a.e.k === b.e.k ? a.evs[0].t - b.evs[0].t : a.e.k === "fault" ? -1 : 1));
+  S.errs = found.map(({ e, evs }) => ({ e, evs, n: evs.length, dur: evs.reduce((s, x) => s + ((x.t1 ?? x.t) - x.t), 0), t: evs[0].t, ctx: ctxAt(evs[0].t), hints: errHints(e, evs) }));
+  $("errList").innerHTML = S.errs.length ? S.errs.map((x, i) => errBlock(x.e,
+      `<span class="help">${x.n} 次 · 累計 ${fmtDur(x.dur)}</span><span class="grow" style="flex:1 1 0"></span><button type="button" data-err="${i}">第一次 ${fmtS(x.t)} s</button>`,
+      (x.ctx ? `<div class="ctx">第一次發生時：${esc(x.ctx)}</div>` : "") + (x.hints.length ? `<ul>${x.hints.map((h) => `<li>${esc(h)}</li>`).join("")}</ul>` : ""))).join("")
+    : `<span class="help">${S.sig.fault || S.sig.warn ? "這段紀錄沒有出現控制器錯誤碼（Err 50–66）" : "這個檔沒有驅動器 Fault / Warning 欄位，無法分析；儀表上的歷史錯誤可以用下面的「儀表歷史錯誤換算」"}</span>`;
+  $("errList").onclick = (ev) => { const b = ev.target.closest("[data-err]"); if (b) { const x = S.errs[+b.dataset.err]; goTime(x.t - 5, (x.evs[0].t1 ?? x.t) + 5); } };
+}
+function renderHistory() {
+  const rd = (id) => { const s = $(id).value.trim().replace(/^0x/i, ""); return s === "" ? null : /^[0-9a-f]{1,4}$/i.test(s) ? parseInt(s, 16) : NaN; };
+  const f = rd("hisFault"), w = rd("hisWarn"), out = [];
+  if (Number.isNaN(f) || Number.isNaN(w)) { $("hisOut").innerHTML = '<span class="help">請輸入儀表上顯示的 16 進位數字（0-9、A-F，最多 4 位）</span>'; return; }
+  for (const [k, v] of [["fault", f], ["warn", w]]) for (let b = 0; b < 16; b++) if (v & (1 << b)) out.push(errOf(k, b) || { code: null, k, bit: b, name: "bit" + b + "（未定義）", fix: [] });
+  $("hisOut").innerHTML = f == null && w == null ? "" : out.length ? out.map((e) => errBlock(e, `<span class="help">${k2who(e.k)} bit ${e.bit}（0x${hx(1 << e.bit, 4)}）</span>`)).join("") : '<span class="help">0 = 沒有歷史錯誤</span>';
+}
+function renderErrRef() {
+  $("errRef").innerHTML = `<table><thead><tr><th class="num">儀表</th><th>位元</th><th>錯誤原因</th><th>處理方式</th></tr></thead><tbody>${ERR_CODES.map((e) => `<tr><td class="num">${e.code ?? "—"}</td><td class="id">${k2who(e.k)} bit ${e.bit}</td><td>${esc(e.name)}</td>
+    <td class="errfix">${e.fix.length ? e.fix.map((f, i) => `${i + 1}. ${esc(f)}`).join("<br>") + (e.alt ? '<br><span class="help">（取自「錯誤碼 轉換工具」）</span>' : "") : '<span class="help">—</span>'}</td></tr>`).join("")}</tbody></table>`;
 }
 $("exportNodes").onclick = () => {
   const H = S.health; if (!H) return;
@@ -2744,6 +2895,10 @@ $("exportReport").onclick = () => {
     L.push("", "斷訊開始 s,長度 s,節點,封包");
     for (const e of S.health.events) L.push([e.a.toFixed(2), e.tail ? "到結束" : (e.b - e.a).toFixed(2), q(e.whole ? e.node.name : e.id.info.nodeName), q(e.whole ? "整個節點" : e.id.info.name)].join(","));
   }
+  if (S.errs.length) {
+    L.push("", "儀表錯誤碼,位元,錯誤原因,次數,累計 s,第一次 s,第一次發生時,分析,處理方式");
+    for (const x of S.errs) L.push([x.e.code ?? "", k2who(x.e.k) + " bit " + x.e.bit, q(x.e.name), x.n, x.dur.toFixed(1), x.t.toFixed(2), q(x.ctx), q(x.hints.join(" / ")), q(x.e.fix.map((f, i) => i + 1 + ". " + f).join(" "))].join(","));
+  }
   L.push("", "事件時間 s,結束 s,來源,事件"); for (const f of S.faults) L.push([f.t.toFixed(2), f.t1 != null ? f.t1.toFixed(2) : "", q(f.who), q(f.txt)].join(","));
   const B = batteryList();
   if (B.length) {
@@ -2772,7 +2927,7 @@ function renderFileInfo() {
 function refreshAll(keepView) {
   const c = S.charts[0], a = c && c.scales.x.min, b = c && c.scales.x.max;
   if (S.kind === "RAW") analyzeHealth();
-  renderFileInfo(); faultEvents(); detect(); renderSummary(); renderAvg(); renderVerdicts(); renderNodes(); renderFaults(); renderBatteries(); renderChips(); build(); buildSide(); renderMarks(); renderRideMarks(); renderGpsPanel();
+  renderFileInfo(); faultEvents(); detect(); renderSummary(); renderAvg(); renderVerdicts(); renderNodes(); renderFaults(); renderErrors(); renderBatteries(); renderChips(); build(); buildSide(); renderMarks(); renderRideMarks(); renderGpsPanel();
   if (keepView && a != null) zoomTo(a, b);
 }
 ["pGap", "pOff", "pK", "pOn", "pOffN", "pGapMin", "pGapMax", "pQuiet"].forEach((id) => $(id).addEventListener("change", () => { if (S) refreshAll(true); }));
@@ -2828,7 +2983,8 @@ async function loadFiles(fl) {
   refreshAll(false);
   if (S.sig.trqN && !STD) for (const f of mk) importMarks(await f.text());
 }
-renderBits();
+renderBits(); renderErrRef();
+["hisFault", "hisWarn"].forEach((id) => $(id).addEventListener("input", renderHistory));
 $("file").onchange = (e) => { if (e.target.files.length) loadFiles(e.target.files); e.target.value = ""; };
 ["dragenter", "dragover"].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.add("hover"); }));
 ["dragleave", "drop"].forEach((ev) => document.addEventListener(ev, (e) => { e.preventDefault(); $("drop").classList.remove("hover"); }));

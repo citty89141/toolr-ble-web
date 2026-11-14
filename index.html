@@ -80,35 +80,32 @@ footer ul { margin: 4px 0 0; padding-left: 18px; }
   <header>
     <div class="brand">ENDEX</div>
     <h1>ToolR 工具</h1>
-    <p>錄製、參數、燒錄共用一條 ToolB 藍牙連線</p>
+    <p>儀表板、紀錄、設定、燒錄共用一條 ToolB 藍牙連線</p>
   </header>
   <p id="noBle" class="notice" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。Android 請用 Chrome，iPhone 請用 Bluefy，電腦請用 Chrome 或 Edge。分析頁不需要藍牙。</p>
 
   <h2 class="group">ToolR App</h2>
-  <a class="tool" href="app/#rec">
-    <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></span>
+  <a class="tool" href="app/#dash">
+    <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8 8 0 0 1 16 0"/><path d="M12 18l4-6"/></svg></span>
     <div>
-      <h2>錄製 <span class="ver" data-ver="app"></span></h2>
-      <p>連 ToolB 模組做 RAW 錄製：開始、標記、停止。錄完轉成 RAW_xxxx.CSV，按「分析」直接開分析頁。</p>
-      <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
+      <h2>儀表板 <span class="ver" data-ver="app"></span></h2>
+      <p>連 ToolB 模組看即時速度、功率和相電流，按紅色按鈕錄製、加標記。</p>
     </div>
   </a>
 
-  <a class="tool" href="app/#param">
+  <a class="tool" href="app/#logs">
+    <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg></span>
+    <div>
+      <h2>紀錄</h2>
+      <p>每趟的距離、時間、功率和耗電；下載 CSV、上傳到雲端，按「分析」直接開分析頁。</p>
+    </div>
+  </a>
+
+  <a class="tool" href="app/#tune">
     <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
     <div>
-      <h2>參數</h2>
-      <p>經 ToolB 讀寫控制器參數：分頁瀏覽、只寫入有變更的值、匯入匯出 Config、讀取後自動判斷機種。</p>
-      <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
-    </div>
-  </a>
-
-  <a class="tool" href="app/#assist">
-    <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8 8 0 0 1 16 0"/><path d="M12 18l4-6"/><circle cx="12" cy="18" r="1.4" fill="currentColor"/></svg></span>
-    <div>
-      <h2>輔助感受</h2>
-      <p>用滑桿調各段位的助力強度、出力上限和起步力道，並估算滿電可以騎多遠。可以存三組自己的設定。</p>
-      <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
+      <h2>設定</h2>
+      <p>感受：用滑桿調輔助，並估算滿電可以騎多遠。參數：讀寫控制器參數、匯入匯出 Config。</p>
     </div>
   </a>
 
@@ -116,8 +113,7 @@ footer ul { margin: 4px 0 0; padding-left: 18px; }
     <span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span>
     <div>
       <h2>燒錄</h2>
-      <p>經 ToolB 燒錄控制器韌體：先比對 HEX 和控制器的 SIG，再自動切 Bootloader、燒錄、回到 App 確認版本。</p>
-      <div class="tags"><span class="tag">手機</span><span class="tag">電腦</span><span class="tag">藍牙</span></div>
+      <p>依控制器的機種列出雲端上的韌體，選版本就更新；燒錄前會比對機種。</p>
     </div>
   </a>
 
