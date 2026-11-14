@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-Bi_Qy67C.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BcTMF2wN.css">
+  <script type="module" crossorigin src="./assets/index-KuLGm4fJ.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-C2MlP8NO.css">
 </head>
 <body>
 <header>
@@ -29,6 +29,7 @@
       <div class="dash-bar">
         <span id="dLink">未連線</span>
         <span id="dRec" class="dash-rec" hidden>● REC <b id="dRecTime"></b></span>
+        <span id="dPause" class="dash-pause" hidden>自動暫停</span>
         <span class="dash-right">
           <button id="dGps" type="button" class="dpill" data-state="off" hidden>GPS —</button>
           <b id="dClock"></b>
@@ -366,6 +367,11 @@
     <div id="fGroups" class="fgroups"></div>
     <label class="check"><input id="fDay" type="checkbox"> 日間配色（陽光下比較好讀）</label>
     <label class="check"><input id="fLive" type="checkbox"> 沒在錄製時也顯示即時數據</label>
+    <div class="fpause">
+      <label class="check"><input id="fPause" type="checkbox"> 自動暫停：停車時「騎乘時間」和平均值暫停（跟 Garmin、Bryton 一樣），錄製不中斷</label>
+      <label class="fpause-kmh">低於
+        <select id="fPauseKmh"><option value="2">2</option><option value="3">3</option><option value="5">5</option></select> km/h 算停車</label>
+    </div>
     <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
     <label class="check"><input id="setGps" type="checkbox"> 記錄手機 GPS 路徑（存成 _GPS.CSV 和 .gpx）</label>
     <div class="row sheet-acts">
