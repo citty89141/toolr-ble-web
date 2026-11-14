@@ -527,8 +527,13 @@
     </div>
     <div class="tr-item">
       <div class="sym">掃描不到 ENDEX_CAN_ 開頭的裝置</div>
-      <div class="cause">裝置未通電、不在藍牙範圍內，或已被其他手機／電腦占用連線中</div>
-      <div class="fix">確認裝置電源與燈號（應為快閃／未連線狀態）；若燈號是慢閃，代表已有其他裝置連著，請先讓那邊斷線再試。</div>
+      <div class="cause">裝置未通電、不在藍牙範圍內，或已被 ToolR App、其他手機／電腦占用連線中（ToolB 一次只接受一個連線，連著時不廣播）</div>
+      <div class="fix">確認裝置電源與燈號（應為快閃／未連線狀態）；若燈號是慢閃，代表已有其他裝置連著。最常見的是同一支手機的 ToolR App 還連著：先在 App 按「中斷連線」或關掉 App 的分頁，再回到更新頁重試。</div>
+    </div>
+    <div class="tr-item">
+      <div class="sym">iPhone 選了裝置，但顯示「找不到 OTA 服務」或一直連線中</div>
+      <div class="cause">ToolB 被其他 App 占用，或 iPhone 還記著更新前的服務表</div>
+      <div class="fix">先讓 ToolR App 中斷連線；仍不行就到「設定 › 藍牙」關掉再打開藍牙（有列出 ENDEX_CAN_ 就點 ⓘ →「忘記此裝置」），ToolB 斷電重開後再試。打開頁面底部「詳細記錄」截圖給工程師，裡面有每一步的時間與錯誤。</div>
     </div>
     <div class="tr-item">
       <div class="sym">傳輸到一半突然中斷、進度條卡住</div>

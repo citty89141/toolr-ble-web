@@ -2,6 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
+  <meta name="toolr-build" content="9cf67f9">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#425563">
   <title>ENDEX BLE OTA 更新</title>
@@ -166,6 +167,7 @@
     .result .r-body{ font-size:13px; margin-top:2px; color:var(--ink-soft); }
 
     .hint{ font-size:12.5px; color:var(--ink-faint); margin-top:10px; }
+    .advice{ font-size:13px; line-height:1.55; color:var(--amber); background:var(--amber-soft); border-radius:8px; padding:10px 12px; margin-top:10px; }
 
     /* log */
     details.logbox{ margin-top:14px; }
@@ -195,10 +197,13 @@
   </header>
 
   <div id="browserWarn" class="banner danger" hidden>
-    此瀏覽器不支援 Web Bluetooth。請改用電腦或 Android 手機上的 <b>Chrome</b> 或 <b>Edge</b> 開啟本頁。
+    此瀏覽器不支援 Web Bluetooth。請改用電腦或 Android 手機上的 <b>Chrome</b> 或 <b>Edge</b>，iPhone 請用 <b>Bluefy</b> 開啟本頁。
   </div>
   <div id="httpsWarn" class="banner" hidden>
     目前不是以 <span class="mono">https://</span> 開啟，Web Bluetooth 可能被瀏覽器封鎖。
+  </div>
+  <div id="staleWarn" class="banner" hidden>
+    這個頁面不是網站上最新的版本（瀏覽器還在用暫存），請重新整理後再操作。
   </div>
 
   <!-- 1. 選擇韌體 -->
@@ -241,6 +246,8 @@
     </div>
     <div class="ver-verdict" id="verdict"></div>
     <button class="btn secondary" id="btnCheckVer" type="button">連線讀取裝置版本</button>
+    <div class="advice" id="verAdvice" role="status" hidden></div>
+    <p class="hint">ToolB 一次只能連一個：用 ToolR App 連著時，請先在 App 按「中斷連線」再來這裡。剛更新完、App 顯示「OTA：待確認」時，按一次上面的按鈕就會確認新版本。</p>
   </section>
 
   <!-- 3. 更新 -->
@@ -291,9 +298,97 @@
   const CHUNK_SIZE      = 490;
   const CHUNK_DELAY_MS  = 12;
   const NAME_PREFIX     = 'ENDEX_CAN_';
+  // 只用來在記錄裡列出模組有哪些服務（1.1.x 有錄製 6fde0001 與參數橋接 0x00FF），方便判斷連到的是哪一版
+  const RAW_SERVICE     = '6fde0001-3d28-46d2-a63f-b29909ab044a';
+  const BRIDGE_SERVICE  = uuid16(0x00ff);
+  const REQUEST = { filters: [{ namePrefix: NAME_PREFIX }], optionalServices: [OTA_SERVICE, RAW_SERVICE, BRIDGE_SERVICE] };
+  // iOS（Bluefy）的 gatt.connect() 沒有逾時：裝置正連著別的 App／手機、沒在廣播時會一直等下去
+  const CONNECT_TIMEOUT_MS = 15000;
+  const GATT_TIMEOUT_MS    = 10000;
+  // ToolB 同一時間只接受一個連線，連上後就不再廣播
+  const ONE_LINK_HINT = 'ToolB 一次只能連一個 App 或頁面。若 ToolR App（或另一支手機、電腦）正連著它，' +
+    '請先在 App 按「中斷連線」或關掉那個分頁，再按一次。';
 
   const $ = id => document.getElementById(id);
   const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // Bluefy 回報 16-bit UUID 用 iOS 的短寫（"FE00"），Chrome 給完整小寫字串；比較前一律轉成完整小寫
+  function fullUuid(u) {
+    const s = String(u).toLowerCase().replace(/^0x/, '');
+    if (/^[0-9a-f]{4}$/.test(s)) return `0000${s}-0000-1000-8000-00805f9b34fb`;
+    if (/^[0-9a-f]{8}$/.test(s)) return `${s}-0000-1000-8000-00805f9b34fb`;
+    return s;
+  }
+  function shortUuid(u) {
+    const f = fullUuid(u);
+    return /^0000[0-9a-f]{4}-0000-1000-8000-00805f9b34fb$/.test(f) ? '0x' + f.slice(4, 8).toUpperCase() : f;
+  }
+
+  function withTimeout(p, ms, what) {
+    let t;
+    return Promise.race([
+      p,
+      new Promise((_, reject) => {
+        t = setTimeout(() => reject(Object.assign(new Error(`${what}逾時（${ms / 1000} 秒沒有回應）`), { name: 'TimeoutError' })), ms);
+      }),
+    ]).finally(() => clearTimeout(t));
+  }
+
+  // 每一步都寫進詳細記錄：花多久、失敗時的原始錯誤（名稱＋訊息），截圖就看得出卡在哪一步
+  let stepT0 = 0;
+  async function step(label, fn, ms) {
+    const t = performance.now();
+    log(`  ${label} ...`, 'dim');
+    try {
+      const r = await (ms ? withTimeout(fn(), ms, label) : fn());
+      log(`  ✓ ${label}  ${Math.round(performance.now() - t)} ms（累計 ${Math.round(performance.now() - stepT0)} ms）`, 'dim');
+      return r;
+    } catch (e) {
+      log(`  ✗ ${label}  ${Math.round(performance.now() - t)} ms：${(e && e.name) || 'Error'}: ${(e && e.message) || e}`, 'err');
+      if (e && typeof e === 'object' && !e.step) e.step = label;
+      throw e;
+    }
+  }
+
+  // 連線並取得 OTA 服務。先列出全部服務（ToolR App 在 Bluefy 上用的就是這個走法），也順便記下模組有哪些服務；
+  // 清單裡沒有 0xFE00 或瀏覽器不給列，才直接要 0xFE00
+  async function openOta(dev) {
+    let server;
+    try {
+      server = await step('連線 GATT', () => dev.gatt.connect(), CONNECT_TIMEOUT_MS);
+    } catch (e) {
+      try { dev.gatt.disconnect(); } catch (_) {}   // 逾時後取消還在等的連線，不然 iOS 會一直試
+      throw e;
+    }
+    let service = null;
+    try {
+      const list = await step('列出服務', () => server.getPrimaryServices(), GATT_TIMEOUT_MS);
+      log(`  服務：${list.map(s => shortUuid(s.uuid)).join('、') || '（沒有）'}`, 'dim');
+      service = list.find(s => fullUuid(s.uuid) === OTA_SERVICE) || null;
+      if (!service) log('  服務清單裡沒有 OTA 0xFE00', 'err');
+    } catch (e) {
+      if (e && e.name === 'TimeoutError') throw e;
+    }
+    if (!service) service = await step('取得 OTA 服務 0xFE00', () => server.getPrimaryService(OTA_SERVICE), GATT_TIMEOUT_MS);
+    return { server, service };
+  }
+
+  // 先直接要；找不到再列出全部特徵值比對（一樣要處理 Bluefy 的短 UUID）
+  async function getChar(service, uuid) {
+    const name = shortUuid(uuid);
+    try {
+      return await step(`取得特徵值 ${name}`, () => service.getCharacteristic(uuid), GATT_TIMEOUT_MS);
+    } catch (e) {
+      if (!e || e.name !== 'NotFoundError') throw e;
+      const all = await step('列出特徵值', () => service.getCharacteristics(), GATT_TIMEOUT_MS);
+      log(`  特徵值：${all.map(c => shortUuid(c.uuid)).join('、') || '（沒有）'}`, 'dim');
+      const c = all.find(c => fullUuid(c.uuid) === uuid);
+      if (!c) throw e;
+      return c;
+    }
+  }
+  const readChar = async (service, uuid) =>
+    step(`讀取 ${shortUuid(uuid)}`, async () => (await getChar(service, uuid)).readValue(), GATT_TIMEOUT_MS);
 
   let bleDevice = null;   // 版本檢查時選過的裝置，更新時直接沿用，不用再選一次
   let fwBytes   = null;
@@ -346,13 +441,29 @@
   function hideResult() { $('result').className = 'result'; }
 
   // ── 錯誤訊息轉成人話 ───────────────────────────────────────
+  // 服務／特徵值找不到也是 NotFoundError，不能都說成「未選擇裝置」：看是哪一步失敗（step() 記在 e.step）
   function friendlyError(e) {
     const m = (e && e.message) || String(e);
-    if (e && e.name === 'NotFoundError') return '未選擇裝置（已取消，或附近找不到 ' + NAME_PREFIX + ' 裝置）';
+    const s = (e && e.step) || '';
+    if (e && e.name === 'NotFoundError' && /服務|特徵值|讀取/.test(s))
+      return `連上了，但找不到 ${s.replace(/^(取得|讀取|列出)\s*/, '')}（iPhone 可能還記著舊韌體的服務表）`;
+    if (e && e.name === 'NotFoundError') return '未選擇裝置（已取消，或清單裡沒有 ' + NAME_PREFIX + ' 裝置）';
     if (e && e.name === 'SecurityError') return '瀏覽器封鎖了藍牙，請以 https:// 開啟本頁';
+    if (e && e.name === 'TimeoutError') return s === '連線 GATT' ? '連不上裝置（15 秒沒有回應）' : m;
     if (e && e.name === 'NetworkError') return '藍牙連線中斷，請靠近裝置後重試';
     if (/GATT Server is disconnected|disconnected/i.test(m)) return '藍牙連線中斷，請靠近裝置後重試';
     return m;
+  }
+  // 讀版本／連線失敗時，結果框下方的建議（比 friendlyError 長，直接告訴使用者下一步）
+  function adviceFor(e) {
+    const s = (e && e.step) || '';
+    if (e && e.name === 'NotFoundError' && (!s || s === '選擇裝置'))
+      return '清單裡沒有 ToolB 時：' + ONE_LINK_HINT + '（連著的時候 ToolB 不廣播，掃描不到）';
+    if (e && e.name === 'NotFoundError')
+      return 'iPhone 可能還記著更新前的服務表：到「設定 › 藍牙」關掉藍牙再打開（有列出 ENDEX_CAN_ 就點 ⓘ 選「忘記此裝置」），ToolB 斷電重開後再試。';
+    if (e && (e.name === 'TimeoutError' || e.name === 'NetworkError' || /disconnected/i.test((e && e.message) || '')))
+      return ONE_LINK_HINT + ' 都沒有連著的話，請靠近 ToolB、等燈號恢復快閃後再試。';
+    return '';
   }
 
   // ── 版本字串處理 ───────────────────────────────────────────
@@ -525,44 +636,61 @@
   // ── 取得裝置（沿用版本檢查時選的那台）─────────────────────
   async function getDevice() {
     if (bleDevice) return bleDevice;
-    bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [{ namePrefix: NAME_PREFIX }],
-      optionalServices: [OTA_SERVICE]
-    });
+    bleDevice = await step('選擇裝置', () => navigator.bluetooth.requestDevice(REQUEST));
+    log(`  裝置：${bleDevice.name || '(沒有名稱)'}  id=${bleDevice.id}`, 'dim');
     updateDeviceLine();
     return bleDevice;
   }
 
   // ── 讀裝置版本 ─────────────────────────────────────────────
+  // 也讀 OTA 狀態 0xFE03：剛 OTA 進來、還沒確認的版本要有手機讀它才算數（韌體 ota_confirm），
+  // 5 分鐘內沒人讀就重開機退回上一版。ToolR App 顯示「OTA：待確認」時，就是請使用者來這裡按一次。
+  function showAdvice(text) { const el = $('verAdvice'); el.textContent = text || ''; el.hidden = !text; }
+
   $('btnCheckVer').addEventListener('click', async () => {
     const btn = $('btnCheckVer');
     btn.disabled = true;
     $('devVer').textContent = '連線中 ...'; $('devVer').className = 'val dim'; $('devMeta').textContent = '';
+    showAdvice('');
     let dev = null;
+    stepT0 = performance.now();
+    log('\n── 讀取裝置版本 ──');
     try {
-      dev = await navigator.bluetooth.requestDevice({
-        filters: [{ namePrefix: NAME_PREFIX }],
-        optionalServices: [OTA_SERVICE]
-      });
+      dev = await step('選擇裝置', () => navigator.bluetooth.requestDevice(REQUEST));
+      log(`  裝置：${dev.name || '(沒有名稱)'}  id=${dev.id}`, 'dim');
       bleDevice = dev; updateDeviceLine();
-      const server  = await dev.gatt.connect();
-      const service = await server.getPrimaryService(OTA_SERVICE);
+      const { service } = await openOta(dev);
       try {
-        const val = await (await service.getCharacteristic(OTA_VERSION_UUID)).readValue();
+        const st = (await readChar(service, OTA_STATUS_UUID)).getUint8(0);
+        log(`  OTA 狀態 0x${st.toString(16).padStart(2, '0')}${st === 0x01 ? '（這版已確認）' : '（未確認）'}`, st === 0x01 ? 'dim' : 'err');
+      } catch (e) {
+        if (!e || e.name !== 'NotFoundError') throw e;
+      }
+      try {
+        const val = await readChar(service, OTA_VERSION_UUID);
         devVerStr = new TextDecoder().decode(val);
         renderVerBox('devVer', 'devMeta', devVerStr);
-      } catch (_) {
+        log(`  版本：${devVerStr}`, 'ok');
+      } catch (e) {
+        if (!e || e.name !== 'NotFoundError') throw e;   // 只有「沒有 0xFE04」才是舊韌體，逾時或斷線是連線問題
         devVerStr = null;
         renderVerBox('devVer', 'devMeta', '舊版韌體（無版本資訊）', 'dim');
       }
     } catch (err) {
       devVerStr = null;
       renderVerBox('devVer', 'devMeta', friendlyError(err), 'dim');
+      showAdvice(adviceFor(err));
+      if (!(err && err.name === 'NotFoundError' && err.step === '選擇裝置')) $('logbox').open = true;
     } finally {
       if (dev && dev.gatt.connected) dev.gatt.disconnect();
       renderVerdict();
       btn.disabled = !hasBle || busy;
     }
+  });
+
+  // 離開本頁就放掉連線，ToolB 才會重新廣播，讓 ToolR App 連得到（Chrome 會自己斷，iOS 上的瀏覽器不一定）
+  window.addEventListener('pagehide', () => {
+    try { if (bleDevice && bleDevice.gatt.connected) bleDevice.gatt.disconnect(); } catch (_) {}
   });
 
   // ── 防止更新中誤關頁面 / 螢幕休眠 ──────────────────────────
@@ -618,17 +746,17 @@
       setStage(stage = 'connect');
       setProgress(0, '連線裝置 ...');
       log('\n連線 ' + NAME_PREFIX + '* ...');
+      stepT0 = performance.now();
       const dev = await getDevice();
-      const server = await dev.gatt.connect();
+      const { service } = await openOta(dev);
       log(`已連線 : ${dev.name}`);
 
-      const service  = await server.getPrimaryService(OTA_SERVICE);
-      const ctrlChar = await service.getCharacteristic(OTA_CTRL_UUID);
-      const dataChar = await service.getCharacteristic(OTA_DATA_UUID);
+      const ctrlChar = await getChar(service, OTA_CTRL_UUID);
+      const dataChar = await getChar(service, OTA_DATA_UUID);
 
       let oldVersion = null;
       try {
-        oldVersion = new TextDecoder().decode(await (await service.getCharacteristic(OTA_VERSION_UUID)).readValue());
+        oldVersion = new TextDecoder().decode(await readChar(service, OTA_VERSION_UUID));
         log(`更新前版本 : ${oldVersion}`, 'dim');
         devVerStr = oldVersion; renderVerBox('devVer', 'devMeta', oldVersion); renderVerdict();
       } catch (_) {
@@ -698,15 +826,15 @@
         try {
           setProgress(100, `重新連線 ${attempt + 1}/8 ...`);
           log(`    重連嘗試 ${attempt + 1}/8 ...`, 'dim');
-          const srv2 = await dev.gatt.connect();
+          stepT0 = performance.now();
+          const { service: svc2 } = await openOta(dev);
           await sleep(1000);
           if (!dev.gatt.connected) { await sleep(2000); continue; }
-          const svc2   = await srv2.getPrimaryService(OTA_SERVICE);
-          const status = (await (await svc2.getCharacteristic(OTA_STATUS_UUID)).readValue()).getUint8(0);
+          const status = (await readChar(svc2, OTA_STATUS_UUID)).getUint8(0);
 
           let newVersion = null;
           try {
-            newVersion = new TextDecoder().decode(await (await svc2.getCharacteristic(OTA_VERSION_UUID)).readValue());
+            newVersion = new TextDecoder().decode(await readChar(svc2, OTA_VERSION_UUID));
             log(`更新後版本 : ${newVersion}`, 'dim');
             devVerStr = newVersion; renderVerBox('devVer', 'devMeta', newVersion); renderVerdict();
           } catch (_) {
@@ -755,6 +883,7 @@
     } catch (e) {
       const msg = friendlyError(e);
       log(`\n錯誤: ${msg}`, 'err');
+      if (stage === 'connect' && adviceFor(e)) log(adviceFor(e), 'err');
       // 連線階段失敗：可能是選錯台或裝置已離開，下次重試讓使用者重新選裝置
       if (stage === 'connect') { bleDevice = null; updateDeviceLine(); }
       setStage(stage, true);
@@ -767,6 +896,23 @@
   }
 
   updateOtaButton();
+
+  // 頁面版本（web/build_site.mjs 寫進 <meta name="toolr-build">）和網站目前的 site.json 比對：
+  // GitHub Pages 給 max-age=600，Bluefy 部署後約 10 分鐘內可能還在跑舊頁面
+  (async () => {
+    const mine = (document.querySelector('meta[name="toolr-build"]') || {}).content || '';
+    let live = '';
+    try {
+      const r = await fetch('../site.json', { cache: 'no-cache' });
+      if (r.ok) live = ((await r.json()).tools || {}).ota?.commit || '';
+    } catch (_) { /* 單獨開啟時沒有 site.json */ }
+    log(`頁面 ${mine || '（未標版本）'}${live ? ` · 網站 ${live}` : ''} · ${navigator.userAgent}`, 'dim');
+    const strip = s => s.replace(/-dirty$/, '');
+    if (mine && live && strip(mine) !== strip(live)) {
+      $('staleWarn').hidden = false;
+      log('這個頁面不是網站上最新的版本，請重新整理', 'err');
+    }
+  })();
 </script>
 <script src="../_site/home-button.js"></script>
 </body>
