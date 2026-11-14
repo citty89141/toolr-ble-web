@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-KuLGm4fJ.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-C2MlP8NO.css">
+  <script type="module" crossorigin src="./assets/index-De_nDP5j.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-Cke5DtPT.css">
 </head>
 <body>
 <header>
@@ -84,12 +84,10 @@
         <button id="btnDemo" type="button" class="dash-demo" hidden>示範模式</button>
         <p id="noBle" class="dash-note" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。</p>
         <p class="dash-note">iPhone 請用 Bluefy 開啟；Android 和電腦用 Chrome。</p>
-        <!-- the rest of the App does not need a connection: say so, and lead there -->
+        <!-- 紀錄 does not need a connection: lead there -->
         <div class="dash-links">
-          <p class="dash-note">不連線也可以看紀錄、設定雲端：</p>
           <div class="dash-links-row">
-            <a href="#logs">看紀錄</a>
-            <button id="dashCloud" type="button">雲端設定</button>
+            <a href="#logs">查看紀錄</a>
           </div>
         </div>
       </div>
@@ -132,14 +130,14 @@
 
     <div id="view-assist" class="view">
       <p class="notice busy-note" hidden></p>
-      <div class="tune-head">
+      <div id="aHead" class="tune-head">
         <p class="muted"><span id="aSig"></span><span id="aScope">還沒讀取</span></p>
         <button id="aRead" type="button">讀取車輛設定</button>
       </div>
       <div class="prog" hidden><div class="bar"><i id="aBar"></i></div><span id="aProg"></span></div>
       <p id="aEmpty" class="muted a-note">按「讀取車輛設定」，從車上讀回目前的輔助設定。</p>
       <div id="aBody" class="view"></div>
-      <details class="card">
+      <details id="aBattery" class="card">
         <summary>估算里程用的條件</summary>
         <div class="row a-batt">
           <label class="grow">電池電壓（V）<input id="aVolts" type="number" min="12" max="100" step="0.1" inputmode="decimal"></label>
