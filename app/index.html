@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-DZoRR-sF.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BL4tuyLd.css">
+  <script type="module" crossorigin src="./assets/index-CLGviB46.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-DMtjuox0.css">
 </head>
 <body>
 <header>
@@ -33,11 +33,11 @@
         <span class="dash-right">
           <button id="dGps" type="button" class="dpill" data-state="off" hidden>GPS —</button>
           <b id="dClock"></b>
+          <button id="dWarn" type="button" class="dash-warn-btn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></button>
           <button id="btnLock" type="button" class="dash-lock-btn" aria-label="鎖定螢幕"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></button>
           <button id="btnFull" type="button" class="dash-full-btn" aria-label="全螢幕儀表" aria-pressed="false"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span>全螢幕</span></button>
         </span>
       </div>
-      <button id="dWarn" type="button" class="dash-warn" hidden></button>
       <div class="dash-row dash-top">
         <div class="dcell big"></div>
         <div class="dcell"></div>
@@ -51,12 +51,8 @@
         <div class="dpw-bar"><i id="dPbar"></i></div>
         <div class="dfoot"><span id="dPshare">人力 —</span><span id="dPtotal">總輸出 — W</span></div>
       </div>
-      <div class="dash-row dash-iph">
-        <div class="dhead"><span>電機相電流</span><span id="dIpeak" class="dsub">峰值 — A</span></div>
-        <div class="dv dright"><b id="dIph">—</b><small>A</small></div>
-        <div class="dgauge"><i id="dIbar"></i><s id="dIpk" hidden></s></div>
-        <div class="dfoot dscale"><span>0</span><span id="dImid">30</span><span id="dImax">60 A</span></div>
-      </div>
+      <!-- 工具列: two halves or one wide widget, drawn by dash-view.js from dash-layout.js (canvas page 13) -->
+      <div id="dTool" class="dash-row dash-iph dash-tool" data-style="two"></div>
       <div class="dash-row dash-small">
         <div class="dcell"></div>
         <div class="dcell"></div>
@@ -358,20 +354,30 @@
 
 <dialog id="fieldsDlg" class="sheet">
   <form method="dialog">
-    <h2>儀表板欄位</h2>
-    <p class="muted">先點格子，再點要放的資料。中間的「踩踏功率／馬達出力」和「電機相電流」固定顯示。</p>
-    <div id="fSlots" class="fslots"></div>
+    <div class="fhead">
+      <h2>儀表板欄位</h2>
+      <span class="fpresets"><button id="fRide" type="button">騎乘</button><button id="fEng" type="button">工程</button></span>
+    </div>
+    <p class="muted">點下面的格子，再選要放的資料。功率那列固定不換。</p>
+    <div id="fMap" class="fmap" aria-label="儀表板格子"></div>
+    <div id="fStyle" class="fseg" role="group" aria-label="工具列樣式" hidden>
+      <button type="button" data-style="two">兩格</button><button type="button" data-style="one">一整格</button>
+    </div>
     <b id="fSelName" class="fsel"></b>
     <div id="fGroups" class="fgroups"></div>
-    <label class="check"><input id="fDay" type="checkbox"> 日間配色（陽光下比較好讀）</label>
-    <label class="check"><input id="fLive" type="checkbox"> 沒在錄製時也顯示即時數據</label>
-    <div class="fpause">
-      <label class="check"><input id="fPause" type="checkbox"> 自動暫停：停車時「騎乘時間」和平均值暫停（跟 Garmin、Bryton 一樣），錄製不中斷</label>
-      <label class="fpause-kmh">低於
-        <select id="fPauseKmh"><option value="2">2</option><option value="3">3</option><option value="5">5</option></select> km/h 算停車</label>
-    </div>
-    <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
-    <label class="check"><input id="setGps" type="checkbox"> 記錄手機 GPS 路徑（存成 _GPS.CSV 和 .gpx）</label>
+    <p id="fNote" class="muted fnote"></p>
+    <details class="fmore">
+      <summary><b>顯示與錄製</b><small>日間配色、自動暫停、螢幕常亮、GPS</small></summary>
+      <label class="check"><input id="fDay" type="checkbox"> 日間配色（陽光下比較好讀）</label>
+      <label class="check"><input id="fLive" type="checkbox"> 沒在錄製時也顯示即時數據</label>
+      <div class="fpause">
+        <label class="check"><input id="fPause" type="checkbox"> 自動暫停：停車時「騎乘時間」和平均值暫停（跟 Garmin、Bryton 一樣），錄製不中斷</label>
+        <label class="fpause-kmh">低於
+          <select id="fPauseKmh"><option value="2">2</option><option value="3">3</option><option value="5">5</option></select> km/h 算停車</label>
+      </div>
+      <label class="check"><input id="setAwake" type="checkbox"> 錄製時螢幕保持常亮</label>
+      <label class="check"><input id="setGps" type="checkbox"> 記錄手機 GPS 路徑（存成 _GPS.CSV）</label>
+    </details>
     <div class="row sheet-acts">
       <button id="fReset" type="button">恢復預設</button>
       <button value="ok" type="submit" class="primary">完成</button>
