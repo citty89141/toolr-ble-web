@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-9zdL11t_.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-B8T26QP3.css">
+  <script type="module" crossorigin src="./assets/index-DZoRR-sF.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BL4tuyLd.css">
 </head>
 <body>
 <header>
@@ -43,10 +43,10 @@
         <div class="dcell"></div>
       </div>
       <div class="dash-row dash-power">
-        <div class="dhead"><span>踩踏功率</span><span class="motor">馬達功率</span></div>
+        <div class="dhead"><span>踩踏功率</span><span class="motor">馬達出力</span></div>
         <div class="dpw-vals">
           <span class="dv"><b id="dPped">—</b><small>W</small></span>
-          <span class="dv motor"><b id="dPmot">—</b><small>W</small></span>
+          <span class="dv motor"><small id="dPmotEst" hidden>約</small><b id="dPmot">—</b><small>W</small></span>
         </div>
         <div class="dpw-bar"><i id="dPbar"></i></div>
         <div class="dfoot"><span id="dPshare">人力 —</span><span id="dPtotal">總輸出 — W</span></div>
@@ -359,7 +359,7 @@
 <dialog id="fieldsDlg" class="sheet">
   <form method="dialog">
     <h2>儀表板欄位</h2>
-    <p class="muted">先點格子，再點要放的資料。中間的「踩踏／馬達功率」和「電機相電流」固定顯示。</p>
+    <p class="muted">先點格子，再點要放的資料。中間的「踩踏功率／馬達出力」和「電機相電流」固定顯示。</p>
     <div id="fSlots" class="fslots"></div>
     <b id="fSelName" class="fsel"></b>
     <div id="fGroups" class="fgroups"></div>
