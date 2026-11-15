@@ -1,5 +1,16 @@
 [
   {
+    "file": "ToolB_1.1.3.bin",
+    "version": "1.1.3",
+    "project": "gattc_gatts_coex",
+    "time": "20:28:46",
+    "date": "Nov 15 2026",
+    "idf": "v6.0.3",
+    "built": 1794745726000,
+    "size": 889536,
+    "sha256": "eee0f6be9e6d77d791558469af3eef90a1b77e4a50d8f09dcc15ce5c2f1baaf7"
+  },
+  {
     "file": "ToolB_1.1.2.bin",
     "version": "1.1.2",
     "project": "gattc_gatts_coex",

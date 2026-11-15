@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-CLGviB46.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-DMtjuox0.css">
+  <script type="module" crossorigin src="./assets/index-CuaPP7Xg.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CCsVgym4.css">
 </head>
 <body>
 <header>
@@ -43,7 +43,7 @@
         <div class="dcell"></div>
       </div>
       <div class="dash-row dash-power">
-        <div class="dhead"><span>踩踏功率</span><span class="motor">馬達出力</span></div>
+        <div class="dhead"><span>踩踏功率<i id="dPsrc" class="dpsrc" hidden></i></span><span class="motor">馬達出力</span></div>
         <div class="dpw-vals">
           <span class="dv"><b id="dPped">—</b><small>W</small></span>
           <span class="dv motor"><small id="dPmotEst" hidden>約</small><b id="dPmot">—</b><small>W</small></span>
@@ -367,7 +367,14 @@
     <div id="fGroups" class="fgroups"></div>
     <p id="fNote" class="muted fnote"></p>
     <details class="fmore">
-      <summary><b>顯示與錄製</b><small>日間配色、自動暫停、螢幕常亮、GPS</small></summary>
+      <summary><b>顯示與錄製</b><small>踩踏功率來源、日間配色、自動暫停、螢幕常亮、GPS</small></summary>
+      <fieldset id="fPwrSrc" class="fpwrsrc">
+        <legend>踩踏功率來源 <span id="fPwrNow" class="fpwr-now" hidden></span></legend>
+        <label class="check"><input type="radio" name="pwrSrc" value="auto"> <span><b>自動（建議）</b><small>有藍牙功率計就用功率計，沒連或 3 秒沒資料就用電控系統</small></span></label>
+        <label class="check"><input type="radio" name="pwrSrc" value="tq"> <span><b>電控系統</b><small>一律用控制器從扭力感測器算的踩踏功率</small></span></label>
+        <label class="check"><input type="radio" name="pwrSrc" value="pm"> <span><b>藍牙功率計</b><small>只用功率計；沒連上時顯示「—」，平均功率也不算這段，不換成電控系統</small></span></label>
+        <small class="fpwr-note">影響儀表板踩踏功率、踏頻、人力 %、總輸出、平均功率、NP、FIT 檔。功率計由 ToolB 連（1.1.4 以上），手機不用另外配對。</small>
+      </fieldset>
       <label class="check"><input id="fDay" type="checkbox"> 日間配色（陽光下比較好讀）</label>
       <label class="check"><input id="fLive" type="checkbox"> 沒在錄製時也顯示即時數據</label>
       <div class="fpause">
