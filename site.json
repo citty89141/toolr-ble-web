@@ -25,12 +25,12 @@
       "name": "ToolB 韌體更新",
       "path": "ota/",
       "repo": "toolsb_gattc_gatts ble_ota.html",
-      "commit": "12dc836",
-      "version": "最新韌體 1.1.3",
+      "commit": "7fabbf7",
+      "version": "最新韌體 1.1.5",
       "firmware": [
+        "1.1.5",
         "1.1.3",
-        "1.1.2",
-        "1.1.1"
+        "1.1.2"
       ]
     }
   }
