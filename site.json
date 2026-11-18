@@ -1,5 +1,5 @@
 {
-  "built": "2026-11-18T11:23:08.690Z",
+  "built": "2026-11-18T11:29:55.254Z",
   "tools": {
     "app": {
       "name": "ToolR App（錄製、參數、燒錄）",
@@ -10,9 +10,9 @@
     "param": {
       "name": "eBike Tool（電腦版）",
       "path": "param/",
-      "repo": "ebike-tool origin/master",
-      "commit": "0c1e42e",
-      "version": "v1.5.18"
+      "repo": "ebike-tool fix/uart-param-mapping (citty89141 fork)",
+      "commit": "57545d6",
+      "version": "v1.5.19"
     },
     "analyzer": {
       "name": "分析",
