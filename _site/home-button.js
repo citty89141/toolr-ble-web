@@ -12,5 +12,13 @@
     "background:#425563", "color:#fff", "font:20px/1 system-ui,sans-serif", "text-decoration:none",
     "box-shadow:0 2px 6px rgba(0,0,0,.35)", "opacity:.85",
   ].join(";");
+  // room under the last row of a scrolling page (the analyzer, OTA), so the button never sits on it once scrolled to the
+  // end (phones: right-aligned values). Not on full-height app pages that don't scroll (eBike Tool): there it would cut 48 px off
+  if (getComputedStyle(document.body).overflowY !== "hidden") {
+    const pad = document.createElement("div");
+    pad.setAttribute("aria-hidden", "true");
+    pad.style.cssText = "height:calc(48px + env(safe-area-inset-bottom))";
+    document.body.append(pad);
+  }
   document.body.append(a);
 })();

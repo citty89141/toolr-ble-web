@@ -194,7 +194,12 @@ button.rli:hover { background: var(--accent-bg); border-color: var(--line2); }
 .rli .rv { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rli .rv small { font-size: 12px; font-weight: 400; color: var(--text2); margin-left: 3px; }
 .rli .go { color: var(--muted); font-size: 16px; }
-.rli .pbar { flex: 0 0 100%; height: 5px; border-radius: 3px; background: var(--c1); opacity: .6; }
+/* the bar always takes a line of its own: a shorter bar (max-width) used to fit next to the number on a phone and squeeze the label */
+.rli .pbar { flex: 0 0 100%; height: 5px; border-radius: 3px; background: linear-gradient(to right, var(--c1) var(--p, 100%), transparent var(--p, 100%)); opacity: .6; }
+.blanes { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 8px 12px; align-items: center; font-size: 12.5px; color: var(--text2); }
+.blane { display: contents; }
+.bbar { position: relative; height: 14px; border-radius: 2px; background: var(--line2); overflow: hidden; }
+.bbar i { position: absolute; top: 0; bottom: 0; min-width: 2px; border-radius: 2px; }
 .rnote { font-size: 12px; color: var(--muted); margin: 6px 2px 0; line-height: 1.55; }
 details.card > summary { cursor: pointer; font-weight: 700; min-height: 28px; }
 /* phones: two-row sticky bar (file + open/export, tabs), charts first, lane picker as a bottom sheet */
@@ -1399,8 +1404,10 @@ function renderBatteries() {
   $("bats").innerHTML = B.map((b) => {
     const I = b.info, askedTxt = S.kind !== "RAW" ? "LOG 檔沒有" : b.asked ? "沒有回應" : "沒有詢問（V1.11 以前）";
     const soh = b.soh != null ? b.soh : null, col = soh == null ? "var(--c8)" : soh >= 80 ? "var(--okdot)" : soh >= 60 ? "var(--warndot)" : "var(--baddot)";
-    const lane = (label, segs, color, i) => `<text x="0" y="${15 + i * 24}" font-size="11" fill="currentColor">${label}</text><rect x="110" y="${4 + i * 24}" width="480" height="14" rx="2" fill="var(--line2)"></rect>` +
-      segs.map(([a, c]) => `<rect x="${(110 + (a - S.t0) / (S.t1 - S.t0 || 1) * 480).toFixed(1)}" y="${4 + i * 24}" width="${Math.max(2, (c - a) / (S.t1 - S.t0 || 1) * 480).toFixed(1)}" height="14" rx="2" fill="${color}"></rect>`).join("");
+    // HTML rows, not a scaled SVG: on a phone the 600-unit SVG shrank its 11-unit labels to about 6 px
+    const span = S.t1 - S.t0 || 1, pc = (v) => (v * 100).toFixed(2) + "%";
+    const lane = (label, segs, color) => `<div class="blane"><span>${label}</span><div class="bbar">` +
+      segs.map(([a, c]) => `<i style="left:${pc((a - S.t0) / span)};width:${pc((c - a) / span)};background:${color}"></i>`).join("") + "</div></div>";
     const st = b.n + "st", f = b.n + "f";
     return `<section class="card" aria-label="${esc(b.name)}" style="gap:16px">
       <div class="bathead"><h2>${esc(b.name)}</h2>${S.kind === "RAW" ? `<span class="mono help">ID 0x${hx(b.src, 2)}</span>` : ""}<span class="chip ${b.cls}">${esc(b.state)}</span><span class="grow"></span>
@@ -1431,13 +1438,13 @@ function renderBatteries() {
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:6px"><h3>狀態與故障歷程</h3>
-        <svg viewBox="0 0 600 124" width="100%" role="img" aria-label="${esc(b.name)} 狀態與故障歷程" style="color:var(--text2)">
-          ${lane("Active", segmentsOf(st, (v) => v & 2), "var(--lane-ok)", 0)}
-          ${lane("放電 MOS 開", segmentsOf(st, (v) => v & 4), "var(--lane-ok)", 1)}
-          ${lane("充電中", segmentsOf(st, (v) => v & 16), "var(--c1)", 2)}
-          ${lane("故障", segmentsOf(f, (v) => v !== 0), "var(--lane-gap)", 3)}
-          ${lane("即將關機", segmentsOf(st, (v) => v & 128), "var(--warndot)", 4)}
-        </svg>
+        <div class="blanes" role="img" aria-label="${esc(b.name)} 狀態與故障歷程">
+          ${lane("Active", segmentsOf(st, (v) => v & 2), "var(--lane-ok)")}
+          ${lane("放電 MOS 開", segmentsOf(st, (v) => v & 4), "var(--lane-ok)")}
+          ${lane("充電中", segmentsOf(st, (v) => v & 16), "var(--c1)")}
+          ${lane("故障", segmentsOf(f, (v) => v !== 0), "var(--lane-gap)")}
+          ${lane("即將關機", segmentsOf(st, (v) => v & 128), "var(--warndot)")}
+        </div>
       </div>
     </section>`;
   }).join("");
@@ -1862,11 +1869,13 @@ function build() {
     const lanes = S.health.ids.filter((r) => r.judged || r.n > 3).sort((a, b) => a.info.node.localeCompare(b.info.node) || a.key.localeCompare(b.key));
     title("CAN 節點泳道（綠 = 有收到，紅 = 斷訊，灰細條 = 儀表要求停止廣播，灰點 = 請求/回應不判斷）");
     const n = lanes.length;
-    const u = new uPlot(Object.assign(common(Math.max(80, 22 * n + 34), [interactPlugin(false), { hooks: { draw: (uu) => {
+    // phone width: the names (up to ~240 px) would cover most of a ~300 px plot, so each name gets its own line above its bar
+    const stack = W() < 600;
+    const u = new uPlot(Object.assign(common(Math.max(80, (stack ? 34 : 22) * n + 34), [interactPlugin(false), { hooks: { draw: (uu) => {
       const { ctx } = uu, { top, height, left } = uu.bbox, xmin = uu.scales.x.min, xmax = uu.scales.x.max, lh = height / n;
       ctx.save();
       lanes.forEach((r, i) => {
-        const y = top + i * lh + lh * 0.2, hh = lh * 0.6;
+        const y = top + i * lh + (stack ? lh * 0.5 : lh * 0.2), hh = stack ? lh * 0.38 : lh * 0.6;
         if (r.judged) { for (const [a, b] of r.segs) if (b >= xmin && a <= xmax) drawRect(uu, a, b, y, hh, css("--lane-ok")); }
         else { for (const t of S.ids[r.key].t) if (t >= xmin && t <= xmax) drawRect(uu, t, t, y, hh, css("--c8")); }
         for (const g of r.gaps) if (g.b >= xmin && g.a <= xmax) drawRect(uu, g.a, g.b, y, hh, css("--lane-gap"));
@@ -1874,7 +1883,9 @@ function build() {
       });
       ctx.font = (11 * devicePixelRatio) + "px 'Noto Sans TC', 'Microsoft JhengHei', system-ui, sans-serif"; ctx.textBaseline = "middle";
       lanes.forEach((r, i) => {
-        const txt = r.info.nodeName + " · " + r.info.name, yc = top + i * lh + lh / 2, w = ctx.measureText(txt).width;
+        const txt = r.info.nodeName + " · " + r.info.name;
+        if (stack) { ctx.fillStyle = css("--text"); ctx.fillText(txt, left + 2, top + i * lh + lh * 0.27); return; }
+        const yc = top + i * lh + lh / 2, w = ctx.measureText(txt).width;
         ctx.fillStyle = css("--panel"); ctx.globalAlpha = 0.85; ctx.fillRect(left + 2, yc - lh * 0.32, w + 8, lh * 0.64);
         ctx.globalAlpha = 1; ctx.fillStyle = css("--text"); ctx.fillText(txt, left + 6, yc);
       });
@@ -2461,7 +2472,7 @@ function groupsHtml(G) {
   return G.map((g, gi) => `<div class="rgroup"><h3>${esc(g.title)}</h3><div class="rlist">${g.rows.map((x, i) => {
     const tag = x.t ? "button" : "div";
     return `<${tag} class="rli"${x.t ? ` type="button" data-g="${gi}.${i}" title="在時間軸上看"` : ""}><span class="rk">${esc(x.k)}${x.e ? `<small>${esc(x.e)}</small>` : ""}</span>` +
-      `<span class="rv">${esc(x.v)}${x.u ? `<small>${esc(x.u)}</small>` : ""}</span>${x.t ? '<span class="go" aria-hidden="true">›</span>' : ""}${x.bar != null ? `<i class="pbar" style="max-width:${(x.bar * 100).toFixed(0)}%"></i>` : ""}</${tag}>`;
+      `<span class="rv">${esc(x.v)}${x.u ? `<small>${esc(x.u)}</small>` : ""}</span>${x.t ? '<span class="go" aria-hidden="true">›</span>' : ""}${x.bar != null ? `<i class="pbar" style="--p:${(x.bar * 100).toFixed(0)}%"></i>` : ""}</${tag}>`;
   }).join("")}</div>${g.note ? `<p class="rnote">${esc(g.note)}</p>` : ""}</div>`).join("");
 }
 const groupClick = (getR) => (e) => { const b = e.target.closest("[data-g]"); if (!b) return; const [gi, i] = b.dataset.g.split(".").map(Number), R = getR(); const x = R && R.groups[gi] && R.groups[gi].rows[i]; if (x && x.t) goTime(x.t[0], x.t[1]); };
