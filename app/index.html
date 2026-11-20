@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
 <title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-CWBHgS8y.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-BicE_YKq.css">
+  <script type="module" crossorigin src="./assets/index-DuCoEon2.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-HKiT8P1h.css">
 </head>
 <body>
 <header>
@@ -74,9 +74,14 @@
       </div>
       <!-- 未連線: a guide over the whole dashboard instead of a screen of dashes -->
       <div id="dashEmpty" class="dash-empty">
-        <h2>先連接 ToolB 模組</h2>
-        <p>連線後這裡會顯示速度、功率和相電流，按紅色按鈕就能開始錄製。</p>
+        <h2 id="dashEmptyTitle">先連接 ToolB 模組</h2>
+        <p id="dashEmptyText">連線後這裡會顯示速度、功率和相電流，按紅色按鈕就能開始錄製。</p>
         <button id="btnConnect" type="button" class="dash-connect">連接模組</button>
+        <!-- 錄製還沒結束、模組沒連線（斷線重連中，或頁面重新載入後）：不靠模組也能收尾 -->
+        <div id="dashOpen" class="dash-open" hidden>
+          <p>模組已經斷電（例如車子關了電源）就不會再連回來，可以直接結束，手機上的資料會存成「未完整」的紀錄。</p>
+          <button id="btnEndLocal" type="button">結束錄製並儲存</button>
+        </div>
         <button id="btnDemo" type="button" class="dash-demo" hidden>示範模式</button>
         <p id="noBle" class="dash-note" hidden>這個瀏覽器不支援 Web Bluetooth，連不到模組。</p>
         <p class="dash-note">iPhone 請用 Bluefy 開啟；Android 和電腦用 Chrome。</p>
@@ -288,6 +293,8 @@
     <div class="row sheet-acts">
       <button id="btnDisconnect" type="button" class="danger" hidden>中斷連線</button>
       <button id="btnDrop" type="button" hidden>模擬藍牙斷線</button>
+      <button id="btnAway" type="button" hidden>模擬離開藍牙範圍</button>
+      <button id="btnPower" type="button" hidden>模擬模組斷電</button>
       <button id="btnConnect2" type="button" class="primary">連接模組</button>
       <button value="cancel" type="submit">關閉</button>
     </div>
