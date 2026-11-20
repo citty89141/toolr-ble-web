@@ -25,7 +25,7 @@
       "name": "ToolB 韌體更新",
       "path": "ota/",
       "repo": "toolsb_gattc_gatts ble_ota.html",
-      "commit": "400cc7f",
+      "commit": "e48a37d",
       "version": "最新韌體 1.1.6",
       "firmware": [
         "1.1.6",

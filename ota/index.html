@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="toolr-build" content="400cc7f">
+  <meta name="toolr-build" content="e48a37d">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#425563">
   <title>ENDEX BLE OTA 更新</title>
@@ -169,6 +169,20 @@
     .hint{ font-size:12.5px; color:var(--ink-faint); margin-top:10px; }
     .advice{ font-size:13px; line-height:1.55; color:var(--amber); background:var(--amber-soft); border-radius:8px; padding:10px 12px; margin-top:10px; }
 
+    /* 回報記錄 */
+    .report{ margin-top:12px; }
+    .report-row{ display:flex; gap:8px; }
+    .report-row .btn{ margin-top:0; }
+    .report-row .btn.primary-report{ flex:2; }
+    .report-row .btn.secondary{ flex:1; }
+    .report-msg{ font-size:12.5px; color:var(--ink-soft); margin-top:6px; min-height:1em; }
+    .report-msg.err{ color:var(--danger); }
+    #reportText{
+      display:block; width:100%; height:200px; margin-top:8px; padding:10px; border-radius:8px;
+      border:1px solid var(--line-strong); background:var(--surface-2); color:var(--ink);
+      font-size:12px; line-height:1.5; resize:vertical;
+    }
+
     /* log */
     details.logbox{ margin-top:14px; }
     details.logbox summary{ cursor:pointer; font-size:13px; font-weight:600; color:var(--ink-soft); list-style:none; }
@@ -275,6 +289,15 @@
     <div class="result" id="result" role="status" aria-live="polite">
       <div class="r-title" id="resultTitle"></div>
       <div class="r-body" id="resultBody"></div>
+    </div>
+
+    <div class="report" id="report" hidden>
+      <div class="report-row">
+        <button class="btn primary-report" id="btnReport" type="button">回報這次記錄</button>
+        <button class="btn secondary" id="btnReportShow" type="button">顯示全文</button>
+      </div>
+      <div class="report-msg" id="reportMsg" role="status" aria-live="polite"></div>
+      <textarea id="reportText" class="mono" spellcheck="false" aria-label="這次的完整記錄" hidden></textarea>
     </div>
 
     <p class="hint">更新期間請讓裝置靠近、不要關閉本頁或讓螢幕休眠；中途失敗不會讓裝置變磚，舊韌體會繼續運作。</p>
@@ -407,7 +430,14 @@
   }
 
   // ── log ───────────────────────────────────────────────────
+  // 回報用的記錄：和畫面上的詳細記錄同一份內容，每行加上時間
+  let logBuf = [];
+  const hms = d => d.toTimeString().slice(0, 8) + '.' + String(d.getMilliseconds()).padStart(3, '0');
   function log(msg, cls = '') {
+    const t = hms(new Date());
+    const lines = String(msg).split('\n');
+    lines.forEach((l, i) => logBuf.push(l === '' && i < lines.length - 1 ? '' : `${t} ${cls === 'err' ? '!! ' : ''}${l}`));
+    if (logBuf.length > 4000) logBuf.splice(0, logBuf.length - 4000);
     const el = $('log');
     const span = document.createElement('span');
     if (cls) span.className = cls;
@@ -437,7 +467,98 @@
     r.className = 'result show ' + (ok ? 'ok' : 'err');
     $('resultTitle').textContent = title;
     $('resultBody').textContent = body || '';
+    lastResult = `${title}${body ? ' — ' + body : ''}`;
+    showReport();
   }
+
+  // ── 回報這次記錄 ───────────────────────────────────────────
+  // 手機上詳細記錄很難選取複製：一個按鈕把完整記錄加上環境資訊交出去。
+  // 手機：分享（LINE／郵件…）→ 複製到剪貼簿 → 都不行就彈出全選好的文字框；電腦：先複製。
+  let lastResult = '';
+  let lastDevice = null;   // { name, id }：連線失敗時 bleDevice 會被清掉，回報仍要寫是哪一台
+  let otaInfo = null;      // 這次更新的檔案、大小、chunk 數
+  let pageBuild = '', siteBuild = '';
+  function showReport() { $('report').hidden = false; }
+
+  function buildReport() {
+    const now = new Date();
+    const tz = -now.getTimezoneOffset();
+    const tzs = `${tz >= 0 ? '+' : '-'}${String(Math.floor(Math.abs(tz) / 60)).padStart(2, '0')}:${String(Math.abs(tz) % 60).padStart(2, '0')}`;
+    const ymd = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const dev = lastDevice || (bleDevice && { name: bleDevice.name, id: bleDevice.id });
+    const f = otaInfo || (fwFile && fwBytes && { name: fwFile.name, size: fwBytes.length, chunks: Math.ceil(fwBytes.length / CHUNK_SIZE) });
+    return [
+      'ToolB 韌體更新記錄',
+      `時間　　：${ymd} ${hms(now)} (UTC${tzs})`,
+      `頁面　　：${pageBuild || '（未標版本）'}${siteBuild ? ` · 網站 ${siteBuild}` : ''}`,
+      `網址　　：${location.href.slice(0, 160)}`,
+      `瀏覽器　：${navigator.userAgent}`,
+      `裝置　　：${dev ? `${dev.name || '(沒有名稱)'}  id=${dev.id}` : '（還沒選裝置）'}`,
+      `裝置版本：${devVerStr || '（沒讀到）'}`,
+      `目標版本：${fileVerStr || '（沒選檔或無法辨識）'}`,
+      `韌體檔　：${f ? `${f.name} · ${f.size.toLocaleString()} bytes · ${f.chunks} chunks × ${CHUNK_SIZE} B · 間隔 ${CHUNK_DELAY_MS} ms` : '（沒有）'}`,
+      `結果　　：${lastResult || '（還沒有結果）'}`,
+      '',
+      '──── 本頁開啟以來的完整記錄 ────',
+      ...logBuf,
+    ].join('\n');
+  }
+
+  function reportMsg(text, err = false) { const m = $('reportMsg'); m.textContent = text; m.className = 'report-msg' + (err ? ' err' : ''); }
+  function showReportText(text, note) {
+    const ta = $('reportText');
+    ta.value = text; ta.hidden = false;
+    ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);   // iOS 要 setSelectionRange 才會全選
+    reportMsg(note);
+  }
+  // 舊式複製：iOS WebView 沒開放 navigator.clipboard 時通常還能用
+  function legacyCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px;';
+    document.body.appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, text.length);
+    let ok = false;
+    try { ok = document.execCommand('copy'); } catch (_) {}
+    ta.remove();
+    return ok;
+  }
+  async function copyReport(text) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(text); return 'clipboard'; }
+    } catch (_) {}
+    return legacyCopy(text) ? 'execCommand' : '';
+  }
+
+  $('btnReport').addEventListener('click', async () => {
+    const text = buildReport();
+    const mobile = matchMedia('(pointer: coarse)').matches;
+    // navigator.share 要在點擊當下直接呼叫（中間不能先 await），iOS 才認得是使用者操作
+    if (mobile && navigator.share) {
+      try {
+        await navigator.share({ title: 'ToolB 韌體更新記錄', text });
+        log('（已用分享送出記錄）', 'dim');
+        reportMsg('已送出。');
+        return;
+      } catch (e) {
+        if (e && e.name === 'AbortError') { reportMsg('已取消分享。也可以按「顯示全文」自己複製。'); return; }
+        log(`（分享失敗 ${(e && e.name) || 'Error'}: ${(e && e.message) || e}，改用複製）`, 'dim');
+      }
+    }
+    const how = await copyReport(text);
+    if (how) {
+      log(`（已複製記錄到剪貼簿：${how}）`, 'dim');
+      reportMsg(`已複製 ${text.length.toLocaleString()} 字到剪貼簿，貼到 LINE 或郵件給工程師即可。`);
+    } else {
+      showReportText(text, '這個瀏覽器不讓網頁自動複製：下面已全選，請長按選「拷貝」。');
+    }
+  });
+  $('btnReportShow').addEventListener('click', () => {
+    const ta = $('reportText');
+    if (!ta.hidden) { ta.hidden = true; $('btnReportShow').textContent = '顯示全文'; reportMsg(''); return; }
+    $('btnReportShow').textContent = '收起全文';
+    showReportText(buildReport(), '已全選，長按選「拷貝」。');
+  });
   function hideResult() { $('result').className = 'result'; }
 
   // ── 錯誤訊息轉成人話 ───────────────────────────────────────
@@ -638,6 +759,7 @@
     if (bleDevice) return bleDevice;
     bleDevice = await step('選擇裝置', () => navigator.bluetooth.requestDevice(REQUEST));
     log(`  裝置：${bleDevice.name || '(沒有名稱)'}  id=${bleDevice.id}`, 'dim');
+    lastDevice = { name: bleDevice.name, id: bleDevice.id };
     updateDeviceLine();
     return bleDevice;
   }
@@ -659,6 +781,7 @@
       dev = await step('選擇裝置', () => navigator.bluetooth.requestDevice(REQUEST));
       log(`  裝置：${dev.name || '(沒有名稱)'}  id=${dev.id}`, 'dim');
       bleDevice = dev; updateDeviceLine();
+      lastDevice = { name: dev.name, id: dev.id };
       const { service } = await openOta(dev);
       try {
         const st = (await readChar(service, OTA_STATUS_UUID)).getUint8(0);
@@ -680,6 +803,7 @@
       devVerStr = null;
       renderVerBox('devVer', 'devMeta', friendlyError(err), 'dim');
       showAdvice(adviceFor(err));
+      if (!(err && err.name === 'NotFoundError' && err.step === '選擇裝置')) { lastResult = `讀取版本失敗 — ${friendlyError(err)}`; showReport(); }
       if (!(err && err.name === 'NotFoundError' && err.step === '選擇裝置')) $('logbox').open = true;
     } finally {
       if (dev && dev.gatt.connected) dev.gatt.disconnect();
@@ -728,6 +852,7 @@
     setBusy(true);
     hideResult();
     $('log').innerHTML = '';
+    reportMsg(''); lastResult = '';
     setProgress(0, '準備中 ...');
     let stage = 'connect';
 
@@ -739,7 +864,10 @@
       for (let i = 0; i < total; i += CHUNK_SIZE)
         chunks.push(fw.slice(i, Math.min(i + CHUNK_SIZE, total)));
 
+      otaInfo = { name: fwFile.name, size: total, chunks: chunks.length };
+      log(`══ 開始更新 ${new Date().toLocaleString()} ══`, 'dim');
       log(`韌體 : ${fwFile.name}`);
+      log(`目標版本 : ${targetVersion || '(無法辨識)'}`);
       log(`大小  : ${total.toLocaleString()} bytes → ${chunks.length} chunks × ${CHUNK_SIZE} B`);
 
       // ── 連線 ──
@@ -767,7 +895,7 @@
       setStage(stage = 'start');
       setProgress(0, '送出 OTA START ...');
       log('\n[1/4] 送出 OTA START ...');
-      await ctrlChar.writeValue(new Uint8Array([0x01]));
+      await step('送出 START（有回應寫入 0xFE01）', () => ctrlChar.writeValue(new Uint8Array([0x01])), GATT_TIMEOUT_MS);
       await sleep(500);
 
       // ── 傳輸 ──
@@ -798,19 +926,29 @@
         dev.addEventListener('gattserverdisconnected', onDisc);
         setTimeout(() => { dev.removeEventListener('gattserverdisconnected', onDisc); resolve(false); }, 15000);
       });
+      // 0xFE01 只宣告 WRITE（沒有 WRITE_NR）：用無回應寫入時 iOS（Bluefy）不丟例外、直接把封包丟掉，模組永遠收不到 END。
+      // 一律用有回應寫入。模組先回 ACK 再收尾，約 0.5 s 後重開；若重開比 ACK 先到，promise 會因斷線 reject，
+      // 那不算失敗，結果仍由上面「15 秒內有沒有斷線」決定
+      let endAck = false;
       try {
-        await ctrlChar.writeValueWithoutResponse(new Uint8Array([0x02]));
-      } catch (_) {
-        try { await ctrlChar.writeValue(new Uint8Array([0x02])); } catch (_) {}
+        const tEnd = performance.now();
+        await ctrlChar.writeValue(new Uint8Array([0x02]));
+        endAck = true;
+        log(`      END 已送達（裝置回應 ${Math.round(performance.now() - tEnd)} ms）`, 'dim');
+      } catch (e) {
+        log(`      END 寫入回報 ${(e && e.name) || 'Error'}: ${(e && e.message) || e}（裝置重開時斷線屬正常）`, 'dim');
       }
       setProgress(100, '等待裝置驗證檔案並重新開機 ...');
       if (!(await rebooted)) {
-        log('\n送出 END 後 15 秒裝置都沒有重新開機：檔案沒有完整寫入，裝置仍是原本的韌體', 'err');
+        log(endAck
+          ? '\n裝置收到 END，但 15 秒內沒有重新開機：檔案沒有完整寫入（驗證失敗），裝置仍是原本的韌體'
+          : '\n送出 END 沒有得到回應，15 秒內裝置也沒有重新開機：END 可能沒送到，裝置仍是原本的韌體', 'err');
         if (dev.gatt.connected) dev.gatt.disconnect();
         setStage('verify', true);
         setProgress(100, '裝置沒有重新開機');
-        showResult(false, '✖ 更新未完成',
-          '韌體檔沒有完整傳到裝置（傳輸中有資料遺失），裝置沒有換版本，仍在運行原本的韌體，可以直接重試。');
+        showResult(false, '✖ 更新未完成', endAck
+          ? '韌體檔沒有完整傳到裝置（傳輸中有資料遺失），裝置沒有換版本，仍在運行原本的韌體，可以直接重試。'
+          : '結束指令沒有送到裝置，裝置沒有換版本，仍在運行原本的韌體。請先按「回報這次記錄」，再重試。');
         $('logbox').open = true;
         return;
       }
@@ -900,12 +1038,13 @@
   // 頁面版本（web/build_site.mjs 寫進 <meta name="toolr-build">）和網站目前的 site.json 比對：
   // GitHub Pages 給 max-age=600，Bluefy 部署後約 10 分鐘內可能還在跑舊頁面
   (async () => {
-    const mine = (document.querySelector('meta[name="toolr-build"]') || {}).content || '';
+    const mine = pageBuild = (document.querySelector('meta[name="toolr-build"]') || {}).content || '';
     let live = '';
     try {
       const r = await fetch('../site.json', { cache: 'no-cache' });
       if (r.ok) live = ((await r.json()).tools || {}).ota?.commit || '';
     } catch (_) { /* 單獨開啟時沒有 site.json */ }
+    siteBuild = live;
     log(`頁面 ${mine || '（未標版本）'}${live ? ` · 網站 ${live}` : ''} · ${navigator.userAgent}`, 'dim');
     const strip = s => s.replace(/-dirty$/, '');
     if (mine && live && strip(mine) !== strip(live)) {
