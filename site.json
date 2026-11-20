@@ -26,11 +26,11 @@
       "path": "ota/",
       "repo": "toolsb_gattc_gatts ble_ota.html",
       "commit": "400cc7f",
-      "version": "最新韌體 1.1.5",
+      "version": "最新韌體 1.1.6",
       "firmware": [
+        "1.1.6",
         "1.1.5",
-        "1.1.3",
-        "1.1.2"
+        "1.1.3"
       ]
     }
   }
