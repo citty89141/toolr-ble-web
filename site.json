@@ -1,11 +1,11 @@
 {
-  "built": "2026-11-21T13:09:42.212Z",
+  "built": "2026-11-21T14:02:02.828Z",
   "tools": {
     "app": {
       "name": "ToolR App（錄製、參數、燒錄）",
       "path": "app/",
       "repo": "toolsb_gattc_gatts app/",
-      "commit": "9c2be70"
+      "commit": "ad0f8db"
     },
     "param": {
       "name": "eBike Tool（電腦版）",
@@ -25,12 +25,12 @@
       "name": "ToolB 韌體更新",
       "path": "ota/",
       "repo": "toolsb_gattc_gatts ble_ota.html",
-      "commit": "e48a37d",
-      "version": "最新韌體 1.1.6",
+      "commit": "ad0f8db",
+      "version": "最新韌體 1.1.7",
       "firmware": [
+        "1.1.7",
         "1.1.6",
-        "1.1.5",
-        "1.1.3"
+        "1.1.5"
       ]
     }
   }

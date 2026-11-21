@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
   <meta charset="UTF-8">
-  <meta name="toolr-build" content="e48a37d">
+  <meta name="toolr-build" content="ad0f8db">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#425563">
   <title>ENDEX BLE OTA 更新</title>
@@ -319,7 +319,12 @@
   const OTA_STATUS_UUID  = uuid16(0xfe03);
   const OTA_VERSION_UUID = uuid16(0xfe04);
   const CHUNK_SIZE      = 490;
-  const CHUNK_DELAY_MS  = 12;
+  // 流量控制：每送 FLOW_WINDOW 塊就讀一次 OTA 狀態 0xFE03。模組要先處理完前面的寫入才會回這個讀取，
+  // 所以模組的藍牙堆疊裡最多只堆這幾塊。原本固定每塊等 12 ms，手機連線快（約 33 KB/s）時送得比模組寫 flash
+  // （約 30 KB/s）快，資料堆在藍牙堆疊裡：佇列滿就丟塊（END 後不重開機），記憶體用完甚至當機（02D0 實測）。
+  // 8 塊約 30 KB/s，4 塊約 25 KB/s，兩者記憶體都不會降
+  const FLOW_WINDOW     = 8;
+  const CHUNK_DELAY_MS  = 12;   // 只在讀不到 0xFE03 時用（舊作法，沒有流量控制）
   const NAME_PREFIX     = 'ENDEX_CAN_';
   // 只用來在記錄裡列出模組有哪些服務（1.1.x 有錄製 6fde0001 與參數橋接 0x00FF），方便判斷連到的是哪一版
   const RAW_SERVICE     = '6fde0001-3d28-46d2-a63f-b29909ab044a';
@@ -496,7 +501,7 @@
       `裝置　　：${dev ? `${dev.name || '(沒有名稱)'}  id=${dev.id}` : '（還沒選裝置）'}`,
       `裝置版本：${devVerStr || '（沒讀到）'}`,
       `目標版本：${fileVerStr || '（沒選檔或無法辨識）'}`,
-      `韌體檔　：${f ? `${f.name} · ${f.size.toLocaleString()} bytes · ${f.chunks} chunks × ${CHUNK_SIZE} B · 間隔 ${CHUNK_DELAY_MS} ms` : '（沒有）'}`,
+      `韌體檔　：${f ? `${f.name} · ${f.size.toLocaleString()} bytes · ${f.chunks} chunks × ${CHUNK_SIZE} B · ${f.flow || `每 ${FLOW_WINDOW} 塊等裝置確認`}` : '（沒有）'}`,
       `結果　　：${lastResult || '（還沒有結果）'}`,
       '',
       '──── 本頁開啟以來的完整記錄 ────',
@@ -881,6 +886,10 @@
 
       const ctrlChar = await getChar(service, OTA_CTRL_UUID);
       const dataChar = await getChar(service, OTA_DATA_UUID);
+      let statusChar = null;
+      try { statusChar = await getChar(service, OTA_STATUS_UUID); }
+      catch (e) { if (!e || e.name !== 'NotFoundError') throw e; }
+      otaInfo.flow = statusChar ? `每 ${FLOW_WINDOW} 塊等裝置確認` : `間隔 ${CHUNK_DELAY_MS} ms（沒有 0xFE03）`;
 
       let oldVersion = null;
       try {
@@ -900,17 +909,26 @@
 
       // ── 傳輸 ──
       setStage(stage = 'transfer');
-      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B  delay=${CHUNK_DELAY_MS}ms) ...`);
+      log(`[2/4] 傳送 ${chunks.length} chunks (chunk=${CHUNK_SIZE}B  ` +
+          (statusChar ? `每 ${FLOW_WINDOW} 塊等裝置確認` : `delay=${CHUNK_DELAY_MS}ms，沒有 0xFE03 不能流量控制`) + ') ...');
       const t0 = Date.now();
       for (let i = 0; i < chunks.length; i++) {
         await dataChar.writeValueWithoutResponse(chunks[i]);
+        if (statusChar && ((i + 1) % FLOW_WINDOW === 0 || i === chunks.length - 1)) {
+          try {
+            await withTimeout(statusChar.readValue(), GATT_TIMEOUT_MS, '等待裝置寫入');
+          } catch (e) {
+            if (e && typeof e === 'object' && !e.step) e.step = `傳送第 ${i + 1}/${chunks.length} 塊`;
+            throw e;
+          }
+        }
         const sent = Math.min((i + 1) * CHUNK_SIZE, total);
         const pct  = Math.round((i + 1) * 100 / chunks.length);
         const secs = (Date.now() - t0) / 1000;
         const rate = secs > 0 ? sent / secs : 0;
         const eta  = rate > 0 ? Math.ceil((total - sent) / rate) : 0;
         setProgress(pct, `${(sent / 1024).toFixed(0)} / ${(total / 1024).toFixed(0)} KB · ${(rate / 1024).toFixed(1)} KB/s · 剩 ${eta} 秒`);
-        await sleep(CHUNK_DELAY_MS);
+        if (!statusChar) await sleep(CHUNK_DELAY_MS);
       }
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
       log(`    傳送完成，耗時 ${elapsed} 秒`);
