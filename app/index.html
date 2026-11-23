@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#425563">
-<title>ToolR 工具</title>
-  <script type="module" crossorigin src="./assets/index-BczzfcQ2.js"></script>
+<title>ToolR 工具</title>
+  <script type="module" crossorigin src="./assets/index-P7rBWTaj.js"></script>
   <link rel="stylesheet" crossorigin href="./assets/index-B5-YSwxl.css">
 </head>
 <body>
@@ -226,6 +226,11 @@
       <div id="bVers" class="vers" role="radiogroup" aria-label="韌體版本"></div>
       <p id="bSrc" class="muted"></p>
     </section>
+    <details id="bTest" class="card btest" hidden>
+      <summary>測試版（未發版，僅供路測）</summary>
+      <p class="pf-warn">還沒發版的路測韌體，不要燒給客戶的車。燒錄前會再確認一次。要回到正式版，在上面「選擇版本」選正式版再燒。</p>
+      <div id="bTests" class="vers" role="radiogroup" aria-label="測試版韌體"></div>
+    </details>
     <details class="card">
       <summary>自己的 HEX 檔與進階選項</summary>
       <div class="row">
@@ -423,6 +428,6 @@
   </form>
 </dialog>
 
-<div id="toast" class="toast" role="status" hidden></div>
+<div id="toast" class="toast" role="status" hidden></div>
 </body>
 </html>
