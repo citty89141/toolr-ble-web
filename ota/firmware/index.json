@@ -1,5 +1,27 @@
 [
   {
+    "file": "ToolB_1.1.10.bin",
+    "version": "1.1.10",
+    "project": "gattc_gatts_coex",
+    "time": "16:11:44",
+    "date": "Nov 24 2026",
+    "idf": "v6.0.3",
+    "built": 1795507904000,
+    "size": 902576,
+    "sha256": "185c3b59a97e4db3f784f5c1a9834e39317a0ae5127a79133258ac4707dfdbe0"
+  },
+  {
+    "file": "ToolB_1.1.9.bin",
+    "version": "1.1.9",
+    "project": "gattc_gatts_coex",
+    "time": "18:38:31",
+    "date": "Nov 23 2026",
+    "idf": "v6.0.3",
+    "built": 1795430311000,
+    "size": 901584,
+    "sha256": "2c490be4050210d31934938d438f184fb7b3db8bd58f153f231d2730ee13182d"
+  },
+  {
     "file": "ToolB_1.1.7.bin",
     "version": "1.1.7",
     "project": "gattc_gatts_coex",
@@ -9,27 +31,5 @@
     "built": 1795268353000,
     "size": 901488,
     "sha256": "a76316575a5a0af23df6e0a815ed1b63e58b9e403c86c3febd546f2c3fc33c16"
-  },
-  {
-    "file": "ToolB_1.1.6.bin",
-    "version": "1.1.6",
-    "project": "gattc_gatts_coex",
-    "time": "11:41:57",
-    "date": "Nov 19 2026",
-    "idf": "v6.0.3",
-    "built": 1795059717000,
-    "size": 900032,
-    "sha256": "fb262f0125f255d9167b97ad35d355d4bc14b3f77666a506a85c77ea54e80086"
-  },
-  {
-    "file": "ToolB_1.1.5.bin",
-    "version": "1.1.5",
-    "project": "gattc_gatts_coex",
-    "time": "00:14:59",
-    "date": "Nov 16 2026",
-    "idf": "v6.0.3",
-    "built": 1794759299000,
-    "size": 898624,
-    "sha256": "1053eb13c0f78a4a68f6f414be3d988781b9089abcb1fb184364eb41e58e2672"
   }
 ]

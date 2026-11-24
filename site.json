@@ -1,37 +1,37 @@
 {
-  "built": "2026-11-23T03:02:57.700Z",
-  "tools": {
-    "app": {
-      "name": "ToolR App（錄製、參數、燒錄）",
-      "path": "app/",
-      "repo": "toolsb_gattc_gatts app/",
-      "commit": "2337822"
-    },
-    "param": {
-      "name": "eBike Tool（電腦版）",
-      "path": "param/",
-      "repo": "ebike-tool fix/uart-param-mapping (citty89141 fork)",
-      "commit": "57545d6",
-      "version": "v1.5.19"
-    },
-    "analyzer": {
-      "name": "分析",
-      "path": "analyzer/",
-      "repo": "tool_r tools/toolr_analyzer.html（std）",
-      "commit": "84c38e5",
-      "version": "V1.14"
-    },
-    "ota": {
-      "name": "ToolB 韌體更新",
-      "path": "ota/",
-      "repo": "toolsb_gattc_gatts ble_ota.html",
-      "commit": "ad0f8db",
-      "version": "最新韌體 1.1.7",
-      "firmware": [
-        "1.1.7",
-        "1.1.6",
-        "1.1.5"
-      ]
+    "built": "2026-11-24T08:19:43.297Z",
+    "tools": {
+        "app": {
+            "name": "ToolR App（錄製、參數、燒錄）",
+            "path": "app/",
+            "repo": "toolsb_gattc_gatts app/",
+            "commit": "9767644"
+        },
+        "param": {
+            "name": "eBike Tool（電腦版）",
+            "path": "param/",
+            "repo": "ebike-tool fix/uart-param-mapping (citty89141 fork)",
+            "commit": "57545d6",
+            "version": "v1.5.19"
+        },
+        "analyzer": {
+            "name": "分析",
+            "path": "analyzer/",
+            "repo": "tool_r tools/toolr_analyzer.html（std）",
+            "commit": "84c38e5",
+            "version": "V1.14"
+        },
+        "ota": {
+            "name": "ToolB 韌體更新",
+            "path": "ota/",
+            "repo": "toolsb_gattc_gatts ble_ota.html",
+            "commit": "ad0f8db",
+            "version": "最新韌體 1.1.10",
+            "firmware": [
+                "1.1.10",
+                "1.1.9",
+                "1.1.7"
+            ]
+        }
     }
-  }
 }
